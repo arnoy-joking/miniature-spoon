@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>YouTube Music Clone</title>
+    <!-- ADDED: Favicon Link -->
+    <link rel="icon" type="image/png" href="https://img.icons8.com/?size=100&id=YNioBT5SxQw3&format=png&color=000000">
     <!-- Load Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Use Inter font and custom scrollbar styles for the dark theme -->
@@ -26,6 +28,13 @@
         }
         .custom-scrollbar::-webkit-scrollbar-track {
             background: #121212;
+        }
+        
+        /* Highlight active track in the queue list */
+        .queue-item.active {
+            background-color: #212121; 
+            border-left: 3px solid #f87171; /* red-500 */
+            padding-left: 5px; /* Adjust padding to accommodate the border */
         }
         
         /* --- Sidebar Collapse CSS --- */
@@ -192,7 +201,6 @@
     <footer id="player-bar" class="fixed bottom-0 left-0 w-full h-20 bg-[#1c1c1c] border-t border-[#212121] flex items-center justify-between px-4 z-20">
         
         <!-- Track Info (Left Side) - Now uses flex-1 on mobile and constrains on tablet/desktop -->
-        <!-- Allows title/artist more space on small screens -->
         <div class="flex items-center space-x-3 flex-1 sm:flex-none sm:min-w-[200px] lg:min-w-[250px] sm:max-w-[30%]">
             <!-- Album Art -->
             <img id="player-art" src="https://placehold.co/48x48/575757/000?text=YTM" alt="Track Art" class="w-12 h-12 rounded-lg shadow-lg">
@@ -206,8 +214,8 @@
         <div class="flex flex-col items-center justify-center flex-1 max-w-sm sm:max-w-md lg:max-w-xl h-full">
             <!-- Controls - Spacing reduced on mobile -->
             <div class="flex items-center space-x-4 sm:space-x-8 text-xl mb-1">
-                <!-- Previous Track Button -->
-                <button class="text-gray-400 hover:text-white transition duration-150" title="Previous">
+                <!-- Previous Track Button - UPDATED: Added ID -->
+                <button id="prev-track-btn" class="text-gray-400 hover:text-white transition duration-150 disabled:opacity-50 disabled:cursor-not-allowed" title="Previous" disabled>
                     <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/>
                     </svg>
@@ -221,8 +229,8 @@
                     </svg>
                 </button>
 
-                <!-- Next Track Button -->
-                <button class="text-gray-400 hover:text-white transition duration-150" title="Next">
+                <!-- Next Track Button - UPDATED: Added ID -->
+                <button id="next-track-btn" class="text-gray-400 hover:text-white transition duration-150 disabled:opacity-50 disabled:cursor-not-allowed" title="Next" disabled>
                     <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path d="M16 6h2v12h-2zM7 18l8.5-6L7 6z"/>
                     </svg>
@@ -242,7 +250,7 @@
             </div>
         </div>
 
-        <!-- Volume/Extras (Right Side) - Now uses flex-1 on mobile and constrains on tablet/desktop -->
+        <!-- Volume/Extras (Right Side) -->
         <div class="flex items-center space-x-4 flex-1 sm:flex-none sm:min-w-[150px] sm:max-w-[30%] justify-end">
             <!-- Volume button hidden on extra small screens for simplicity and priority of Queue/Track Info -->
             <button class="hidden xs:block text-gray-400 hover:text-white transition duration-150" title="Mute/Unmute">
@@ -256,7 +264,6 @@
     </footer>
     
     <!-- 4. Fixed Right Queue/Playlist Panel -->
-    <!-- Full width on mobile, capped at 384px on tablet/desktop -->
     <div id="queue-panel" class="fixed top-0 right-0 h-full w-full sm:max-w-sm bg-[#121212] z-40 border-l border-[#212121] transform translate-x-full transition-transform duration-300 pt-16 pb-20 overflow-y-auto custom-scrollbar">
         <div class="px-4 py-3 border-b border-[#212121] flex items-center justify-between sticky top-0 bg-[#121212] z-50">
             <h3 class="text-xl font-bold">Up Next (Radio)</h3>
@@ -287,6 +294,8 @@
         const contentLoader = document.getElementById('content-loader');
         
         const playPauseBtn = document.getElementById('play-pause-btn');
+        const prevTrackBtn = document.getElementById('prev-track-btn'); // New
+        const nextTrackBtn = document.getElementById('next-track-btn'); // New
         const progressBar = document.getElementById('progress-bar');
         const currentTimeEl = document.getElementById('current-time');
         const totalDurationEl = document.getElementById('total-duration');
@@ -296,13 +305,13 @@
         const playerBar = document.getElementById('player-bar');
         const sidebar = document.getElementById('sidebar');
         
-        // New Queue Elements
+        // Queue Elements
         const queuePanel = document.getElementById('queue-panel');
         const queueToggleBtn = document.getElementById('queue-toggle-btn');
         const closeQueueBtn = document.getElementById('close-queue-btn');
         const queueList = document.getElementById('queue-list');
         
-        // New View Toggle Elements
+        // View Toggle Elements
         const gridViewBtn = document.getElementById('grid-view-btn');
         const listViewBtn = document.getElementById('list-view-btn');
 
@@ -315,11 +324,14 @@
         let currentViewMode = 'grid'; // 'grid' or 'list'
         let lastLoadedResults = []; // Store results to re-render when view changes
         
+        // --- NEW STATE FOR QUEUE MANAGEMENT ---
+        let currentQueue = []; // Full list of tracks in the 'Up Next' radio mix
+        let currentQueueIndex = -1; // Index of the currently playing track in currentQueue
+
         // --- Utility Functions ---
 
         // Converts MM:SS string to total seconds
         const timeToSeconds = (timeString) => {
-            // Handle non-standard durations like those with 'm' (minutes) or 'h' (hours) if API provides them in a single string, though current API format seems to be MM:SS
             if (!timeString || timeString.includes('m') || timeString.includes('h')) return 0; 
             const parts = timeString.split(':');
             if (parts.length === 2) { // MM:SS
@@ -347,7 +359,6 @@
                 } catch (error) {
                     if (i < maxRetries - 1) {
                         const delay = Math.pow(2, i) * 1000; // 1s, 2s, 4s delay
-                        console.warn(`Fetch failed for ${url}. Retrying in ${delay / 1000}s...`, error);
                         await new Promise(resolve => setTimeout(resolve, delay));
                     } else {
                         console.error(`Final fetch failed for ${url}:`, error);
@@ -374,6 +385,11 @@
                 playPauseBtn.classList.remove('text-red-500', 'hover:text-red-500');
                 playPauseBtn.classList.add('text-white', 'hover:text-white');
                 currentSecond = currentVideoDuration; // Ensure it stops exactly at the end
+                
+                // NEW: Auto-advance to next track
+                if (currentQueue.length > 1) {
+                    nextTrack();
+                }
             }
         }
 
@@ -406,60 +422,113 @@
             }
         }
 
-        playPauseBtn.addEventListener('click', togglePlayPause);
-        
-        // --- Queue Panel Logic ---
+        // --- Queue Navigation Logic ---
 
         /**
-         * Toggles the visibility of the Queue Panel.
+         * Loads and plays a track from the currentQueue by its index.
+         * @param {number} index - Index in the currentQueue array.
          */
+        function playTrackByIndex(index) {
+            if (index < 0 || index >= currentQueue.length) return;
+            
+            currentQueueIndex = index;
+            const video = currentQueue[currentQueueIndex];
+            
+            // Set Player Bar UI
+            playerTitle.textContent = video.title;
+            playerArtist.textContent = video.channel;
+            const thumbnailSource = video.thumbnail || video.thumbnails?.[0]?.url || 'https://placehold.co/48x48/575757/000?text=YTM';
+            playerArt.src = thumbnailSource;
+            playerArt.onerror = () => playerArt.src = 'https://placehold.co/48x48/575757/000?text=YTM';
+
+            // Set Duration and Start Playback
+            currentVideoDuration = timeToSeconds(video.duration);
+            totalDurationEl.textContent = video.duration;
+            currentSecond = 0;
+            
+            // Ensure player controls are enabled
+            enablePlayerControls(true);
+            
+            if (!isPlaying || currentSecond >= currentVideoDuration) {
+                // Only toggle if we need to start playing
+                if (!isPlaying) {
+                    togglePlayPause();
+                } else {
+                    // Already playing, but track changed, so just reset and restart interval
+                    clearInterval(updateInterval);
+                    startSimulation();
+                }
+            } else {
+                 // Already playing, just reset and restart interval
+                clearInterval(updateInterval);
+                startSimulation();
+            }
+            
+            renderQueue(currentQueue); // Update queue list highlighting
+        }
+        
+        /**
+         * Moves to the next track in the queue (with wrap-around).
+         */
+        function nextTrack() {
+            if (currentQueue.length <= 1) return; 
+            currentQueueIndex = (currentQueueIndex + 1) % currentQueue.length;
+            playTrackByIndex(currentQueueIndex);
+        }
+
+        /**
+         * Moves to the previous track in the queue (with wrap-around).
+         */
+        function prevTrack() {
+            if (currentQueue.length <= 1) return;
+            // The + currentQueue.length ensures the result is always positive before the modulo operation
+            currentQueueIndex = (currentQueueIndex - 1 + currentQueue.length) % currentQueue.length;
+            playTrackByIndex(currentQueueIndex);
+        }
+
+        // --- Queue Panel Logic ---
+
         function toggleQueue(open) {
             const isOpen = typeof open === 'boolean' ? open : queuePanel.classList.contains('translate-x-full');
             
             if (isOpen) {
-                // Open the panel: remove translate-x-full
                 queuePanel.classList.remove('translate-x-full');
             } else {
-                // Close the panel: add translate-x-full
                 queuePanel.classList.add('translate-x-full');
             }
         }
 
         /**
-         * Renders the current queue/playlist in the side panel.
+         * Renders the current queue/playlist in the side panel, highlighting the active track.
          * @param {Array} videos - Array of video objects from the Radio API.
          */
         function renderQueue(videos) {
             queueList.innerHTML = '';
-            if (!videos || videos.length <= 1) {
-                // Note: The first video is usually the currently playing one.
-                queueList.innerHTML = `<p class="text-center text-gray-500 mt-8">The radio mix could not be generated or contains only the current song.</p>`;
+            
+            if (!videos || videos.length === 0) {
+                queueList.innerHTML = `<p class="text-center text-gray-500 mt-8">Start a song to load the radio mix.</p>`;
                 return;
             }
 
-            // Slice to skip the first item, as it's the currently playing one (which is handled by the player bar)
-            videos.slice(1).forEach((video, index) => { 
+            videos.forEach((video, index) => { 
                 const item = document.createElement('div');
                 
-                item.className = `flex items-center space-x-3 p-2 rounded-lg hover:bg-[#212121] text-gray-300 cursor-pointer transition duration-150`;
+                item.className = `queue-item flex items-center space-x-3 p-2 rounded-lg text-gray-300 cursor-pointer transition duration-150 ${index === currentQueueIndex ? 'active' : 'hover:bg-[#212121]'}`;
                 
-                // Use the smallest thumbnail for the queue list for better performance/fit
-                const thumbnail = video.thumbnails.find(t => t.width === 168) || video.thumbnails[0]; 
+                const thumbnail = video.thumbnails?.find(t => t.width === 168) || video.thumbnails?.[0]; 
 
                 item.addEventListener('click', () => {
-                    // Create a playable video object from the queue item structure
-                    playVideo({
-                        videoId: video.videoId,
-                        title: video.title,
-                        channel: video.channel,
-                        duration: video.duration,
-                        thumbnail: thumbnail?.url || 'https://placehold.co/40x40/333/fff?text=Art',
-                    });
+                    playTrackByIndex(index); // Play track directly from the queue
                     toggleQueue(false); // Close the queue panel after selecting a song
                 });
                 
+                // Show 'Now Playing' or index number
+                const indexIndicator = index === currentQueueIndex 
+                    ? `<span class="text-red-500 text-xs font-bold">PLAYING</span>` 
+                    : `<span class="text-sm font-semibold w-4 text-center text-gray-500">${index + 1}</span>`;
+
                 item.innerHTML = `
-                    <div class="text-sm font-semibold w-4 text-center text-gray-500">${index + 2}</div>
+                    <div class="flex items-center space-x-3 w-10 flex-shrink-0">${indexIndicator}</div>
                     <img src="${thumbnail?.url || 'https://placehold.co/40x40/333/fff?text=Art'}" 
                          onerror="this.onerror=null;this.src='https://placehold.co/40x40/333/fff?text=Art';"
                          alt="Art" class="w-10 h-10 rounded">
@@ -477,8 +546,30 @@
         // --- Core App Logic: Search, Render, Play ---
         
         /**
+         * Enables or disables player controls (Play/Pause, Next, Prev).
+         * @param {boolean} enable - True to enable, false to disable.
+         */
+        function enablePlayerControls(enable) {
+            const controls = [playPauseBtn, prevTrackBtn, nextTrackBtn];
+            controls.forEach(btn => {
+                btn.disabled = !enable;
+                if (enable) {
+                    btn.classList.remove('disabled:opacity-50', 'disabled:cursor-not-allowed', 'text-gray-600', 'cursor-not-allowed');
+                    btn.classList.add('text-white', 'hover:text-red-500');
+                } else {
+                    btn.classList.add('disabled:opacity-50', 'disabled:cursor-not-allowed', 'text-gray-600', 'cursor-not-allowed');
+                    btn.classList.remove('text-white', 'hover:text-red-500');
+                }
+            });
+             // Only enable next/prev if there is a queue > 1
+             if (currentQueue.length <= 1) {
+                prevTrackBtn.disabled = true;
+                nextTrackBtn.disabled = true;
+             }
+        }
+        
+        /**
          * Renders the search results as clickable cards in either grid or list mode.
-         * @param {Array} results - Array of video objects from the Search API.
          */
         function renderResults(results) {
             resultsGrid.innerHTML = '';
@@ -489,31 +580,25 @@
             
             // 1. Set the container layout based on the current mode
             if (currentViewMode === 'list') {
-                // List View Layout: Vertical stack of list items
                 resultsGrid.className = 'flex flex-col space-y-2';
             } else {
-                // Default Grid View Layout: Responsive grid columns
                 resultsGrid.className = 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-4 sm:gap-6';
             }
 
 
             results.forEach(video => {
-                // Ensure duration is present and not a non-standard format (e.g., live stream)
                 const isPlayable = video.duration && !video.duration.includes('m') && !video.duration.includes('h');
                 const thumbnailUrl = video.thumbnail || 'https://placehold.co/150x150/1c1c1c/ffffff?text=No+Art';
                 const card = document.createElement('div');
                 
-                // Attach video data for click handler if playable
                 if (isPlayable) {
-                    card.addEventListener('click', () => playVideo(video));
+                    card.addEventListener('click', () => playSearchVideo(video)); // Use dedicated function for search clicks
                 }
 
                 // 2. Set card classes and HTML content based on the current mode
                 if (currentViewMode === 'list') {
-                    // List View Classes (Horizontal flex layout)
-                    card.className = `flex items-center space-x-4 p-2 rounded-lg transition-transform duration-300 ${isPlayable ? 'hover:bg-[#212121]' : 'opacity-50 cursor-not-allowed'}`;
+                    card.className = `flex items-center space-x-4 p-2 rounded-lg transition-transform duration-300 ${isPlayable ? 'hover:bg-[#212121] cursor-pointer' : 'opacity-50 cursor-not-allowed'}`;
                     
-                    // Construct list view inner HTML
                     card.innerHTML = `
                         <div class="flex-shrink-0 w-16 h-16">
                             <img 
@@ -533,10 +618,8 @@
                     `;
 
                 } else {
-                    // Grid View Classes (Original)
                     card.className = `group cursor-pointer p-2 rounded-lg transition-transform duration-300 ${isPlayable ? 'hover:bg-[#212121]' : 'opacity-50 cursor-not-allowed'}`;
                     
-                    // Construct grid view inner HTML
                     card.innerHTML = `
                         <!-- Album Art Placeholder -->
                         <div class="w-full aspect-square bg-[#1c1c1c] rounded-lg shadow-lg relative overflow-hidden">
@@ -563,21 +646,20 @@
         
         /**
          * Fetches search results and updates the content grid.
-         * @param {string} query - The search query string.
          */
         async function loadContent(query) {
             if (!query) return;
 
-            resultsGrid.innerHTML = ''; // Clear old results
+            resultsGrid.innerHTML = ''; 
             sectionTitle.textContent = `Searching for "${query}"...`;
-            contentLoader.classList.remove('hidden'); // Show loader
+            contentLoader.classList.remove('hidden'); 
 
             try {
                 const url = `${SEARCH_API}?q=${encodeURIComponent(query)}`;
                 const data = await fetchWithRetry(url);
                 
                 if (data && data.results) {
-                    lastLoadedResults = data.results; // Store for view toggle
+                    lastLoadedResults = data.results; 
                     renderResults(data.results);
                     sectionTitle.textContent = `Results for "${query}"`;
                 } else {
@@ -590,57 +672,39 @@
                 sectionTitle.textContent = `Search Failed (Check Console)`;
                 resultsGrid.innerHTML = `<p class="col-span-full text-red-400">Error fetching search results. Please try again later.</p>`;
             } finally {
-                contentLoader.classList.add('hidden'); // Hide loader
+                contentLoader.classList.add('hidden'); 
             }
         }
         
         /**
-         * Updates the player bar with the selected video and starts the simulation.
-         * @param {Object} video - The selected video data (from search result or radio playlist).
+         * Handles playing a video directly from a search result click.
+         * Fetches the radio mix and starts playing the first track (the clicked one).
+         * @param {Object} video - The selected video data (from search result).
          */
-        async function playVideo(video) {
-            console.log("Playing video:", video.title, video.videoId);
+        async function playSearchVideo(video) {
+            console.log("Playing search video:", video.title, video.videoId);
 
-            // 1. Update Player Bar UI
-            playerTitle.textContent = video.title;
-            playerArtist.textContent = video.channel;
-            // The search API response has a 'thumbnail' string, the radio API response uses 'thumbnails' array
-            const thumbnailSource = video.thumbnail || video.thumbnails?.[0]?.url || 'https://placehold.co/48x48/575757/000?text=YTM';
-            playerArt.src = thumbnailSource;
-            playerArt.onerror = () => playerArt.src = 'https://placehold.co/48x48/575757/000?text=YTM';
-
-            // 2. Set Duration and Enable Player
-            currentVideoDuration = timeToSeconds(video.duration);
-            totalDurationEl.textContent = video.duration;
-            
-            playPauseBtn.disabled = false;
-            playPauseBtn.classList.remove('text-gray-600', 'cursor-not-allowed');
-            playPauseBtn.classList.add('text-white', 'hover:text-red-500');
-
-            // 3. Start Playback
-            currentSecond = 0;
-            if (!isPlaying) {
-                togglePlayPause(); // Start playing automatically
-            } else {
-                // If already playing, just reset the time and restart the simulation
-                clearInterval(updateInterval);
-                startSimulation();
-            }
-            
-            // 4. Fetch Radio Playlist (Async, does not block playback)
+            // 1. Fetch Radio Playlist 
             try {
                 const radioUrl = `${RADIO_API}?videoId=${video.videoId}`;
                 const radioData = await fetchWithRetry(radioUrl);
                 
-                if (radioData && radioData.videos) {
-                    console.log(`Successfully loaded Radio Playlist: ${radioData.playlistTitle} (${radioData.videos.length} tracks)`);
-                    renderQueue(radioData.videos); // RENDER THE NEW QUEUE
+                if (radioData && radioData.videos && radioData.videos.length > 0) {
+                    currentQueue = radioData.videos;
+                    console.log(`Successfully loaded Radio Playlist: ${radioData.playlistTitle} (${currentQueue.length} tracks)`);
+                    
+                    // 2. Start playing the first track in the new queue
+                    playTrackByIndex(0); 
+
                 } else {
-                    renderQueue([]); // Clear/show error if no radio data found
+                    console.warn("Could not load radio playlist for this track.");
+                    currentQueue = [video]; // Fallback: put just the clicked track in the queue
+                    playTrackByIndex(0);
                 }
             } catch (error) {
                 console.warn("Could not load radio playlist for this track.", error);
-                renderQueue([]); // Clear/show error
+                currentQueue = [video]; // Fallback: put just the clicked track in the queue
+                playTrackByIndex(0);
             }
         }
 
@@ -714,6 +778,11 @@
             queueToggleBtn.addEventListener('click', () => toggleQueue(true));
             closeQueueBtn.addEventListener('click', () => toggleQueue(false));
             
+            // Set up player navigation listeners
+            playPauseBtn.addEventListener('click', togglePlayPause);
+            prevTrackBtn.addEventListener('click', prevTrack);
+            nextTrackBtn.addEventListener('click', nextTrack);
+            
             // Set up view toggle listeners
             gridViewBtn.addEventListener('click', () => setViewMode('grid'));
             listViewBtn.addEventListener('click', () => setViewMode('list'));
@@ -723,6 +792,7 @@
             loadContent(searchInput.value.trim());
             updatePlayerBarPadding();
             window.addEventListener('resize', updatePlayerBarPadding);
+            enablePlayerControls(false); // Start with disabled controls
         }
         
     </script>
