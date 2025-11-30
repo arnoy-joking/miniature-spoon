@@ -279,76 +279,197 @@
                 const history = StorageManager.getHistory();
                 const favorites = StorageManager.getFavorites();
                 
-                if (history.plays.length === 0 && favorites.length === 0) {
+                // Collect all unique videos from multiple sources
+                const allVideos = new Map();
+                
+                // 1. Add played songs (with play history)
+                history.plays.forEach(play => {
+                    allVideos.set(play.videoId, {
+                        ...play,
+                        source: 'played',
+                        score: 0
+                    });
+                });
+                
+                // 2. Add favorites (high priority)
+                favorites.forEach(fav => {
+                    if (!allVideos.has(fav.videoId)) {
+                        allVideos.set(fav.videoId, {
+                            ...fav,
+                            playCount: 0,
+                            lastPlayed: fav.addedAt,
+                            source: 'favorite',
+                            score: 0
+                        });
+                    } else {
+                        allVideos.get(fav.videoId).source = 'favorite';
+                    }
+                });
+                
+                // 3. Add queue history (DISCOVERY SOURCE - unplayed songs from radio)
+                history.queue_history.forEach(queueItem => {
+                    if (!allVideos.has(queueItem.videoId)) {
+                        // This is an unplayed song from queue/radio!
+                        allVideos.set(queueItem.videoId, {
+                            videoId: queueItem.videoId,
+                            title: queueItem.title || 'Unknown',
+                            channel: queueItem.channel || 'Unknown',
+                            thumbnail: queueItem.thumbnail || '',
+                            playCount: 0,
+                            lastPlayed: queueItem.addedAt,
+                            addedAt: queueItem.addedAt,
+                            source: queueItem.playedFrom || 'radio',
+                            score: 0
+                        });
+                    }
+                });
+                
+                if (allVideos.size === 0) {
                     return [];
                 }
 
-                const scored = this.scoreVideos(history, favorites);
+                // Score all videos with improved algorithm
+                const scored = this.scoreVideos(allVideos, history, favorites);
+                
+                // Diversify and balance content
                 const diversified = this.diversify(scored);
                 
-                return diversified.slice(0, 30);
+                return diversified.slice(0, 50); // Increased from 30 to 50
             },
             
-            scoreVideos(history, favorites) {
-                const allVideos = new Map();
-                
-                history.plays.forEach(play => {
-                    if (!allVideos.has(play.videoId)) {
-                        allVideos.set(play.videoId, { ...play, score: 0 });
-                    }
-                });
-                
-                favorites.forEach(fav => {
-                    if (!allVideos.has(fav.videoId)) {
-                        allVideos.set(fav.videoId, { ...fav, playCount: 0, lastPlayed: fav.addedAt, score: 0 });
-                    }
-                });
-                
+            scoreVideos(allVideos, history, favorites) {
                 const now = Date.now();
                 const maxPlayCount = Math.max(...Array.from(allVideos.values()).map(v => v.playCount || 0), 1);
+                
+                // Calculate channel engagement scores
+                const channelEngagement = this.calculateChannelEngagement(history, favorites);
                 
                 allVideos.forEach((video, videoId) => {
                     const isFav = favorites.some(f => f.videoId === videoId);
                     const playCount = video.playCount || 0;
-                    const lastPlayed = video.lastPlayed || now;
-                    const daysSince = (now - lastPlayed) / (1000 * 60 * 60 * 24);
+                    const lastInteraction = video.lastPlayed || video.addedAt || now;
+                    const daysSince = (now - lastInteraction) / (1000 * 60 * 60 * 24);
                     
-                    const frequencyScore = playCount / maxPlayCount;
-                    const recencyScore = Math.exp(-daysSince / 7);
+                    // SCORING COMPONENTS
+                    
+                    // 1. Frequency Score (0-1) - how often you played it
+                    const frequencyScore = playCount > 0 ? (playCount / maxPlayCount) : 0;
+                    
+                    // 2. Recency Score (0-1) - exponential decay over time
+                    const recencyScore = Math.exp(-daysSince / 7); // 7 day half-life
+                    
+                    // 3. Favorite Bonus (1.5x multiplier)
                     const favoriteBonus = isFav ? 1.5 : 1.0;
                     
-                    video.score = (frequencyScore * 0.4 + recencyScore * 0.3) * favoriteBonus + (isFav ? 0.2 : 0);
+                    // 4. Discovery Bonus - boost unplayed content from queue/radio
+                    let discoveryBonus = 0;
+                    if (playCount === 0 && (video.source === 'radio' || video.source === 'search')) {
+                        discoveryBonus = 0.4; // High boost for unplayed discovery content
+                    }
+                    
+                    // 5. Channel Affinity - boost songs from channels you engage with
+                    const channelScore = (channelEngagement[video.channel] || 0) * 0.3;
+                    
+                    // 6. Freshness Penalty - reduce score for very old content
+                    let freshnessPenalty = 0;
+                    if (daysSince > 30) {
+                        freshnessPenalty = Math.min((daysSince - 30) / 60, 0.3); // Max 0.3 penalty
+                    }
+                    
+                    // FINAL SCORE CALCULATION
+                    // Balance between familiarity and discovery
+                    const baseScore = (frequencyScore * 0.25) + // Reduced weight for played songs
+                                     (recencyScore * 0.25) +     // Recent interactions
+                                     discoveryBonus +            // Boost unplayed content
+                                     channelScore;               // Channel affinity
+                    
+                    video.score = (baseScore * favoriteBonus) - freshnessPenalty;
+                    
+                    // Add small random factor for variety (5% variance)
+                    video.score += (Math.random() - 0.5) * 0.05;
                 });
                 
                 return Array.from(allVideos.values()).sort((a, b) => b.score - a.score);
             },
             
+            calculateChannelEngagement(history, favorites) {
+                const engagement = {};
+                
+                // Track plays per channel
+                history.plays.forEach(play => {
+                    engagement[play.channel] = (engagement[play.channel] || 0) + play.playCount;
+                });
+                
+                // Boost for favorited channels
+                favorites.forEach(fav => {
+                    engagement[fav.channel] = (engagement[fav.channel] || 0) + 2;
+                });
+                
+                // Normalize to 0-1 scale
+                const maxEngagement = Math.max(...Object.values(engagement), 1);
+                Object.keys(engagement).forEach(channel => {
+                    engagement[channel] = engagement[channel] / maxEngagement;
+                });
+                
+                return engagement;
+            },
+            
             diversify(videos) {
+                if (videos.length === 0) return [];
+                
                 const result = [];
                 const channelCount = {};
+                const sourceCount = { played: 0, radio: 0, search: 0, favorite: 0 };
                 let lastChannel = null;
                 
                 const remaining = [...videos];
                 
-                while (remaining.length > 0 && result.length < 30) {
-                    let found = false;
+                while (remaining.length > 0 && result.length < 50) {
+                    let bestIndex = -1;
+                    let bestScore = -Infinity;
                     
-                    for (let i = 0; i < remaining.length; i++) {
+                    // Find best video that maintains diversity
+                    for (let i = 0; i < Math.min(remaining.length, 20); i++) { // Check top 20 candidates
                         const video = remaining[i];
                         const channel = video.channel;
+                        const source = video.source;
                         
-                        if (channel !== lastChannel && (!channelCount[channel] || channelCount[channel] < 2)) {
-                            result.push(video);
-                            channelCount[channel] = (channelCount[channel] || 0) + 1;
-                            lastChannel = channel;
-                            remaining.splice(i, 1);
-                            found = true;
-                            break;
+                        let diversityScore = video.score;
+                        
+                        // Penalize consecutive songs from same channel
+                        if (channel === lastChannel) {
+                            diversityScore -= 0.5;
+                        }
+                        
+                        // Penalize over-represented channels
+                        const channelRep = channelCount[channel] || 0;
+                        diversityScore -= channelRep * 0.15;
+                        
+                        // Balance content sources
+                        const sourceRep = sourceCount[source] || 0;
+                        const targetRatio = source === 'radio' || source === 'search' ? 0.4 : 0.3; // 40% discovery
+                        const sourceRatio = result.length > 0 ? sourceRep / result.length : 0;
+                        if (sourceRatio < targetRatio) {
+                            diversityScore += 0.2; // Boost underrepresented sources
+                        }
+                        
+                        if (diversityScore > bestScore) {
+                            bestScore = diversityScore;
+                            bestIndex = i;
                         }
                     }
                     
-                    if (!found && remaining.length > 0) {
-                        result.push(remaining.shift());
+                    if (bestIndex !== -1) {
+                        const selected = remaining.splice(bestIndex, 1)[0];
+                        result.push(selected);
+                        
+                        channelCount[selected.channel] = (channelCount[selected.channel] || 0) + 1;
+                        sourceCount[selected.source] = (sourceCount[selected.source] || 0) + 1;
+                        lastChannel = selected.channel;
+                    } else {
+                        // Fallback: just take the first one
+                        const selected = remaining.shift();
+                        result.push(selected);
                         lastChannel = null;
                     }
                 }
