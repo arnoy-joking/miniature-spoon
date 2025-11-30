@@ -4,797 +4,615 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>YouTube Music Clone</title>
-    <!-- ADDED: Favicon Link -->
+    <!-- Favicon -->
     <link rel="icon" type="image/png" href="https://img.icons8.com/?size=100&id=YNioBT5SxQw3&format=png&color=000000">
-    <!-- Load Tailwind CSS for styling -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Use Inter font and custom scrollbar styles for the dark theme -->
+    <!-- Fonts -->
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-        body {
-            font-family: 'Inter', sans-serif;
-            margin: 0;
-            padding: 0;
-            /* Hide body scrollbar to prevent double scrollbars when queue is open */
-            overflow: hidden; 
-        }
-        /* Custom scrollbar for dark theme */
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 8px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #282828;
-            border-radius: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: #121212;
-        }
+        body { font-family: 'Inter', sans-serif; overflow: hidden; }
         
-        /* Highlight active track in the queue list */
-        .queue-item.active {
-            background-color: #212121; 
-            border-left: 3px solid #f87171; /* red-500 */
-            padding-left: 5px; /* Adjust padding to accommodate the border */
-        }
+        /* Custom Scrollbar */
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #282828; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #121212; }
         
-        /* --- Sidebar Collapse CSS --- */
-        #sidebar {
-            transition: width 0.3s ease-in-out;
-            width: 15rem; /* w-60 default */
-            display: none; /* Hide by default on mobile */
-        }
-        @media (min-width: 640px) {
-            #sidebar {
-                display: flex; 
-            }
-        }
-
-        /* Collapsed State */
-        .sidebar-collapsed {
-            width: 4rem !important; /* w-16 */
-            align-items: center;
-            padding-left: 0.5rem; /* Adjust padding when collapsed */
-            padding-right: 0.5rem; /* Adjust padding when collapsed */
-        }
-
-        .sidebar-collapsed #logo-container {
-            justify-content: center; /* Center logo area when collapsed */
-        }
-        
-        .sidebar-collapsed #logo-text {
-            display: none;
-            opacity: 0;
-        }
-        .sidebar-collapsed .nav-text {
-            display: none;
-        }
-        .sidebar-collapsed #sidebar-toggle svg {
-            transform: rotate(180deg);
-        }
-        #sidebar-toggle svg {
-            transition: transform 0.3s ease-in-out;
-        }
-
-        /* Navigation link adjustments for collapse */
-        #sidebar nav a {
-            justify-content: flex-start;
-        }
-        .sidebar-collapsed #sidebar nav a {
-            justify-content: center;
-            padding-left: 0;
-            padding-right: 0;
-        }
-
-        /* --- Player Seekbar Visibility --- */
-        .timeline-container:hover #progress-thumb {
-            opacity: 1;
-        }
+        /* Active Queue Item */
+        .queue-item.active { background-color: #212121; border-left: 3px solid #f87171; padding-left: 5px; }
 
         /* Loading Spinner */
         .spinner {
             border: 4px solid rgba(255, 255, 255, 0.1);
-            border-left-color: #f87171; /* red-500 */
+            border-left-color: #f87171;
             border-radius: 50%;
-            width: 24px;
-            height: 24px;
+            width: 24px; height: 24px;
             animation: spin 1s linear infinite;
         }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        /* Mobile Player Bar Adjustments */
+        .mobile-progress-container {
+            position: absolute; top: -2px; left: 0; width: 100%; height: 2px;
+            background: #4d4d4d; cursor: pointer;
         }
-        
-        /* Define a new 'xs' breakpoint for the player bar to show volume button */
-        @media (min-width: 480px) {
-            .xs\:block {
-                display: block;
-            }
-        }
+        .mobile-progress-bar { height: 100%; background: #ef4444; }
 
+        /* Video Container - Uses z-index/opacity to hide but keep active */
+        .video-hidden {
+            opacity: 0;
+            pointer-events: none;
+            z-index: -10;
+        }
+        .video-visible {
+            opacity: 1;
+            pointer-events: auto;
+            z-index: 50;
+        }
     </style>
 </head>
-<body class="bg-[#0f0f0f] text-white overflow-hidden h-screen">
+<body class="bg-[#0f0f0f] text-white h-screen flex flex-col">
 
-    <!-- Overall Layout: Main Content (Sidebar + Body) and Fixed Footer Player -->
-    <div class="flex h-full pb-20"> 
+    <!-- VIDEO OVERLAY -->
+    <div id="video-wrapper" class="fixed bottom-24 right-4 shadow-2xl rounded-lg overflow-hidden w-64 sm:w-80 aspect-video bg-black border border-[#333] video-hidden transition-all duration-300">
+        <div id="yt-player"></div>
+        <!-- Close Video Button -->
+        <button id="hide-video-btn" class="absolute top-2 right-2 bg-black/50 hover:bg-black/80 text-white p-1 rounded-full">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+    </div>
 
-        <!-- 1. Fixed Left Sidebar (Navigation) -->
-        <aside id="sidebar" class="bg-[#0f0f0f] flex-shrink-0 flex-col p-4 border-r border-[#212121]">
-            
-            <!-- Logo/Title and Toggle Button -->
-            <div id="logo-container" class="flex items-center justify-between mb-8 text-white h-8">
-                <div id="logo-text" class="text-xl font-bold transition-opacity duration-300">
-                    <span class="text-red-500">YouTube</span> Music
-                </div>
-                <button id="sidebar-toggle" class="p-1 rounded-full text-gray-400 hover:bg-[#212121] transition duration-150 flex-shrink-0">
-                    <!-- Chevron left icon -->
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-                </button>
+    <!-- MAIN LAYOUT -->
+    <div class="flex flex-1 overflow-hidden pb-16 sm:pb-20"> <!-- Padding bottom for player bar -->
+        
+        <!-- SIDEBAR (Hidden on mobile) -->
+        <aside id="sidebar" class="w-60 bg-[#0f0f0f] hidden sm:flex flex-col p-4 border-r border-[#212121]">
+            <div class="flex items-center space-x-2 mb-8 px-2">
+                 <img src="https://img.icons8.com/?size=100&id=YNioBT5SxQw3&format=png&color=000000" class="w-8 h-8">
+                <span class="text-xl font-bold tracking-tighter">Music</span>
             </div>
-
-            <!-- Navigation Links -->
-            <nav class="space-y-3">
-                <!-- Active Link: Home -->
-                <a href="#" class="flex items-center space-x-4 p-2 rounded-lg bg-[#212121] text-white font-medium transition duration-150">
-                    <svg class="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
-                    <span class="nav-text whitespace-nowrap transition-opacity duration-300">Home</span>
-                </a>
-                <!-- Inactive Links -->
-                <a href="#" class="flex items-center space-x-4 p-2 rounded-lg text-gray-400 hover:bg-[#212121] transition duration-150">
-                    <svg class="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
-                    <span class="nav-text whitespace-nowrap transition-opacity duration-300">Trending</span>
-                </a>
-                <a href="#" class="flex items-center space-x-4 p-2 rounded-lg text-gray-400 hover:bg-[#212121] transition duration-150">
-                    <svg class="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M5 10h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v1a2 2 0 002 2zm0 0h14"></path></svg>
-                    <span class="nav-text whitespace-nowrap transition-opacity duration-300">Library</span>
-                </a>
+            <nav class="space-y-2">
+                <a href="#" class="flex items-center space-x-4 p-3 rounded-lg bg-[#212121] text-white font-medium"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><span>Home</span></a>
+                <a href="#" class="flex items-center space-x-4 p-3 rounded-lg text-gray-400 hover:bg-[#212121]"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg><span>Samples</span></a>
+                <a href="#" class="flex items-center space-x-4 p-3 rounded-lg text-gray-400 hover:bg-[#212121]"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9h-4v4h-2v-4H9V9h4V5h2v4h4v2z"/></svg><span>Library</span></a>
             </nav>
         </aside>
 
-        <!-- 2. Main Content Area (Header/Search + Scrollable Grid) -->
-        <main class="flex-1 flex flex-col overflow-hidden">
-            <!-- Header (Search Bar) - fixed height -->
-            <header class="h-16 bg-[#0f0f0f] border-b border-[#212121] flex items-center p-4 sticky top-0 z-10">
-                <div class="relative flex-1 max-w-2xl mx-auto">
-                    <input type="text" value="Latest global hits" placeholder="Search" id="search-input" class="w-full pl-4 pr-10 py-2 bg-[#212121] text-white placeholder-gray-400 rounded-full focus:outline-none focus:ring-2 focus:ring-red-500 text-sm md:text-base">
-                    <!-- Search Icon -->
-                    <button id="search-btn" class="absolute right-0 top-0 mt-2.5 mr-4 text-gray-400 hover:text-white">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                    </button>
+        <!-- CONTENT AREA -->
+        <main class="flex-1 flex flex-col bg-[#030303] overflow-hidden">
+            <!-- Search Header -->
+            <header class="h-16 flex items-center px-4 sticky top-0 z-10 bg-[#030303]/95 backdrop-blur">
+                <div class="flex items-center w-full max-w-3xl space-x-4">
+                    <button class="sm:hidden text-white"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg></button>
+                    <div class="relative flex-1">
+                        <!-- Removed onkeypress, using addEventListener in JS -->
+                        <input type="text" id="search-input" placeholder="Search songs, artists..." class="w-full bg-[#212121] text-white rounded-md py-2 pl-10 pr-4 focus:outline-none focus:ring-1 focus:ring-white/30 placeholder-gray-500">
+                        <svg class="w-5 h-5 text-gray-500 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                    <button id="search-btn" class="hidden sm:block font-medium text-sm text-gray-300 hover:text-white">Search</button>
+                    <!-- User Avatar -->
+                    <div class="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center text-xs font-bold">U</div>
                 </div>
             </header>
 
-            <!-- Scrollable Content Section -->
-            <section id="content-grid" class="flex-1 overflow-y-auto custom-scrollbar p-6 bg-black">
-
-                <!-- Quick Picks Section -->
-                <div class="mb-8">
-                    <!-- Section Title and View Toggle -->
-                    <h2 class="text-2xl font-bold flex items-center justify-between mb-6">
-                        <div class="flex items-center">
-                            <span id="section-title">Quick picks</span>
-                            <div id="content-loader" class="spinner ml-3 hidden"></div>
-                        </div>
-                        <!-- View Toggle Buttons -->
-                        <div id="view-toggle" class="flex space-x-2 text-gray-400">
-                            <button id="grid-view-btn" title="Grid View" class="p-2 rounded-full text-white bg-[#212121] hover:bg-[#212121]">
-                                <!-- Grid Icon -->
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
-                            </button>
-                            <button id="list-view-btn" title="List View" class="p-2 rounded-full hover:bg-[#212121]">
-                                <!-- List Icon -->
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-                            </button>
-                        </div>
-                    </h2>
-                    
-                    <!-- Music Grid: Target for dynamic search results -->
-                    <div id="results-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-4 sm:gap-6">
-                        <!-- Content will be injected here -->
+            <!-- Results Section -->
+            <section class="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-8">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center space-x-3">
+                        <h2 id="section-title" class="text-2xl font-bold">Quick Picks</h2>
+                        <div id="content-loader" class="spinner hidden"></div>
                     </div>
+                    <!-- View Toggles -->
+                    <div class="flex bg-[#212121] rounded-full p-1">
+                        <button id="grid-view-btn" class="p-1.5 rounded-full text-white bg-gray-600/50"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M4 11h5V5H4v6zm0 7h5v-6H4v6zm6 0h5v-6h-5v6zm6 0h5v-6h-5v6zm-6-7h5V5h-5v6zm6-6v6h5V5h-5z"/></svg></button>
+                        <button id="list-view-btn" class="p-1.5 rounded-full text-gray-400 hover:text-white"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg></button>
+                    </div>
+                </div>
+
+                <div id="results-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6">
+                    <!-- Results injected here -->
                 </div>
             </section>
         </main>
     </div>
 
-    <!-- 3. Fixed Footer Player Bar -->
-    <footer id="player-bar" class="fixed bottom-0 left-0 w-full h-20 bg-[#1c1c1c] border-t border-[#212121] flex items-center justify-between px-4 z-20">
+    <!-- PLAYER BAR (Fixed Bottom) -->
+    <footer id="player-bar" class="fixed bottom-0 left-0 w-full bg-[#212121] border-t border-[#333] z-40 transition-all duration-300 h-16 sm:h-20">
         
-        <!-- Track Info (Left Side) - Now uses flex-1 on mobile and constrains on tablet/desktop -->
-        <div class="flex items-center space-x-3 flex-1 sm:flex-none sm:min-w-[200px] lg:min-w-[250px] sm:max-w-[30%]">
-            <!-- Album Art -->
-            <img id="player-art" src="https://placehold.co/48x48/575757/000?text=YTM" alt="Track Art" class="w-12 h-12 rounded-lg shadow-lg">
-            <div class="min-w-0">
-                <p id="player-title" class="text-sm font-semibold truncate" title="No track playing">No track playing</p>
-                <p id="player-artist" class="text-xs text-gray-400 truncate" title="Select a song">Select a song</p>
-            </div>
+        <!-- MOBILE PROGRESS BAR (Top Edge) -->
+        <div class="block sm:hidden mobile-progress-container" id="mobile-progress-container">
+            <div id="mobile-progress-bar" class="mobile-progress-bar" style="width: 0%"></div>
         </div>
 
-        <!-- Player Controls & Timeline (Center) - Flexible width, maximum size limited on mobile for better balance -->
-        <div class="flex flex-col items-center justify-center flex-1 max-w-sm sm:max-w-md lg:max-w-xl h-full">
-            <!-- Controls - Spacing reduced on mobile -->
-            <div class="flex items-center space-x-4 sm:space-x-8 text-xl mb-1">
-                <!-- Previous Track Button - UPDATED: Added ID -->
-                <button id="prev-track-btn" class="text-gray-400 hover:text-white transition duration-150 disabled:opacity-50 disabled:cursor-not-allowed" title="Previous" disabled>
-                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/>
-                    </svg>
-                </button>
-                
-                <!-- Play/Pause Button (Initial state: Pause) -->
-                <button id="play-pause-btn" class="text-gray-600 cursor-not-allowed transition duration-150" title="Select a song to play" disabled>
-                    <!-- Play Icon - Increased Size (24x24 viewBox) -->
-                    <svg class="w-10 h-10" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M8 5v14l11-7z"/>
-                    </svg>
-                </button>
-
-                <!-- Next Track Button - UPDATED: Added ID -->
-                <button id="next-track-btn" class="text-gray-400 hover:text-white transition duration-150 disabled:opacity-50 disabled:cursor-not-allowed" title="Next" disabled>
-                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M16 6h2v12h-2zM7 18l8.5-6L7 6z"/>
-                    </svg>
-                </button>
-            </div>
+        <div class="flex items-center justify-between h-full px-2 sm:px-4">
             
-            <!-- Timeline (Progress Bar) - Increased Height and Hover Effect -->
-            <div class="flex items-center w-full space-x-2 text-xs text-gray-400 mt-1">
-                <span id="current-time">0:00</span>
-                <div class="relative w-full h-1.5 bg-[#4d4d4d] rounded-full timeline-container cursor-pointer transition-colors duration-200">
-                    <div id="progress-bar" class="absolute h-full bg-red-500 rounded-full flex items-center justify-end" style="width: 0%;">
-                        <!-- Thumb/Scrubber (Only visible on hover) -->
-                        <div id="progress-thumb" class="w-3 h-3 bg-white rounded-full shadow-xl opacity-0 transition-opacity duration-150 transform hover:opacity-100"></div>
-                    </div>
-                </div>
-                <span id="total-duration">0:00</span>
-            </div>
-        </div>
+            <!-- LEFT: Track Info -->
+            <div class="flex items-center flex-1 min-w-0 mr-2">
+                <!-- Controls (Mobile Previous) -->
+                <button id="mobile-prev-btn" class="sm:hidden text-gray-300 p-2 mr-1"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button>
 
-        <!-- Volume/Extras (Right Side) -->
-        <div class="flex items-center space-x-4 flex-1 sm:flex-none sm:min-w-[150px] sm:max-w-[30%] justify-end">
-            <!-- Volume button hidden on extra small screens for simplicity and priority of Queue/Track Info -->
-            <button class="hidden xs:block text-gray-400 hover:text-white transition duration-150" title="Mute/Unmute">
-                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M9.383 3.017a1 1 0 00-1.745-.642L4 6.996V14.5A1.5 1.5 0 005.5 16h8a1.5 1.5 0 001.5-1.5V10.12l1.967-1.467a1 1 0 00.033-1.632l-3-2.25a1 1 0 00-1.355.337L9.383 3.017zM14 11.895l-3 2.25V9.75l3-2.25v4.395z"></path></svg>
-            </button>
-            <!-- UPDATED: Queue button is now visible on all screen sizes -->
-            <button id="queue-toggle-btn" class="text-gray-400 hover:text-white transition duration-150" title="Queue">
-                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path></svg>
-            </button>
+                <img id="player-art" src="https://placehold.co/48x48/333/666?text=Music" class="w-10 h-10 sm:w-12 sm:h-12 rounded bg-gray-800 object-cover flex-shrink-0">
+                
+                <div class="ml-3 overflow-hidden">
+                    <p id="player-title" class="text-sm sm:text-base font-medium truncate text-white">Ready to play</p>
+                    <p id="player-artist" class="text-xs sm:text-sm text-gray-400 truncate">Select a song</p>
+                </div>
+            </div>
+
+            <!-- CENTER: Controls (Desktop Only) -->
+            <div class="hidden sm:flex flex-col items-center flex-1 max-w-xl">
+                <div class="flex items-center space-x-6 mb-1">
+                    <button id="prev-btn" class="text-gray-400 hover:text-white disabled:opacity-30"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button>
+                    <button id="play-pause-btn" class="bg-white text-black rounded-full p-2 hover:scale-105 transition transform"><svg id="play-icon-desktop" class="w-8 h-8 pl-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+                    <button id="next-btn" class="text-gray-400 hover:text-white disabled:opacity-30"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M16 6h2v12h-2zM7 18l8.5-6L7 6z"/></svg></button>
+                </div>
+                <div class="w-full flex items-center space-x-2 text-xs text-gray-400">
+                    <span id="current-time">0:00</span>
+                    <div id="desktop-progress-container" class="relative flex-1 h-1 bg-gray-600 rounded cursor-pointer group">
+                        <div id="desktop-progress-bar" class="absolute h-full bg-red-500 rounded w-0"></div>
+                        <div class="absolute h-3 w-3 bg-white rounded-full -top-1 opacity-0 group-hover:opacity-100 transition-opacity" style="left: 0%" id="desktop-progress-thumb"></div>
+                    </div>
+                    <span id="total-duration">0:00</span>
+                </div>
+            </div>
+
+            <!-- RIGHT: Actions -->
+            <div class="flex items-center justify-end space-x-2 sm:space-x-4 flex-1 sm:flex-none">
+                
+                <!-- Play Button (Mobile Only) -->
+                <button id="mobile-play-btn" class="sm:hidden p-2 text-white"><svg id="play-icon-mobile" class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+                
+                <!-- Next Button (Mobile Only) -->
+                <button id="mobile-next-btn" class="sm:hidden p-2 text-gray-300"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M16 6h2v12h-2zM7 18l8.5-6L7 6z"/></svg></button>
+
+                <!-- Toggle Video Button -->
+                <button id="toggle-video-btn" class="text-gray-400 hover:text-red-500 transition" title="Toggle Video Mode">
+                    <span class="text-xs font-bold border border-current px-1 rounded">VIDEO</span>
+                </button>
+
+                <!-- Queue Button -->
+                <button id="queue-btn" class="text-gray-400 hover:text-white"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path></svg></button>
+            </div>
         </div>
     </footer>
-    
-    <!-- 4. Fixed Right Queue/Playlist Panel -->
-    <div id="queue-panel" class="fixed top-0 right-0 h-full w-full sm:max-w-sm bg-[#121212] z-40 border-l border-[#212121] transform translate-x-full transition-transform duration-300 pt-16 pb-20 overflow-y-auto custom-scrollbar">
-        <div class="px-4 py-3 border-b border-[#212121] flex items-center justify-between sticky top-0 bg-[#121212] z-50">
-            <h3 class="text-xl font-bold">Up Next (Radio)</h3>
-            <button id="close-queue-btn" class="text-gray-400 hover:text-white p-1 rounded-full">
-                <!-- Close icon (X) -->
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-            </button>
+
+    <!-- QUEUE PANEL (Slide-in) -->
+    <div id="queue-panel" class="fixed top-0 right-0 h-full w-full sm:w-96 bg-[#030303] border-l border-[#333] z-30 transform translate-x-full transition-transform duration-300 pt-16 pb-24 overflow-y-auto custom-scrollbar shadow-2xl">
+        <div class="px-4 py-3 flex items-center justify-between border-b border-[#212121] bg-[#030303] sticky top-0">
+            <h3 class="font-bold text-lg">Up Next</h3>
+            <button id="close-queue-btn" class="text-gray-400 hover:text-white"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
         </div>
         <div id="queue-list" class="p-2 space-y-1">
-            <p class="text-center text-gray-500 mt-8">Start a song to load the radio mix.</p>
+            <p class="text-gray-500 text-center mt-10">Queue is empty</p>
         </div>
     </div>
-    
+
+    <!-- JAVASCRIPT LOGIC -->
     <script>
-        // --- API & Constants ---
+        // --- API CONFIG ---
         const SEARCH_API = 'https://raspy-sound-0966.arnoy799.workers.dev/';
         const RADIO_API = 'https://long-pond-4887.arnoy799.workers.dev/';
         
-        // --- Icon Definitions ---
-        const ICON_PAUSE = `<svg class="w-10 h-10" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M6 19h4V5H6zm8-14v14h4V5z"/></svg>`;
-        const ICON_PLAY = `<svg class="w-10 h-10" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M8 5v14l11-7z"/></svg>`;
-
-        // --- DOM Elements ---
-        const searchInput = document.getElementById('search-input');
-        const searchBtn = document.getElementById('search-btn');
-        const resultsGrid = document.getElementById('results-grid');
-        const sectionTitle = document.getElementById('section-title');
-        const contentLoader = document.getElementById('content-loader');
-        
-        const playPauseBtn = document.getElementById('play-pause-btn');
-        const prevTrackBtn = document.getElementById('prev-track-btn'); // New
-        const nextTrackBtn = document.getElementById('next-track-btn'); // New
-        const progressBar = document.getElementById('progress-bar');
-        const currentTimeEl = document.getElementById('current-time');
-        const totalDurationEl = document.getElementById('total-duration');
-        const playerArt = document.getElementById('player-art');
-        const playerTitle = document.getElementById('player-title');
-        const playerArtist = document.getElementById('player-artist');
-        const playerBar = document.getElementById('player-bar');
-        const sidebar = document.getElementById('sidebar');
-        
-        // Queue Elements
-        const queuePanel = document.getElementById('queue-panel');
-        const queueToggleBtn = document.getElementById('queue-toggle-btn');
-        const closeQueueBtn = document.getElementById('close-queue-btn');
-        const queueList = document.getElementById('queue-list');
-        
-        // View Toggle Elements
-        const gridViewBtn = document.getElementById('grid-view-btn');
-        const listViewBtn = document.getElementById('list-view-btn');
-
-
-        // --- State Variables ---
-        let currentSecond = 0;
+        // --- STATE ---
+        let player; // YT Player instance
+        let isPlayerReady = false;
         let isPlaying = false;
-        let updateInterval = null;
-        let currentVideoDuration = 0; // Total duration in seconds for the current track
-        let currentViewMode = 'grid'; // 'grid' or 'list'
-        let lastLoadedResults = []; // Store results to re-render when view changes
-        
-        // --- NEW STATE FOR QUEUE MANAGEMENT ---
-        let currentQueue = []; // Full list of tracks in the 'Up Next' radio mix
-        let currentQueueIndex = -1; // Index of the currently playing track in currentQueue
+        let currentQueue = [];
+        let currentIndex = -1;
+        let updateInterval;
+        let isVideoVisible = false;
+        let currentViewMode = 'grid';
+        let lastResults = [];
+        let pendingPlayIndex = -1; // Track waiting to play if player isn't ready
 
-        // --- Utility Functions ---
+        // --- ICONS ---
+        const SVG_PLAY = '<path d="M8 5v14l11-7z"/>';
+        const SVG_PAUSE = '<path d="M6 19h4V5H6zm8-14v14h4V5z"/>';
 
-        // Converts MM:SS string to total seconds
-        const timeToSeconds = (timeString) => {
-            if (!timeString || timeString.includes('m') || timeString.includes('h')) return 0; 
-            const parts = timeString.split(':');
-            if (parts.length === 2) { // MM:SS
-                return parseInt(parts[0]) * 60 + parseInt(parts[1]);
-            }
-            return 0;
+        // --- DOM ELEMENTS ---
+        const els = {
+            searchInput: document.getElementById('search-input'),
+            searchBtn: document.getElementById('search-btn'),
+            resultsGrid: document.getElementById('results-grid'),
+            loader: document.getElementById('content-loader'),
+            sectionTitle: document.getElementById('section-title'),
+            
+            // Player Bar Text
+            pTitle: document.getElementById('player-title'),
+            pArtist: document.getElementById('player-artist'),
+            pArt: document.getElementById('player-art'),
+            
+            // Buttons
+            btnPlay: document.getElementById('play-pause-btn'),
+            btnPrev: document.getElementById('prev-btn'),
+            btnNext: document.getElementById('next-btn'),
+            btnMobPlay: document.getElementById('mobile-play-btn'),
+            btnMobPrev: document.getElementById('mobile-prev-btn'),
+            btnMobNext: document.getElementById('mobile-next-btn'),
+            
+            // Icons
+            iconDesktop: document.getElementById('play-icon-desktop'),
+            iconMobile: document.getElementById('play-icon-mobile'),
+            
+            // Progress
+            timeCurr: document.getElementById('current-time'),
+            timeTotal: document.getElementById('total-duration'),
+            progBarDesktop: document.getElementById('desktop-progress-bar'),
+            progContDesktop: document.getElementById('desktop-progress-container'),
+            progThumbDesktop: document.getElementById('desktop-progress-thumb'),
+            progBarMobile: document.getElementById('mobile-progress-bar'),
+            progContMobile: document.getElementById('mobile-progress-container'),
+            
+            // Panels
+            queuePanel: document.getElementById('queue-panel'),
+            queueList: document.getElementById('queue-list'),
+            queueBtn: document.getElementById('queue-btn'),
+            queueClose: document.getElementById('close-queue-btn'),
+            
+            // Video
+            videoWrapper: document.getElementById('video-wrapper'),
+            videoToggle: document.getElementById('toggle-video-btn'),
+            videoHide: document.getElementById('hide-video-btn'),
+
+            // View
+            btnGrid: document.getElementById('grid-view-btn'),
+            btnList: document.getElementById('list-view-btn'),
         };
 
-        // Converts seconds into MM:SS format
-        const formatTime = (seconds) => {
-            const minutes = Math.floor(seconds / 60);
-            const remainingSeconds = Math.floor(seconds % 60);
-            return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-        };
-
-        // --- API Helpers with Retry (Exponential Backoff) ---
+        // --- HELPER: Fetch with Retry ---
         async function fetchWithRetry(url, maxRetries = 3) {
             for (let i = 0; i < maxRetries; i++) {
                 try {
                     const response = await fetch(url);
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                     return await response.json();
                 } catch (error) {
                     if (i < maxRetries - 1) {
-                        const delay = Math.pow(2, i) * 1000; // 1s, 2s, 4s delay
+                        const delay = Math.pow(2, i) * 1000; 
                         await new Promise(resolve => setTimeout(resolve, delay));
                     } else {
-                        console.error(`Final fetch failed for ${url}:`, error);
-                        throw new Error("Failed to fetch data after multiple retries.");
+                        throw error;
                     }
                 }
             }
         }
-        
-        // --- Player Simulation Logic ---
 
-        function updatePlayerUI() {
-            if (currentVideoDuration === 0) return;
+        // --- YOUTUBE API SETUP ---
+        var tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        var firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
-            const progressPercent = (currentSecond / currentVideoDuration) * 100;
-            progressBar.style.width = `${progressPercent}%`;
-            currentTimeEl.textContent = formatTime(currentSecond);
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('yt-player', {
+                height: '100%',
+                width: '100%',
+                playerVars: {
+                    'playsinline': 1,
+                    'controls': 0, // Hide default YT controls
+                    'disablekb': 1,
+                    'fs': 0,
+                    'iv_load_policy': 3, // Hide annotations
+                    'modestbranding': 1,
+                    'autoplay': 1, // Auto-play when loaded
+                    'origin': window.location.origin
+                },
+                events: {
+                    'onReady': onPlayerReady,
+                    'onStateChange': onPlayerStateChange,
+                    'onError': onPlayerError
+                }
+            });
+        }
 
-            // Simulation ends when song reaches end
-            if (currentSecond >= currentVideoDuration) {
-                clearInterval(updateInterval);
+        function onPlayerReady(event) {
+            isPlayerReady = true;
+            player.setPlaybackQuality('small'); 
+            // If user clicked a track before player was ready, play it now
+            if (pendingPlayIndex !== -1) {
+                loadTrack(pendingPlayIndex);
+                pendingPlayIndex = -1;
+            }
+        }
+
+        function onPlayerStateChange(event) {
+            // YT.PlayerState: ENDED=0, PLAYING=1, PAUSED=2, BUFFERING=3
+            if (event.data === YT.PlayerState.PLAYING) {
+                isPlaying = true;
+                updateIcons(true);
+                startProgressLoop();
+            } else if (event.data === YT.PlayerState.PAUSED) {
                 isPlaying = false;
-                playPauseBtn.innerHTML = ICON_PLAY;
-                playPauseBtn.classList.remove('text-red-500', 'hover:text-red-500');
-                playPauseBtn.classList.add('text-white', 'hover:text-white');
-                currentSecond = currentVideoDuration; // Ensure it stops exactly at the end
-                
-                // NEW: Auto-advance to next track
-                if (currentQueue.length > 1) {
-                    nextTrack();
-                }
+                updateIcons(false);
+                stopProgressLoop();
+            } else if (event.data === YT.PlayerState.ENDED) {
+                isPlaying = false;
+                updateIcons(false);
+                nextTrack(); // Auto-advance
             }
         }
 
-        function startSimulation() {
-            if (updateInterval) clearInterval(updateInterval);
-            updateInterval = setInterval(() => {
-                // Only increment if we haven't reached the end
-                if (currentSecond < currentVideoDuration) {
-                    currentSecond = Math.min(currentSecond + 1, currentVideoDuration);
-                }
-                updatePlayerUI();
-            }, 1000);
-        }
-
-        function togglePlayPause() {
-             if (currentVideoDuration === 0) return; // Cannot play if no song is loaded
-
-            isPlaying = !isPlaying;
-            if (isPlaying) {
-                if (currentSecond >= currentVideoDuration) {
-                    currentSecond = 0; // Restart if finished
-                }
-                playPauseBtn.innerHTML = ICON_PAUSE;
-                playPauseBtn.title = 'Pause';
-                startSimulation();
-            } else {
-                playPauseBtn.innerHTML = ICON_PLAY;
-                playPauseBtn.title = 'Play';
-                clearInterval(updateInterval);
+        function onPlayerError(event) {
+            console.error("YT Player Error:", event.data);
+            // 150/101 = restricted embed. Skip to next.
+            if(event.data === 150 || event.data === 101) {
+                console.warn("Video not embeddable, skipping...");
+                setTimeout(nextTrack, 1000);
             }
         }
 
-        // --- Queue Navigation Logic ---
+        // --- APP LOGIC ---
 
-        /**
-         * Loads and plays a track from the currentQueue by its index.
-         * @param {number} index - Index in the currentQueue array.
-         */
-        function playTrackByIndex(index) {
-            if (index < 0 || index >= currentQueue.length) return;
-            
-            currentQueueIndex = index;
-            const video = currentQueue[currentQueueIndex];
-            
-            // Set Player Bar UI
-            playerTitle.textContent = video.title;
-            playerArtist.textContent = video.channel;
-            const thumbnailSource = video.thumbnail || video.thumbnails?.[0]?.url || 'https://placehold.co/48x48/575757/000?text=YTM';
-            playerArt.src = thumbnailSource;
-            playerArt.onerror = () => playerArt.src = 'https://placehold.co/48x48/575757/000?text=YTM';
+        function updateIcons(isPlaying) {
+            const path = isPlaying ? SVG_PAUSE : SVG_PLAY;
+            els.iconDesktop.innerHTML = path;
+            els.iconMobile.innerHTML = path;
+        }
 
-            // Set Duration and Start Playback
-            currentVideoDuration = timeToSeconds(video.duration);
-            totalDurationEl.textContent = video.duration;
-            currentSecond = 0;
+        function loadTrack(index) {
+            if (!currentQueue[index]) return;
             
-            // Ensure player controls are enabled
-            enablePlayerControls(true);
-            
-            if (!isPlaying || currentSecond >= currentVideoDuration) {
-                // Only toggle if we need to start playing
-                if (!isPlaying) {
-                    togglePlayPause();
-                } else {
-                    // Already playing, but track changed, so just reset and restart interval
-                    clearInterval(updateInterval);
-                    startSimulation();
-                }
-            } else {
-                 // Already playing, just reset and restart interval
-                clearInterval(updateInterval);
-                startSimulation();
+            // If player isn't ready, queue this track index for later
+            if (!isPlayerReady) {
+                console.log("Player not ready, queuing track...");
+                pendingPlayIndex = index;
+                // Optimistic UI update
+                els.pTitle.innerText = "Loading Player...";
+                return;
             }
             
-            renderQueue(currentQueue); // Update queue list highlighting
+            currentIndex = index;
+            const track = currentQueue[index];
+            
+            // Update UI
+            els.pTitle.innerText = track.title;
+            els.pArtist.innerText = track.channel;
+            const thumb = track.thumbnail || (track.thumbnails ? track.thumbnails[0].url : '');
+            els.pArt.src = thumb || 'https://placehold.co/48x48/333/666?text=Music';
+            
+            // Play Video
+            player.loadVideoById(track.videoId);
+            
+            // Render Queue Highlight
+            renderQueue();
+            
+            // Enable Buttons
+            updateNavButtons();
         }
-        
-        /**
-         * Moves to the next track in the queue (with wrap-around).
-         */
+
+        function playVideo() { if(isPlayerReady) player.playVideo(); }
+        function pauseVideo() { if(isPlayerReady) player.pauseVideo(); }
+        function togglePlay() { isPlaying ? pauseVideo() : playVideo(); }
+
         function nextTrack() {
-            if (currentQueue.length <= 1) return; 
-            currentQueueIndex = (currentQueueIndex + 1) % currentQueue.length;
-            playTrackByIndex(currentQueueIndex);
+            if (currentQueue.length > 0) {
+                let next = currentIndex + 1;
+                if (next >= currentQueue.length) next = 0; // Loop
+                loadTrack(next);
+            }
         }
 
-        /**
-         * Moves to the previous track in the queue (with wrap-around).
-         */
         function prevTrack() {
-            if (currentQueue.length <= 1) return;
-            // The + currentQueue.length ensures the result is always positive before the modulo operation
-            currentQueueIndex = (currentQueueIndex - 1 + currentQueue.length) % currentQueue.length;
-            playTrackByIndex(currentQueueIndex);
+            if (currentQueue.length > 0) {
+                let prev = currentIndex - 1;
+                if (prev < 0) prev = currentQueue.length - 1; // Loop
+                loadTrack(prev);
+            }
         }
 
-        // --- Queue Panel Logic ---
-
-        function toggleQueue(open) {
-            const isOpen = typeof open === 'boolean' ? open : queuePanel.classList.contains('translate-x-full');
+        function updateNavButtons() {
+            const hasQueue = currentQueue.length > 0;
+            els.btnNext.disabled = !hasQueue;
+            els.btnPrev.disabled = !hasQueue;
+            els.btnMobNext.disabled = !hasQueue;
+            els.btnMobPrev.disabled = !hasQueue;
             
-            if (isOpen) {
-                queuePanel.classList.remove('translate-x-full');
-            } else {
-                queuePanel.classList.add('translate-x-full');
-            }
+            els.btnNext.style.opacity = hasQueue ? '1' : '0.3';
+            els.btnPrev.style.opacity = hasQueue ? '1' : '0.3';
         }
 
-        /**
-         * Renders the current queue/playlist in the side panel, highlighting the active track.
-         * @param {Array} videos - Array of video objects from the Radio API.
-         */
-        function renderQueue(videos) {
-            queueList.innerHTML = '';
-            
-            if (!videos || videos.length === 0) {
-                queueList.innerHTML = `<p class="text-center text-gray-500 mt-8">Start a song to load the radio mix.</p>`;
-                return;
-            }
+        // --- PROGRESS & SEEKING ---
 
-            videos.forEach((video, index) => { 
-                const item = document.createElement('div');
+        function startProgressLoop() {
+            if(updateInterval) clearInterval(updateInterval);
+            updateInterval = setInterval(() => {
+                if(!player || !player.getCurrentTime) return;
                 
-                item.className = `queue-item flex items-center space-x-3 p-2 rounded-lg text-gray-300 cursor-pointer transition duration-150 ${index === currentQueueIndex ? 'active' : 'hover:bg-[#212121]'}`;
+                const curr = player.getCurrentTime();
+                const total = player.getDuration();
                 
-                const thumbnail = video.thumbnails?.find(t => t.width === 168) || video.thumbnails?.[0]; 
-
-                item.addEventListener('click', () => {
-                    playTrackByIndex(index); // Play track directly from the queue
-                    toggleQueue(false); // Close the queue panel after selecting a song
-                });
-                
-                // Show 'Now Playing' or index number
-                const indexIndicator = index === currentQueueIndex 
-                    ? `<span class="text-red-500 text-xs font-bold">PLAYING</span>` 
-                    : `<span class="text-sm font-semibold w-4 text-center text-gray-500">${index + 1}</span>`;
-
-                item.innerHTML = `
-                    <div class="flex items-center space-x-3 w-10 flex-shrink-0">${indexIndicator}</div>
-                    <img src="${thumbnail?.url || 'https://placehold.co/40x40/333/fff?text=Art'}" 
-                         onerror="this.onerror=null;this.src='https://placehold.co/40x40/333/fff?text=Art';"
-                         alt="Art" class="w-10 h-10 rounded">
-                    <div class="flex-1 min-w-0">
-                        <p class="text-sm font-semibold truncate text-white">${video.title}</p>
-                        <p class="text-xs text-gray-400 truncate">${video.channel}</p>
-                    </div>
-                    <span class="text-xs text-gray-500 flex-shrink-0">${video.duration}</span>
-                `;
-                queueList.appendChild(item);
-            });
-        }
-
-
-        // --- Core App Logic: Search, Render, Play ---
-        
-        /**
-         * Enables or disables player controls (Play/Pause, Next, Prev).
-         * @param {boolean} enable - True to enable, false to disable.
-         */
-        function enablePlayerControls(enable) {
-            const controls = [playPauseBtn, prevTrackBtn, nextTrackBtn];
-            controls.forEach(btn => {
-                btn.disabled = !enable;
-                if (enable) {
-                    btn.classList.remove('disabled:opacity-50', 'disabled:cursor-not-allowed', 'text-gray-600', 'cursor-not-allowed');
-                    btn.classList.add('text-white', 'hover:text-red-500');
-                } else {
-                    btn.classList.add('disabled:opacity-50', 'disabled:cursor-not-allowed', 'text-gray-600', 'cursor-not-allowed');
-                    btn.classList.remove('text-white', 'hover:text-red-500');
-                }
-            });
-             // Only enable next/prev if there is a queue > 1
-             if (currentQueue.length <= 1) {
-                prevTrackBtn.disabled = true;
-                nextTrackBtn.disabled = true;
-             }
-        }
-        
-        /**
-         * Renders the search results as clickable cards in either grid or list mode.
-         */
-        function renderResults(results) {
-            resultsGrid.innerHTML = '';
-            if (!results || results.length === 0) {
-                resultsGrid.innerHTML = `<p class="col-span-full text-gray-400">No results found for your search.</p>`;
-                return;
-            }
-            
-            // 1. Set the container layout based on the current mode
-            if (currentViewMode === 'list') {
-                resultsGrid.className = 'flex flex-col space-y-2';
-            } else {
-                resultsGrid.className = 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-4 sm:gap-6';
-            }
-
-
-            results.forEach(video => {
-                const isPlayable = video.duration && !video.duration.includes('m') && !video.duration.includes('h');
-                const thumbnailUrl = video.thumbnail || 'https://placehold.co/150x150/1c1c1c/ffffff?text=No+Art';
-                const card = document.createElement('div');
-                
-                if (isPlayable) {
-                    card.addEventListener('click', () => playSearchVideo(video)); // Use dedicated function for search clicks
-                }
-
-                // 2. Set card classes and HTML content based on the current mode
-                if (currentViewMode === 'list') {
-                    card.className = `flex items-center space-x-4 p-2 rounded-lg transition-transform duration-300 ${isPlayable ? 'hover:bg-[#212121] cursor-pointer' : 'opacity-50 cursor-not-allowed'}`;
+                if (total > 0) {
+                    const pct = (curr / total) * 100;
+                    els.progBarDesktop.style.width = pct + '%';
+                    els.progThumbDesktop.style.left = pct + '%';
+                    els.progBarMobile.style.width = pct + '%';
                     
-                    card.innerHTML = `
-                        <div class="flex-shrink-0 w-16 h-16">
-                            <img 
-                                src="${thumbnailUrl}" 
-                                onerror="this.onerror=null;this.src='https://placehold.co/64x64/1c1c1c/ffffff?text=No+Art';" 
-                                alt="${video.title} Art" 
-                                class="w-full h-full object-cover rounded-lg shadow-lg"
-                            >
-                        </div>
-                        <div class="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                            <div class="min-w-0 truncate">
-                                <p class="text-base font-semibold truncate text-white" title="${video.title}">${video.title}</p>
-                                <p class="text-sm text-gray-400 truncate" title="${video.channel}">${video.channel}</p>
-                            </div>
-                            <span class="text-sm text-gray-500 flex-shrink-0 mt-1 sm:mt-0">${video.duration}</span>
-                        </div>
-                    `;
-
-                } else {
-                    card.className = `group cursor-pointer p-2 rounded-lg transition-transform duration-300 ${isPlayable ? 'hover:bg-[#212121]' : 'opacity-50 cursor-not-allowed'}`;
-                    
-                    card.innerHTML = `
-                        <!-- Album Art Placeholder -->
-                        <div class="w-full aspect-square bg-[#1c1c1c] rounded-lg shadow-lg relative overflow-hidden">
-                            <img 
-                                src="${thumbnailUrl}" 
-                                onerror="this.onerror=null;this.src='https://placehold.co/150x150/1c1c1c/ffffff?text=No+Art';" 
-                                alt="${video.title} Art" 
-                                class="w-full h-full object-cover rounded-lg"
-                            >
-                            ${isPlayable ? 
-                                `<span class="absolute bottom-1 right-1 bg-black/70 text-white text-xs px-1 py-0.5 rounded">${video.duration}</span>` 
-                                : 
-                                `<span class="absolute inset-0 bg-black/60 flex items-center justify-center text-xs text-red-500 font-bold">LIVE / UNPLAYABLE</span>`
-                            }
-                        </div>
-                        <p class="mt-2 text-sm font-semibold truncate" title="${video.title}">${video.title}</p>
-                        <p class="text-xs text-gray-400 truncate" title="${video.channel}">${video.channel}</p>
-                    `;
+                    els.timeCurr.innerText = formatTime(curr);
+                    els.timeTotal.innerText = formatTime(total);
                 }
-                
-                resultsGrid.appendChild(card);
-            });
+            }, 500);
         }
-        
-        /**
-         * Fetches search results and updates the content grid.
-         */
-        async function loadContent(query) {
+
+        function stopProgressLoop() { clearInterval(updateInterval); }
+
+        function seekTo(e, container) {
+            if (!isPlayerReady || player.getDuration() === 0) return;
+            const rect = container.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const pct = x / rect.width;
+            const time = player.getDuration() * pct;
+            player.seekTo(time, true);
+        }
+
+        // --- QUEUE & API ---
+
+        async function playSearchItem(video) {
+            // 1. Immediate UI update with clicked video
+            currentQueue = [video];
+            loadTrack(0);
+
+            // 2. Fetch Radio in background
+            try {
+                const res = await fetchWithRetry(`${RADIO_API}?videoId=${video.videoId}`);
+                if (res.videos && res.videos.length > 0) {
+                    // Update queue with radio mix
+                    currentQueue = res.videos;
+                    renderQueue();
+                }
+            } catch (e) {
+                console.warn("Radio fetch failed, playing single track.");
+            }
+        }
+
+        async function performSearch(query) {
             if (!query) return;
-
-            resultsGrid.innerHTML = ''; 
-            sectionTitle.textContent = `Searching for "${query}"...`;
-            contentLoader.classList.remove('hidden'); 
+            els.loader.classList.remove('hidden');
+            els.resultsGrid.innerHTML = '';
+            els.sectionTitle.innerText = `Searching "${query}"...`;
 
             try {
-                const url = `${SEARCH_API}?q=${encodeURIComponent(query)}`;
-                const data = await fetchWithRetry(url);
-                
-                if (data && data.results) {
-                    lastLoadedResults = data.results; 
-                    renderResults(data.results);
-                    sectionTitle.textContent = `Results for "${query}"`;
-                } else {
-                    sectionTitle.textContent = `No Results Found`;
-                    lastLoadedResults = [];
-                    renderResults([]);
-                }
-            } catch (error) {
-                console.error("Search failed:", error);
-                sectionTitle.textContent = `Search Failed (Check Console)`;
-                resultsGrid.innerHTML = `<p class="col-span-full text-red-400">Error fetching search results. Please try again later.</p>`;
+                const res = await fetchWithRetry(`${SEARCH_API}?q=${encodeURIComponent(query)}`);
+                lastResults = res.results || [];
+                renderResults();
+                els.sectionTitle.innerText = `Results for "${query}"`;
+            } catch (e) {
+                els.sectionTitle.innerText = "Error fetching results";
+                console.error(e);
             } finally {
-                contentLoader.classList.add('hidden'); 
+                els.loader.classList.add('hidden');
             }
         }
-        
-        /**
-         * Handles playing a video directly from a search result click.
-         * Fetches the radio mix and starts playing the first track (the clicked one).
-         * @param {Object} video - The selected video data (from search result).
-         */
-        async function playSearchVideo(video) {
-            console.log("Playing search video:", video.title, video.videoId);
 
-            // 1. Fetch Radio Playlist 
-            try {
-                const radioUrl = `${RADIO_API}?videoId=${video.videoId}`;
-                const radioData = await fetchWithRetry(radioUrl);
+        function renderResults() {
+            els.resultsGrid.innerHTML = '';
+            els.resultsGrid.className = currentViewMode === 'grid' 
+                ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6"
+                : "flex flex-col space-y-2";
+
+            if (lastResults.length === 0) {
+                els.resultsGrid.innerHTML = '<p class="text-gray-500">No results found.</p>';
+                return;
+            }
+
+            lastResults.forEach(vid => {
+                const isPlayable = vid.duration && !vid.duration.includes('m') && !vid.duration.includes('h'); 
+                if (!isPlayable) return;
+
+                const div = document.createElement('div');
+                div.onclick = () => playSearchItem(vid);
                 
-                if (radioData && radioData.videos && radioData.videos.length > 0) {
-                    currentQueue = radioData.videos;
-                    console.log(`Successfully loaded Radio Playlist: ${radioData.playlistTitle} (${currentQueue.length} tracks)`);
-                    
-                    // 2. Start playing the first track in the new queue
-                    playTrackByIndex(0); 
+                // Common image handling
+                const thumb = vid.thumbnail || (vid.thumbnails ? vid.thumbnails[0].url : 'https://placehold.co/150');
 
+                if (currentViewMode === 'grid') {
+                    div.className = "group cursor-pointer p-2 rounded-lg hover:bg-[#212121] transition";
+                    div.innerHTML = `
+                        <div class="aspect-square bg-[#1c1c1c] rounded-md mb-2 relative overflow-hidden">
+                            <img src="${thumb}" class="w-full h-full object-cover">
+                            <div class="absolute bottom-1 right-1 bg-black/80 px-1 rounded text-xs">${vid.duration}</div>
+                            <div class="absolute inset-0 bg-black/40 hidden group-hover:flex items-center justify-center">
+                                <svg class="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                            </div>
+                        </div>
+                        <h4 class="font-bold text-sm truncate text-white">${vid.title}</h4>
+                        <p class="text-xs text-gray-400 truncate">${vid.channel}</p>
+                    `;
                 } else {
-                    console.warn("Could not load radio playlist for this track.");
-                    currentQueue = [video]; // Fallback: put just the clicked track in the queue
-                    playTrackByIndex(0);
+                    div.className = "flex items-center space-x-3 p-2 rounded-lg hover:bg-[#212121] cursor-pointer";
+                    div.innerHTML = `
+                        <img src="${thumb}" class="w-16 h-16 rounded object-cover flex-shrink-0">
+                        <div class="flex-1 min-w-0">
+                            <h4 class="font-bold text-sm truncate text-white">${vid.title}</h4>
+                            <p class="text-xs text-gray-400 truncate">${vid.channel}</p>
+                        </div>
+                        <div class="text-xs text-gray-500">${vid.duration}</div>
+                    `;
                 }
-            } catch (error) {
-                console.warn("Could not load radio playlist for this track.", error);
-                currentQueue = [video]; // Fallback: put just the clicked track in the queue
-                playTrackByIndex(0);
-            }
+                els.resultsGrid.appendChild(div);
+            });
         }
 
-
-        // --- View Toggle Logic ---
-        function setViewMode(mode) {
-            currentViewMode = mode;
-            
-            // Update button styles: remove active state from both
-            gridViewBtn.classList.remove('bg-[#212121]', 'text-white');
-            listViewBtn.classList.remove('bg-[#212121]', 'text-white');
-
-            // Add active state to the selected button
-            if (mode === 'grid') {
-                gridViewBtn.classList.add('bg-[#212121]', 'text-white');
-            } else {
-                listViewBtn.classList.add('bg-[#212121]', 'text-white');
+        function renderQueue() {
+            els.queueList.innerHTML = '';
+            if (currentQueue.length === 0) {
+                els.queueList.innerHTML = '<p class="text-center text-gray-500 mt-4">Queue is empty</p>';
+                return;
             }
+            currentQueue.forEach((vid, i) => {
+                const el = document.createElement('div');
+                el.className = `queue-item flex items-center space-x-3 p-2 rounded cursor-pointer hover:bg-[#212121] text-gray-300 ${i === currentIndex ? 'active text-white' : ''}`;
+                el.onclick = () => loadTrack(i);
+                
+                let tUrl = vid.thumbnail;
+                if (!tUrl && vid.thumbnails && vid.thumbnails.length > 0) tUrl = vid.thumbnails[0].url;
+                if (!tUrl) tUrl = 'https://placehold.co/40';
 
-            // Re-render content using the currently loaded results
-            if (lastLoadedResults.length > 0) {
-                renderResults(lastLoadedResults);
-            }
+                el.innerHTML = `
+                    <div class="text-xs font-bold w-4 text-center text-gray-500">${i === currentIndex ? '▶' : i+1}</div>
+                    <img src="${tUrl}" class="w-10 h-10 rounded bg-[#333]">
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium truncate">${vid.title}</p>
+                        <p class="text-xs text-gray-500 truncate">${vid.channel}</p>
+                    </div>
+                `;
+                els.queueList.appendChild(el);
+            });
         }
 
+        // --- HELPERS ---
+        function formatTime(sec) {
+            const m = Math.floor(sec / 60);
+            const s = Math.floor(sec % 60);
+            return `${m}:${s < 10 ? '0'+s : s}`;
+        }
 
-        // --- Sidebar Logic (from original file) ---
-        const sidebarToggleBtn = document.getElementById('sidebar-toggle');
-        const navTexts = document.querySelectorAll('.nav-text');
-
-        sidebarToggleBtn.addEventListener('click', () => {
-            const isCollapsed = sidebar.classList.toggle('sidebar-collapsed');
-            
-            // Toggle text visibility
-            navTexts.forEach(el => el.style.display = isCollapsed ? 'none' : 'block');
-            
-            // Trigger padding update after collapse transition
-            setTimeout(updatePlayerBarPadding, 300); 
+        // --- EVENT LISTENERS ---
+        
+        // Search - FIXED to use addEventListener
+        els.searchBtn.addEventListener('click', () => performSearch(els.searchInput.value));
+        els.searchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') performSearch(els.searchInput.value);
         });
 
-        // --- Responsive Footer Padding JS (from original file) ---
-        function updatePlayerBarPadding() {
-            // Apply padding when sidebar is visible (>= 640px)
-            if (window.innerWidth >= 640) { 
-                const sidebarWidth = sidebar.offsetWidth;
-                playerBar.style.paddingLeft = `${sidebarWidth + 16}px`; 
+        // Player Controls
+        els.btnPlay.onclick = togglePlay;
+        els.btnMobPlay.onclick = togglePlay;
+        els.btnNext.onclick = nextTrack;
+        els.btnPrev.onclick = prevTrack;
+        els.btnMobNext.onclick = nextTrack;
+        els.btnMobPrev.onclick = prevTrack;
+
+        // Progress Seeking
+        els.progContDesktop.onclick = (e) => seekTo(e, els.progContDesktop);
+        els.progContMobile.onclick = (e) => seekTo(e, els.progContMobile);
+
+        // Queue Panel
+        els.queueBtn.onclick = () => els.queuePanel.classList.remove('translate-x-full');
+        els.queueClose.onclick = () => els.queuePanel.classList.add('translate-x-full');
+
+        // Video Toggle
+        const toggleVideoUI = () => {
+            isVideoVisible = !isVideoVisible;
+            if (isVideoVisible) {
+                els.videoWrapper.classList.remove('video-hidden');
+                els.videoWrapper.classList.add('video-visible');
+                els.videoToggle.classList.add('text-red-500', 'border-red-500');
             } else {
-                 // Remove extra padding on mobile
-                 playerBar.style.paddingLeft = '1rem'; 
+                els.videoWrapper.classList.add('video-hidden');
+                els.videoWrapper.classList.remove('video-visible');
+                els.videoToggle.classList.remove('text-red-500', 'border-red-500');
             }
-        }
+        };
+        els.videoToggle.onclick = toggleVideoUI;
+        els.videoHide.onclick = toggleVideoUI;
 
-        // --- Initialization ---
-        window.onload = function () {
-            // Set up search listener
-            const performSearch = () => {
-                const query = searchInput.value.trim();
-                if (query) {
-                    loadContent(query);
-                }
-            };
+        // View Mode
+        els.btnGrid.onclick = () => { currentViewMode = 'grid'; renderResults(); els.btnGrid.classList.add('bg-gray-600/50', 'text-white'); els.btnGrid.classList.remove('text-gray-400'); els.btnList.classList.remove('bg-gray-600/50', 'text-white'); els.btnList.classList.add('text-gray-400'); };
+        els.btnList.onclick = () => { currentViewMode = 'list'; renderResults(); els.btnList.classList.add('bg-gray-600/50', 'text-white'); els.btnList.classList.remove('text-gray-400'); els.btnGrid.classList.remove('bg-gray-600/50', 'text-white'); els.btnGrid.classList.add('text-gray-400'); };
 
-            searchBtn.addEventListener('click', performSearch);
-            searchInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    performSearch();
-                }
-            });
-            
-            // Set up queue toggle listeners
-            queueToggleBtn.addEventListener('click', () => toggleQueue(true));
-            closeQueueBtn.addEventListener('click', () => toggleQueue(false));
-            
-            // Set up player navigation listeners
-            playPauseBtn.addEventListener('click', togglePlayPause);
-            prevTrackBtn.addEventListener('click', prevTrack);
-            nextTrackBtn.addEventListener('click', nextTrack);
-            
-            // Set up view toggle listeners
-            gridViewBtn.addEventListener('click', () => setViewMode('grid'));
-            listViewBtn.addEventListener('click', () => setViewMode('list'));
-            
-            // Initial UI setup and content load
-            setViewMode('grid'); // Set initial button state
-            loadContent(searchInput.value.trim());
-            updatePlayerBarPadding();
-            window.addEventListener('resize', updatePlayerBarPadding);
-            enablePlayerControls(false); // Start with disabled controls
-        }
-        
+        // Init
+        performSearch('Latest hits');
+
     </script>
 </body>
 </html>
