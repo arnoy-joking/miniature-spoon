@@ -38,17 +38,17 @@
         }
         .mobile-progress-bar { height: 100%; background: #ef4444; }
 
-        /* Video Container - Uses z-index/opacity to hide but keep active */
-        .video-hidden {
-            opacity: 0;
-            pointer-events: none;
-            z-index: -10;
+        /* Video Container */
+        .video-hidden { opacity: 0; pointer-events: none; z-index: -10; }
+        .video-visible { opacity: 1; pointer-events: auto; z-index: 50; }
+        
+        /* Heart Animation */
+        @keyframes heart-burst {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1); }
         }
-        .video-visible {
-            opacity: 1;
-            pointer-events: auto;
-            z-index: 50;
-        }
+        .heart-active { color: #ef4444; animation: heart-burst 0.3s ease-out; }
     </style>
 </head>
 <body class="bg-[#0f0f0f] text-white h-screen flex flex-col">
@@ -56,25 +56,24 @@
     <!-- VIDEO OVERLAY -->
     <div id="video-wrapper" class="fixed bottom-24 right-4 shadow-2xl rounded-lg overflow-hidden w-64 sm:w-80 aspect-video bg-black border border-[#333] video-hidden transition-all duration-300">
         <div id="yt-player"></div>
-        <!-- Close Video Button -->
         <button id="hide-video-btn" class="absolute top-2 right-2 bg-black/50 hover:bg-black/80 text-white p-1 rounded-full">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
         </button>
     </div>
 
     <!-- MAIN LAYOUT -->
-    <div class="flex flex-1 overflow-hidden pb-16 sm:pb-20"> <!-- Padding bottom for player bar -->
+    <div class="flex flex-1 overflow-hidden pb-16 sm:pb-20"> 
         
-        <!-- SIDEBAR (Hidden on mobile) -->
+        <!-- SIDEBAR -->
         <aside id="sidebar" class="w-60 bg-[#0f0f0f] hidden sm:flex flex-col p-4 border-r border-[#212121]">
             <div class="flex items-center space-x-2 mb-8 px-2">
                  <img src="https://img.icons8.com/?size=100&id=YNioBT5SxQw3&format=png&color=000000" class="w-8 h-8">
                 <span class="text-xl font-bold tracking-tighter">Music</span>
             </div>
             <nav class="space-y-2">
-                <a href="#" class="flex items-center space-x-4 p-3 rounded-lg bg-[#212121] text-white font-medium"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><span>Home</span></a>
-                <a href="#" class="flex items-center space-x-4 p-3 rounded-lg text-gray-400 hover:bg-[#212121]"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg><span>Samples</span></a>
-                <a href="#" class="flex items-center space-x-4 p-3 rounded-lg text-gray-400 hover:bg-[#212121]"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9h-4v4h-2v-4H9V9h4V5h2v4h4v2z"/></svg><span>Library</span></a>
+                <a href="#" onclick="initFeed()" class="flex items-center space-x-4 p-3 rounded-lg bg-[#212121] text-white font-medium hover:bg-[#333] cursor-pointer transition"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><span>Home</span></a>
+                <a href="#" class="flex items-center space-x-4 p-3 rounded-lg text-gray-400 hover:bg-[#212121] transition"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg><span>Samples</span></a>
+                <a href="#" onclick="showFavorites()" class="flex items-center space-x-4 p-3 rounded-lg text-gray-400 hover:bg-[#212121] transition"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg><span>Favorites</span></a>
             </nav>
         </aside>
 
@@ -85,13 +84,11 @@
                 <div class="flex items-center w-full max-w-3xl space-x-4">
                     <button class="sm:hidden text-white"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg></button>
                     <div class="relative flex-1">
-                        <!-- Removed onkeypress, using addEventListener in JS -->
                         <input type="text" id="search-input" placeholder="Search songs, artists..." class="w-full bg-[#212121] text-white rounded-md py-2 pl-10 pr-4 focus:outline-none focus:ring-1 focus:ring-white/30 placeholder-gray-500">
                         <svg class="w-5 h-5 text-gray-500 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                     </div>
                     <button id="search-btn" class="hidden sm:block font-medium text-sm text-gray-300 hover:text-white">Search</button>
-                    <!-- User Avatar -->
-                    <div class="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center text-xs font-bold">U</div>
+                    <div class="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center text-xs font-bold cursor-pointer">U</div>
                 </div>
             </header>
 
@@ -102,7 +99,6 @@
                         <h2 id="section-title" class="text-2xl font-bold">Quick Picks</h2>
                         <div id="content-loader" class="spinner hidden"></div>
                     </div>
-                    <!-- View Toggles -->
                     <div class="flex bg-[#212121] rounded-full p-1">
                         <button id="grid-view-btn" class="p-1.5 rounded-full text-white bg-gray-600/50"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M4 11h5V5H4v6zm0 7h5v-6H4v6zm6 0h5v-6h-5v6zm6 0h5v-6h-5v6zm-6-7h5V5h-5v6zm6-6v6h5V5h-5z"/></svg></button>
                         <button id="list-view-btn" class="p-1.5 rounded-full text-gray-400 hover:text-white"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg></button>
@@ -116,30 +112,21 @@
         </main>
     </div>
 
-    <!-- PLAYER BAR (Fixed Bottom) -->
+    <!-- PLAYER BAR -->
     <footer id="player-bar" class="fixed bottom-0 left-0 w-full bg-[#212121] border-t border-[#333] z-40 transition-all duration-300 h-16 sm:h-20">
-        
-        <!-- MOBILE PROGRESS BAR (Top Edge) -->
         <div class="block sm:hidden mobile-progress-container" id="mobile-progress-container">
             <div id="mobile-progress-bar" class="mobile-progress-bar" style="width: 0%"></div>
         </div>
-
         <div class="flex items-center justify-between h-full px-2 sm:px-4">
-            
-            <!-- LEFT: Track Info -->
+            <!-- LEFT -->
             <div class="flex items-center flex-1 min-w-0 mr-2">
-                <!-- Controls (Mobile Previous) -->
-                <button id="mobile-prev-btn" class="sm:hidden text-gray-300 p-2 mr-1"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button>
-
                 <img id="player-art" src="https://placehold.co/48x48/333/666?text=Music" class="w-10 h-10 sm:w-12 sm:h-12 rounded bg-gray-800 object-cover flex-shrink-0">
-                
                 <div class="ml-3 overflow-hidden">
                     <p id="player-title" class="text-sm sm:text-base font-medium truncate text-white">Ready to play</p>
                     <p id="player-artist" class="text-xs sm:text-sm text-gray-400 truncate">Select a song</p>
                 </div>
             </div>
-
-            <!-- CENTER: Controls (Desktop Only) -->
+            <!-- CENTER -->
             <div class="hidden sm:flex flex-col items-center flex-1 max-w-xl">
                 <div class="flex items-center space-x-6 mb-1">
                     <button id="prev-btn" class="text-gray-400 hover:text-white disabled:opacity-30"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button>
@@ -155,28 +142,18 @@
                     <span id="total-duration">0:00</span>
                 </div>
             </div>
-
-            <!-- RIGHT: Actions -->
+            <!-- RIGHT -->
             <div class="flex items-center justify-end space-x-2 sm:space-x-4 flex-1 sm:flex-none">
-                
-                <!-- Play Button (Mobile Only) -->
                 <button id="mobile-play-btn" class="sm:hidden p-2 text-white"><svg id="play-icon-mobile" class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
-                
-                <!-- Next Button (Mobile Only) -->
                 <button id="mobile-next-btn" class="sm:hidden p-2 text-gray-300"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M16 6h2v12h-2zM7 18l8.5-6L7 6z"/></svg></button>
-
-                <!-- Toggle Video Button -->
-                <button id="toggle-video-btn" class="text-gray-400 hover:text-red-500 transition" title="Toggle Video Mode">
-                    <span class="text-xs font-bold border border-current px-1 rounded">VIDEO</span>
-                </button>
-
-                <!-- Queue Button -->
+                <button id="like-btn" class="text-gray-400 hover:text-red-500 transition p-2" title="Like"><svg id="like-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg></button>
+                <button id="toggle-video-btn" class="text-gray-400 hover:text-red-500 transition hidden sm:block" title="Toggle Video Mode"><span class="text-xs font-bold border border-current px-1 rounded">VIDEO</span></button>
                 <button id="queue-btn" class="text-gray-400 hover:text-white"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path></svg></button>
             </div>
         </div>
     </footer>
 
-    <!-- QUEUE PANEL (Slide-in) -->
+    <!-- QUEUE PANEL -->
     <div id="queue-panel" class="fixed top-0 right-0 h-full w-full sm:w-96 bg-[#030303] border-l border-[#333] z-30 transform translate-x-full transition-transform duration-300 pt-16 pb-24 overflow-y-auto custom-scrollbar shadow-2xl">
         <div class="px-4 py-3 flex items-center justify-between border-b border-[#212121] bg-[#030303] sticky top-0">
             <h3 class="font-bold text-lg">Up Next</h3>
@@ -187,54 +164,38 @@
         </div>
     </div>
 
-    <!-- JAVASCRIPT LOGIC -->
+    <!-- JAVASCRIPT -->
     <script>
-        // --- API CONFIG ---
         const SEARCH_API = 'https://raspy-sound-0966.arnoy799.workers.dev/';
         const RADIO_API = 'https://long-pond-4887.arnoy799.workers.dev/';
         
-        // --- STATE ---
-        let player; // YT Player instance
-        let isPlayerReady = false;
-        let isPlaying = false;
-        let currentQueue = [];
-        let currentIndex = -1;
-        let updateInterval;
-        let isVideoVisible = false;
-        let currentViewMode = 'grid';
-        let lastResults = [];
-        let pendingPlayIndex = -1; // Track waiting to play if player isn't ready
+        let player, isPlayerReady = false, isPlaying = false;
+        let currentQueue = [], currentIndex = -1, updateInterval;
+        let isVideoVisible = false, currentViewMode = 'grid';
+        let lastResults = [], pendingPlayIndex = -1;
 
-        // --- ICONS ---
         const SVG_PLAY = '<path d="M8 5v14l11-7z"/>';
         const SVG_PAUSE = '<path d="M6 19h4V5H6zm8-14v14h4V5z"/>';
+        const SVG_HEART_EMPTY = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>';
+        const SVG_HEART_FILLED = '<path d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"></path>';
 
-        // --- DOM ELEMENTS ---
         const els = {
             searchInput: document.getElementById('search-input'),
             searchBtn: document.getElementById('search-btn'),
             resultsGrid: document.getElementById('results-grid'),
             loader: document.getElementById('content-loader'),
             sectionTitle: document.getElementById('section-title'),
-            
-            // Player Bar Text
             pTitle: document.getElementById('player-title'),
             pArtist: document.getElementById('player-artist'),
             pArt: document.getElementById('player-art'),
-            
-            // Buttons
             btnPlay: document.getElementById('play-pause-btn'),
             btnPrev: document.getElementById('prev-btn'),
             btnNext: document.getElementById('next-btn'),
             btnMobPlay: document.getElementById('mobile-play-btn'),
             btnMobPrev: document.getElementById('mobile-prev-btn'),
             btnMobNext: document.getElementById('mobile-next-btn'),
-            
-            // Icons
             iconDesktop: document.getElementById('play-icon-desktop'),
             iconMobile: document.getElementById('play-icon-mobile'),
-            
-            // Progress
             timeCurr: document.getElementById('current-time'),
             timeTotal: document.getElementById('total-duration'),
             progBarDesktop: document.getElementById('desktop-progress-bar'),
@@ -242,42 +203,124 @@
             progThumbDesktop: document.getElementById('desktop-progress-thumb'),
             progBarMobile: document.getElementById('mobile-progress-bar'),
             progContMobile: document.getElementById('mobile-progress-container'),
-            
-            // Panels
             queuePanel: document.getElementById('queue-panel'),
             queueList: document.getElementById('queue-list'),
             queueBtn: document.getElementById('queue-btn'),
             queueClose: document.getElementById('close-queue-btn'),
-            
-            // Video
             videoWrapper: document.getElementById('video-wrapper'),
             videoToggle: document.getElementById('toggle-video-btn'),
             videoHide: document.getElementById('hide-video-btn'),
-
-            // View
             btnGrid: document.getElementById('grid-view-btn'),
             btnList: document.getElementById('list-view-btn'),
+            btnLike: document.getElementById('like-btn'),
+            iconLike: document.getElementById('like-icon')
         };
 
-        // --- HELPER: Fetch with Retry ---
-        async function fetchWithRetry(url, maxRetries = 3) {
+        const DB = {
+            getHistory: () => JSON.parse(localStorage.getItem('ytm_history') || '[]'),
+            saveHistory: (video) => {
+                let hist = DB.getHistory();
+                hist = hist.filter(v => v.videoId !== video.videoId);
+                hist.unshift({ videoId: video.videoId, title: video.title, channel: video.channel, thumbnail: video.thumbnail || video.thumbnails?.[0]?.url, duration: video.duration });
+                if(hist.length > 20) hist.pop();
+                localStorage.setItem('ytm_history', JSON.stringify(hist));
+            },
+            getFavorites: () => JSON.parse(localStorage.getItem('ytm_favorites') || '[]'),
+            isFavorite: (id) => DB.getFavorites().some(v => v.videoId === id),
+            toggleFavorite: (video) => {
+                let favs = DB.getFavorites();
+                const idx = favs.findIndex(v => v.videoId === video.videoId);
+                if (idx > -1) favs.splice(idx, 1); else favs.unshift(video);
+                localStorage.setItem('ytm_favorites', JSON.stringify(favs));
+                return idx === -1;
+            }
+        };
+
+        // --- BULLETPROOF FEED ALGORITHM ---
+        async function initFeed() {
+            els.loader.classList.remove('hidden');
+            const history = DB.getHistory();
+            const favorites = DB.getFavorites();
+            
+            // 1. ZERO STATE HANDLING: If no data, allow user to search manually.
+            if (history.length === 0 && favorites.length === 0) {
+                renderZeroState();
+                els.loader.classList.add('hidden');
+                return;
+            }
+
+            els.sectionTitle.innerText = "Picks for you";
+            let feed = [];
+
+            // 2. Add history (Instant Recall)
+            if (history.length > 0) feed.push(history[0]); // Last played is top priority
+
+            // 3. Try to fetch Recommendations (Discovery)
+            // Wrap in try-catch so network failure doesn't break the whole feed
+            if (history.length > 0) {
+                try {
+                    const seed = history[0];
+                    const res = await fetchWithRetry(`${RADIO_API}?videoId=${seed.videoId}`);
+                    if (res.videos) {
+                        const recs = res.videos.filter(v => v.videoId !== seed.videoId).slice(0, 8);
+                        feed = feed.concat(recs);
+                    }
+                } catch(e) { 
+                    console.warn("Feed fetch failed, falling back to local history."); 
+                    // No UI error needed, simply proceed with what we have
+                }
+            }
+
+            // 4. Fill gaps with Favorites and more History (Reliability)
+            if (favorites.length > 0) feed = feed.concat(favorites.slice(0, 5));
+            if (history.length > 1) feed = feed.concat(history.slice(1, 10));
+
+            // 5. Deduplicate
+            const seen = new Set();
+            const uniqueFeed = feed.filter(v => {
+                if(seen.has(v.videoId)) return false;
+                seen.add(v.videoId);
+                return true;
+            });
+
+            lastResults = uniqueFeed;
+            
+            // 6. Ensure we don't show an empty screen if everything failed
+            if (uniqueFeed.length === 0) {
+                renderZeroState();
+            } else {
+                renderResults();
+            }
+            
+            els.loader.classList.add('hidden');
+        }
+
+        function renderZeroState() {
+            els.sectionTitle.innerText = "Welcome";
+            els.resultsGrid.innerHTML = '';
+            els.resultsGrid.className = "flex flex-col items-center justify-center h-64 text-center col-span-full";
+            els.resultsGrid.innerHTML = `
+                <div class="p-6 rounded-xl bg-[#212121] max-w-md">
+                    <svg class="w-16 h-16 mx-auto mb-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    <h3 class="text-xl font-bold mb-2">Try searching to get started</h3>
+                    <p class="text-gray-400">Start playing music to help us build a feed of videos you'll love.</p>
+                </div>
+            `;
+        }
+
+        async function fetchWithRetry(url, maxRetries = 2) {
             for (let i = 0; i < maxRetries; i++) {
                 try {
                     const response = await fetch(url);
                     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                     return await response.json();
                 } catch (error) {
-                    if (i < maxRetries - 1) {
-                        const delay = Math.pow(2, i) * 1000; 
-                        await new Promise(resolve => setTimeout(resolve, delay));
-                    } else {
-                        throw error;
-                    }
+                    if (i < maxRetries - 1) await new Promise(r => setTimeout(r, 1000)); else throw error;
                 }
             }
         }
 
-        // --- YOUTUBE API SETUP ---
+        // --- YOUTUBE API ---
         var tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
         var firstScriptTag = document.getElementsByTagName('script')[0];
@@ -285,248 +328,112 @@
 
         function onYouTubeIframeAPIReady() {
             player = new YT.Player('yt-player', {
-                height: '100%',
-                width: '100%',
-                playerVars: {
-                    'playsinline': 1,
-                    'controls': 0, // Hide default YT controls
-                    'disablekb': 1,
-                    'fs': 0,
-                    'iv_load_policy': 3, // Hide annotations
-                    'modestbranding': 1,
-                    'autoplay': 1, // Auto-play when loaded
-                    'origin': window.location.origin
-                },
-                events: {
-                    'onReady': onPlayerReady,
-                    'onStateChange': onPlayerStateChange,
-                    'onError': onPlayerError
-                }
+                height: '100%', width: '100%',
+                playerVars: { 'playsinline': 1, 'controls': 0, 'disablekb': 1, 'fs': 0, 'iv_load_policy': 3, 'modestbranding': 1, 'autoplay': 1, 'origin': window.location.origin },
+                events: { 'onReady': onPlayerReady, 'onStateChange': onPlayerStateChange, 'onError': onPlayerError }
             });
         }
-
-        function onPlayerReady(event) {
-            isPlayerReady = true;
-            player.setPlaybackQuality('small'); 
-            // If user clicked a track before player was ready, play it now
-            if (pendingPlayIndex !== -1) {
-                loadTrack(pendingPlayIndex);
-                pendingPlayIndex = -1;
-            }
+        function onPlayerReady() { isPlayerReady = true; player.setPlaybackQuality('small'); if (pendingPlayIndex !== -1) { loadTrack(pendingPlayIndex); pendingPlayIndex = -1; } }
+        function onPlayerStateChange(e) {
+            if (e.data === 1) { isPlaying = true; updateIcons(true); startProgressLoop(); } 
+            else if (e.data === 2) { isPlaying = false; updateIcons(false); stopProgressLoop(); } 
+            else if (e.data === 0) { isPlaying = false; updateIcons(false); nextTrack(); }
         }
+        function onPlayerError(e) { if(e.data === 150 || e.data === 101) setTimeout(nextTrack, 1000); }
 
-        function onPlayerStateChange(event) {
-            // YT.PlayerState: ENDED=0, PLAYING=1, PAUSED=2, BUFFERING=3
-            if (event.data === YT.PlayerState.PLAYING) {
-                isPlaying = true;
-                updateIcons(true);
-                startProgressLoop();
-            } else if (event.data === YT.PlayerState.PAUSED) {
-                isPlaying = false;
-                updateIcons(false);
-                stopProgressLoop();
-            } else if (event.data === YT.PlayerState.ENDED) {
-                isPlaying = false;
-                updateIcons(false);
-                nextTrack(); // Auto-advance
-            }
+        function updateIcons(play) {
+            const p = play ? SVG_PAUSE : SVG_PLAY;
+            els.iconDesktop.innerHTML = p; els.iconMobile.innerHTML = p;
         }
-
-        function onPlayerError(event) {
-            console.error("YT Player Error:", event.data);
-            // 150/101 = restricted embed. Skip to next.
-            if(event.data === 150 || event.data === 101) {
-                console.warn("Video not embeddable, skipping...");
-                setTimeout(nextTrack, 1000);
-            }
-        }
-
-        // --- APP LOGIC ---
-
-        function updateIcons(isPlaying) {
-            const path = isPlaying ? SVG_PAUSE : SVG_PLAY;
-            els.iconDesktop.innerHTML = path;
-            els.iconMobile.innerHTML = path;
+        function updateLikeButton() {
+            if (currentIndex === -1 || !currentQueue[currentIndex]) return;
+            const isFav = DB.isFavorite(currentQueue[currentIndex].videoId);
+            els.iconLike.innerHTML = isFav ? SVG_HEART_FILLED : SVG_HEART_EMPTY;
+            if (isFav) els.iconLike.classList.add('heart-active'); else els.iconLike.classList.remove('heart-active');
         }
 
         function loadTrack(index) {
             if (!currentQueue[index]) return;
-            
-            // If player isn't ready, queue this track index for later
-            if (!isPlayerReady) {
-                console.log("Player not ready, queuing track...");
-                pendingPlayIndex = index;
-                // Optimistic UI update
-                els.pTitle.innerText = "Loading Player...";
-                return;
-            }
-            
+            if (!isPlayerReady) { pendingPlayIndex = index; els.pTitle.innerText = "Loading..."; return; }
             currentIndex = index;
             const track = currentQueue[index];
-            
-            // Update UI
-            els.pTitle.innerText = track.title;
-            els.pArtist.innerText = track.channel;
-            const thumb = track.thumbnail || (track.thumbnails ? track.thumbnails[0].url : '');
-            els.pArt.src = thumb || 'https://placehold.co/48x48/333/666?text=Music';
-            
-            // Play Video
-            player.loadVideoById(track.videoId);
-            
-            // Render Queue Highlight
-            renderQueue();
-            
-            // Enable Buttons
-            updateNavButtons();
+            DB.saveHistory(track);
+            els.pTitle.innerText = track.title; els.pArtist.innerText = track.channel;
+            els.pArt.src = track.thumbnail || (track.thumbnails ? track.thumbnails[0].url : '') || 'https://placehold.co/48x48/333/666?text=Music';
+            updateLikeButton();
+            player.loadVideoById(track.videoId); player.setPlaybackQuality('small');
+            renderQueue(); updateNavButtons();
         }
 
         function playVideo() { if(isPlayerReady) player.playVideo(); }
         function pauseVideo() { if(isPlayerReady) player.pauseVideo(); }
         function togglePlay() { isPlaying ? pauseVideo() : playVideo(); }
-
-        function nextTrack() {
-            if (currentQueue.length > 0) {
-                let next = currentIndex + 1;
-                if (next >= currentQueue.length) next = 0; // Loop
-                loadTrack(next);
-            }
+        function toggleLike() { if (currentIndex > -1) { DB.toggleFavorite(currentQueue[currentIndex]); updateLikeButton(); } }
+        function showFavorites() {
+            const favs = DB.getFavorites();
+            if (favs.length === 0) { alert("No favorites yet!"); return; }
+            lastResults = favs; els.sectionTitle.innerText = "Your Favorites"; renderResults();
         }
-
-        function prevTrack() {
-            if (currentQueue.length > 0) {
-                let prev = currentIndex - 1;
-                if (prev < 0) prev = currentQueue.length - 1; // Loop
-                loadTrack(prev);
-            }
-        }
-
+        function nextTrack() { if (currentQueue.length > 0) { let next = currentIndex + 1; if (next >= currentQueue.length) next = 0; loadTrack(next); } }
+        function prevTrack() { if (currentQueue.length > 0) { let prev = currentIndex - 1; if (prev < 0) prev = currentQueue.length - 1; loadTrack(prev); } }
         function updateNavButtons() {
             const hasQueue = currentQueue.length > 0;
-            els.btnNext.disabled = !hasQueue;
-            els.btnPrev.disabled = !hasQueue;
-            els.btnMobNext.disabled = !hasQueue;
-            els.btnMobPrev.disabled = !hasQueue;
-            
-            els.btnNext.style.opacity = hasQueue ? '1' : '0.3';
-            els.btnPrev.style.opacity = hasQueue ? '1' : '0.3';
+            els.btnNext.disabled = !hasQueue; els.btnPrev.disabled = !hasQueue;
+            els.btnNext.style.opacity = hasQueue ? '1' : '0.3'; els.btnPrev.style.opacity = hasQueue ? '1' : '0.3';
         }
-
-        // --- PROGRESS & SEEKING ---
-
         function startProgressLoop() {
             if(updateInterval) clearInterval(updateInterval);
             updateInterval = setInterval(() => {
                 if(!player || !player.getCurrentTime) return;
-                
-                const curr = player.getCurrentTime();
-                const total = player.getDuration();
-                
-                if (total > 0) {
-                    const pct = (curr / total) * 100;
-                    els.progBarDesktop.style.width = pct + '%';
-                    els.progThumbDesktop.style.left = pct + '%';
-                    els.progBarMobile.style.width = pct + '%';
-                    
-                    els.timeCurr.innerText = formatTime(curr);
-                    els.timeTotal.innerText = formatTime(total);
+                const c = player.getCurrentTime(), t = player.getDuration();
+                if (t > 0) {
+                    const p = (c/t)*100;
+                    els.progBarDesktop.style.width = p+'%'; els.progThumbDesktop.style.left = p+'%'; els.progBarMobile.style.width = p+'%';
+                    els.timeCurr.innerText = formatTime(c); els.timeTotal.innerText = formatTime(t);
                 }
             }, 500);
         }
-
         function stopProgressLoop() { clearInterval(updateInterval); }
-
-        function seekTo(e, container) {
-            if (!isPlayerReady || player.getDuration() === 0) return;
-            const rect = container.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const pct = x / rect.width;
-            const time = player.getDuration() * pct;
-            player.seekTo(time, true);
-        }
-
-        // --- QUEUE & API ---
+        function seekTo(e, c) { if (!isPlayerReady) return; const r = c.getBoundingClientRect(); const p = (e.clientX - r.left)/r.width; player.seekTo(player.getDuration()*p, true); }
 
         async function playSearchItem(video) {
-            // 1. Immediate UI update with clicked video
-            currentQueue = [video];
-            loadTrack(0);
-
-            // 2. Fetch Radio in background
+            currentQueue = [video]; loadTrack(0);
             try {
                 const res = await fetchWithRetry(`${RADIO_API}?videoId=${video.videoId}`);
-                if (res.videos && res.videos.length > 0) {
-                    // Update queue with radio mix
-                    currentQueue = res.videos;
-                    renderQueue();
-                }
-            } catch (e) {
-                console.warn("Radio fetch failed, playing single track.");
-            }
+                if (res.videos) { currentQueue = res.videos; renderQueue(); }
+            } catch (e) { console.warn("Radio fail, simple play"); }
         }
 
         async function performSearch(query) {
             if (!query) return;
             els.loader.classList.remove('hidden');
-            els.resultsGrid.innerHTML = '';
             els.sectionTitle.innerText = `Searching "${query}"...`;
-
             try {
                 const res = await fetchWithRetry(`${SEARCH_API}?q=${encodeURIComponent(query)}`);
                 lastResults = res.results || [];
                 renderResults();
                 els.sectionTitle.innerText = `Results for "${query}"`;
-            } catch (e) {
-                els.sectionTitle.innerText = "Error fetching results";
-                console.error(e);
-            } finally {
-                els.loader.classList.add('hidden');
-            }
+            } catch (e) { els.sectionTitle.innerText = "Error fetching results"; } 
+            finally { els.loader.classList.add('hidden'); }
         }
 
         function renderResults() {
             els.resultsGrid.innerHTML = '';
-            els.resultsGrid.className = currentViewMode === 'grid' 
-                ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6"
-                : "flex flex-col space-y-2";
-
-            if (lastResults.length === 0) {
-                els.resultsGrid.innerHTML = '<p class="text-gray-500">No results found.</p>';
-                return;
-            }
-
+            // Reset grid class logic (Crucial for fixing zero state layout issues)
+            els.resultsGrid.className = currentViewMode === 'grid' ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6" : "flex flex-col space-y-2";
+            
+            if (lastResults.length === 0) { els.resultsGrid.innerHTML = '<p class="text-gray-500 col-span-full text-center">No results found.</p>'; return; }
             lastResults.forEach(vid => {
-                const isPlayable = vid.duration && !vid.duration.includes('m') && !vid.duration.includes('h'); 
-                if (!isPlayable) return;
-
+                if (vid.duration && (vid.duration.includes('m') || vid.duration.includes('h'))) return;
                 const div = document.createElement('div');
                 div.onclick = () => playSearchItem(vid);
-                
-                // Common image handling
                 const thumb = vid.thumbnail || (vid.thumbnails ? vid.thumbnails[0].url : 'https://placehold.co/150');
-
                 if (currentViewMode === 'grid') {
                     div.className = "group cursor-pointer p-2 rounded-lg hover:bg-[#212121] transition";
-                    div.innerHTML = `
-                        <div class="aspect-square bg-[#1c1c1c] rounded-md mb-2 relative overflow-hidden">
-                            <img src="${thumb}" class="w-full h-full object-cover">
-                            <div class="absolute bottom-1 right-1 bg-black/80 px-1 rounded text-xs">${vid.duration}</div>
-                            <div class="absolute inset-0 bg-black/40 hidden group-hover:flex items-center justify-center">
-                                <svg class="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                            </div>
-                        </div>
-                        <h4 class="font-bold text-sm truncate text-white">${vid.title}</h4>
-                        <p class="text-xs text-gray-400 truncate">${vid.channel}</p>
-                    `;
+                    div.innerHTML = `<div class="aspect-square bg-[#1c1c1c] rounded-md mb-2 relative overflow-hidden"><img src="${thumb}" class="w-full h-full object-cover"><div class="absolute bottom-1 right-1 bg-black/80 px-1 rounded text-xs">${vid.duration}</div><div class="absolute inset-0 bg-black/40 hidden group-hover:flex items-center justify-center"><svg class="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div></div><h4 class="font-bold text-sm truncate text-white">${vid.title}</h4><p class="text-xs text-gray-400 truncate">${vid.channel}</p>`;
                 } else {
                     div.className = "flex items-center space-x-3 p-2 rounded-lg hover:bg-[#212121] cursor-pointer";
-                    div.innerHTML = `
-                        <img src="${thumb}" class="w-16 h-16 rounded object-cover flex-shrink-0">
-                        <div class="flex-1 min-w-0">
-                            <h4 class="font-bold text-sm truncate text-white">${vid.title}</h4>
-                            <p class="text-xs text-gray-400 truncate">${vid.channel}</p>
-                        </div>
-                        <div class="text-xs text-gray-500">${vid.duration}</div>
-                    `;
+                    div.innerHTML = `<img src="${thumb}" class="w-16 h-16 rounded object-cover flex-shrink-0"><div class="flex-1 min-w-0"><h4 class="font-bold text-sm truncate text-white">${vid.title}</h4><p class="text-xs text-gray-400 truncate">${vid.channel}</p></div><div class="text-xs text-gray-500">${vid.duration}</div>`;
                 }
                 els.resultsGrid.appendChild(div);
             });
@@ -534,85 +441,35 @@
 
         function renderQueue() {
             els.queueList.innerHTML = '';
-            if (currentQueue.length === 0) {
-                els.queueList.innerHTML = '<p class="text-center text-gray-500 mt-4">Queue is empty</p>';
-                return;
-            }
+            if (currentQueue.length === 0) { els.queueList.innerHTML = '<p class="text-center text-gray-500 mt-4">Queue is empty</p>'; return; }
             currentQueue.forEach((vid, i) => {
                 const el = document.createElement('div');
                 el.className = `queue-item flex items-center space-x-3 p-2 rounded cursor-pointer hover:bg-[#212121] text-gray-300 ${i === currentIndex ? 'active text-white' : ''}`;
                 el.onclick = () => loadTrack(i);
-                
-                let tUrl = vid.thumbnail;
-                if (!tUrl && vid.thumbnails && vid.thumbnails.length > 0) tUrl = vid.thumbnails[0].url;
-                if (!tUrl) tUrl = 'https://placehold.co/40';
-
-                el.innerHTML = `
-                    <div class="text-xs font-bold w-4 text-center text-gray-500">${i === currentIndex ? '▶' : i+1}</div>
-                    <img src="${tUrl}" class="w-10 h-10 rounded bg-[#333]">
-                    <div class="flex-1 min-w-0">
-                        <p class="text-sm font-medium truncate">${vid.title}</p>
-                        <p class="text-xs text-gray-500 truncate">${vid.channel}</p>
-                    </div>
-                `;
+                let tUrl = vid.thumbnail || (vid.thumbnails ? vid.thumbnails[0].url : 'https://placehold.co/40');
+                el.innerHTML = `<div class="text-xs font-bold w-4 text-center text-gray-500">${i === currentIndex ? '▶' : i+1}</div><img src="${tUrl}" class="w-10 h-10 rounded bg-[#333]"><div class="flex-1 min-w-0"><p class="text-sm font-medium truncate">${vid.title}</p><p class="text-xs text-gray-500 truncate">${vid.channel}</p></div>`;
                 els.queueList.appendChild(el);
             });
         }
 
-        // --- HELPERS ---
-        function formatTime(sec) {
-            const m = Math.floor(sec / 60);
-            const s = Math.floor(sec % 60);
-            return `${m}:${s < 10 ? '0'+s : s}`;
-        }
+        function formatTime(sec) { const m = Math.floor(sec / 60), s = Math.floor(sec % 60); return `${m}:${s < 10 ? '0'+s : s}`; }
 
-        // --- EVENT LISTENERS ---
-        
-        // Search - FIXED to use addEventListener
         els.searchBtn.addEventListener('click', () => performSearch(els.searchInput.value));
-        els.searchInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') performSearch(els.searchInput.value);
-        });
-
-        // Player Controls
-        els.btnPlay.onclick = togglePlay;
-        els.btnMobPlay.onclick = togglePlay;
-        els.btnNext.onclick = nextTrack;
-        els.btnPrev.onclick = prevTrack;
-        els.btnMobNext.onclick = nextTrack;
-        els.btnMobPrev.onclick = prevTrack;
-
-        // Progress Seeking
+        els.searchInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') performSearch(els.searchInput.value); });
+        els.btnPlay.onclick = togglePlay; els.btnMobPlay.onclick = togglePlay;
+        els.btnNext.onclick = nextTrack; els.btnPrev.onclick = prevTrack;
+        els.btnMobNext.onclick = nextTrack; els.btnMobPrev.onclick = prevTrack;
         els.progContDesktop.onclick = (e) => seekTo(e, els.progContDesktop);
         els.progContMobile.onclick = (e) => seekTo(e, els.progContMobile);
-
-        // Queue Panel
         els.queueBtn.onclick = () => els.queuePanel.classList.remove('translate-x-full');
         els.queueClose.onclick = () => els.queuePanel.classList.add('translate-x-full');
+        const toggleVideoUI = () => { isVideoVisible = !isVideoVisible; els.videoWrapper.className = isVideoVisible ? "fixed bottom-24 right-4 shadow-2xl rounded-lg overflow-hidden w-64 sm:w-80 aspect-video bg-black border border-[#333] video-visible transition-all duration-300" : "fixed bottom-24 right-4 shadow-2xl rounded-lg overflow-hidden w-64 sm:w-80 aspect-video bg-black border border-[#333] video-hidden transition-all duration-300"; els.videoToggle.classList.toggle('text-red-500', isVideoVisible); els.videoToggle.classList.toggle('border-red-500', isVideoVisible); };
+        els.videoToggle.onclick = toggleVideoUI; els.videoHide.onclick = toggleVideoUI;
+        els.btnGrid.onclick = () => { currentViewMode = 'grid'; renderResults(); };
+        els.btnList.onclick = () => { currentViewMode = 'list'; renderResults(); };
+        els.btnLike.onclick = toggleLike;
 
-        // Video Toggle
-        const toggleVideoUI = () => {
-            isVideoVisible = !isVideoVisible;
-            if (isVideoVisible) {
-                els.videoWrapper.classList.remove('video-hidden');
-                els.videoWrapper.classList.add('video-visible');
-                els.videoToggle.classList.add('text-red-500', 'border-red-500');
-            } else {
-                els.videoWrapper.classList.add('video-hidden');
-                els.videoWrapper.classList.remove('video-visible');
-                els.videoToggle.classList.remove('text-red-500', 'border-red-500');
-            }
-        };
-        els.videoToggle.onclick = toggleVideoUI;
-        els.videoHide.onclick = toggleVideoUI;
-
-        // View Mode
-        els.btnGrid.onclick = () => { currentViewMode = 'grid'; renderResults(); els.btnGrid.classList.add('bg-gray-600/50', 'text-white'); els.btnGrid.classList.remove('text-gray-400'); els.btnList.classList.remove('bg-gray-600/50', 'text-white'); els.btnList.classList.add('text-gray-400'); };
-        els.btnList.onclick = () => { currentViewMode = 'list'; renderResults(); els.btnList.classList.add('bg-gray-600/50', 'text-white'); els.btnList.classList.remove('text-gray-400'); els.btnGrid.classList.remove('bg-gray-600/50', 'text-white'); els.btnGrid.classList.add('text-gray-400'); };
-
-        // Init
-        performSearch('Latest hits');
-
+        initFeed();
     </script>
 </body>
 </html>
