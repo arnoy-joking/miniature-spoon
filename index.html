@@ -239,6 +239,9 @@
                 const history = this.getHistory();
                 history.queue_history.push({
                     videoId: video.videoId,
+                    title: video.title,
+                    channel: video.channel,
+                    thumbnail: video.thumbnail || (video.thumbnails ? video.thumbnails[0].url : ''),
                     addedAt: Date.now(),
                     playedFrom: source
                 });
@@ -308,20 +311,23 @@
                 
                 // 3. Add queue history (DISCOVERY SOURCE - unplayed songs from radio)
                 history.queue_history.forEach(queueItem => {
-                    if (!allVideos.has(queueItem.videoId)) {
-                        // This is an unplayed song from queue/radio!
-                        allVideos.set(queueItem.videoId, {
-                            videoId: queueItem.videoId,
-                            title: queueItem.title || 'Unknown',
-                            channel: queueItem.channel || 'Unknown',
-                            thumbnail: queueItem.thumbnail || '',
-                            playCount: 0,
-                            lastPlayed: queueItem.addedAt,
-                            addedAt: queueItem.addedAt,
-                            source: queueItem.playedFrom || 'radio',
-                            score: 0
-                        });
-                    }
+                    // Skip if already in collection or missing critical data
+                    if (allVideos.has(queueItem.videoId)) return;
+                    if (!queueItem.title || queueItem.title === 'Unknown' || queueItem.title === 'Unknown Title') return;
+                    if (!queueItem.thumbnail) return;
+                    
+                    // This is an unplayed song from queue/radio with complete data
+                    allVideos.set(queueItem.videoId, {
+                        videoId: queueItem.videoId,
+                        title: queueItem.title,
+                        channel: queueItem.channel || 'Unknown Artist',
+                        thumbnail: queueItem.thumbnail,
+                        playCount: 0,
+                        lastPlayed: queueItem.addedAt,
+                        addedAt: queueItem.addedAt,
+                        source: queueItem.playedFrom || 'radio',
+                        score: 0
+                    });
                 });
                 
                 if (allVideos.size === 0) {
@@ -719,14 +725,35 @@
         async function playSearchItem(video) {
             currentQueue = [video];
             loadTrack(0);
-            StorageManager.addToQueue(video, 'search');
+            
+            // Ensure we have complete metadata before storing
+            const videoWithMetadata = {
+                videoId: video.videoId,
+                title: video.title || 'Unknown Title',
+                channel: video.channel || 'Unknown Artist',
+                thumbnail: video.thumbnail || (video.thumbnails && video.thumbnails.length > 0 ? video.thumbnails[0].url : ''),
+                duration: video.duration || ''
+            };
+            
+            StorageManager.addToQueue(videoWithMetadata, 'search');
 
             try {
                 const res = await fetchWithRetry(`${RADIO_API}?videoId=${video.videoId}`);
                 if (res.videos && res.videos.length > 0) {
                     currentQueue = res.videos;
                     renderQueue();
-                    res.videos.forEach(v => StorageManager.addToQueue(v, 'radio'));
+                    
+                    // Store each radio video with complete metadata
+                    res.videos.forEach(v => {
+                        const completeVideo = {
+                            videoId: v.videoId,
+                            title: v.title || 'Unknown Title',
+                            channel: v.channel || 'Unknown Artist',
+                            thumbnail: v.thumbnail || (v.thumbnails && v.thumbnails.length > 0 ? v.thumbnails[0].url : ''),
+                            duration: v.duration || ''
+                        };
+                        StorageManager.addToQueue(completeVideo, 'radio');
+                    });
                 }
             } catch (e) {
                 console.warn("Radio fetch failed, playing single track.");
@@ -881,13 +908,18 @@
                 grid.className = "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4";
                 
                 feed.forEach(vid => {
+                    // Validate video has required data
+                    if (!vid.videoId || !vid.title || vid.title === 'Unknown') return;
+                    
                     const div = document.createElement('div');
                     div.className = "group cursor-pointer p-3 rounded-xl hover:bg-[#1a1a1a] transition card-hover";
                     div.onclick = () => playSearchItem(vid);
 
+                    const thumbnail = vid.thumbnail || 'https://placehold.co/300x300/1c1c1c/666?text=No+Image';
+
                     div.innerHTML = `
                         <div class="aspect-square bg-[#1c1c1c] rounded-lg mb-3 relative overflow-hidden">
-                            <img src="${vid.thumbnail}" class="w-full h-full object-cover" loading="lazy">
+                            <img src="${thumbnail}" class="w-full h-full object-cover" loading="lazy" onerror="this.src='https://placehold.co/300x300/1c1c1c/666?text=No+Image'">
                             <div class="absolute inset-0 bg-black/50 hidden group-hover:flex items-center justify-center transition-all">
                                 <div class="bg-white/90 rounded-full p-3">
                                     <svg class="w-8 h-8 text-black pl-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
@@ -895,7 +927,7 @@
                             </div>
                         </div>
                         <h4 class="font-semibold text-sm truncate text-white mb-1">${vid.title}</h4>
-                        <p class="text-xs text-gray-400 truncate">${vid.channel}</p>
+                        <p class="text-xs text-gray-400 truncate">${vid.channel || 'Unknown Artist'}</p>
                     `;
                     grid.appendChild(div);
                 });
@@ -903,13 +935,18 @@
                 grid.className = "space-y-2";
                 
                 feed.forEach(vid => {
+                    // Validate video has required data
+                    if (!vid.videoId || !vid.title || vid.title === 'Unknown') return;
+                    
                     const div = document.createElement('div');
                     div.className = "flex items-center space-x-4 p-3 rounded-xl hover:bg-[#1a1a1a] cursor-pointer transition group";
                     div.onclick = () => playSearchItem(vid);
 
+                    const thumbnail = vid.thumbnail || 'https://placehold.co/300x300/1c1c1c/666?text=No+Image';
+
                     div.innerHTML = `
                         <div class="relative flex-shrink-0">
-                            <img src="${vid.thumbnail}" class="w-20 h-20 sm:w-24 sm:h-24 rounded-lg object-cover" loading="lazy">
+                            <img src="${thumbnail}" class="w-20 h-20 sm:w-24 sm:h-24 rounded-lg object-cover" loading="lazy" onerror="this.src='https://placehold.co/300x300/1c1c1c/666?text=No+Image'">
                             <div class="absolute inset-0 bg-black/40 hidden group-hover:flex items-center justify-center rounded-lg transition-all">
                                 <div class="bg-white/90 rounded-full p-2">
                                     <svg class="w-6 h-6 text-black pl-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
@@ -918,7 +955,7 @@
                         </div>
                         <div class="flex-1 min-w-0">
                             <h4 class="font-semibold text-base truncate text-white mb-1">${vid.title}</h4>
-                            <p class="text-sm text-gray-400 truncate">${vid.channel}</p>
+                            <p class="text-sm text-gray-400 truncate">${vid.channel || 'Unknown Artist'}</p>
                         </div>
                     `;
                     grid.appendChild(div);
