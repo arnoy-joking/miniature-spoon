@@ -209,6 +209,24 @@
                     return true;
                 } catch (e) { return false; }
             },
+            
+            // Helper to get YouTube thumbnail URL from videoId
+            getThumbnailUrl(videoId, quality = 'medium') {
+                if (!videoId) return '';
+                // YouTube thumbnail patterns:
+                // mqdefault.jpg = medium quality (320x180)
+                // hqdefault.jpg = high quality (480x360)
+                // sddefault.jpg = standard quality (640x480)
+                // maxresdefault.jpg = max quality (1280x720) - not always available
+                const qualityMap = {
+                    low: 'default',
+                    medium: 'mqdefault',
+                    high: 'hqdefault',
+                    max: 'sddefault'
+                };
+                return `https://i.ytimg.com/vi/${videoId}/${qualityMap[quality] || 'mqdefault'}.jpg`;
+            },
+            
             getHistory() {
                 return this.get(STORAGE_KEYS.HISTORY) || { searches: [], plays: [], queue_history: [] };
             },
@@ -244,7 +262,7 @@
                         videoId: video.videoId,
                         title: video.title,
                         channel: video.channel,
-                        thumbnail: video.thumbnail || (video.thumbnails ? video.thumbnails[0].url : ''),
+                        // DON'T store thumbnail - generate from videoId
                         playCount: 1,
                         lastPlayed: Date.now(),
                         totalDuration: 0
@@ -259,7 +277,7 @@
                     videoId: video.videoId,
                     title: video.title,
                     channel: video.channel,
-                    thumbnail: video.thumbnail || (video.thumbnails ? video.thumbnails[0].url : ''),
+                    // DON'T store thumbnail - generate from videoId
                     addedAt: Date.now(),
                     playedFrom: source
                 });
@@ -276,7 +294,7 @@
                         videoId: video.videoId,
                         title: video.title,
                         channel: video.channel,
-                        thumbnail: video.thumbnail || (video.thumbnails ? video.thumbnails[0].url : ''),
+                        // DON'T store thumbnail - generate from videoId
                         addedAt: Date.now()
                     });
                 }
@@ -307,6 +325,7 @@
                 history.plays.forEach(play => {
                     allVideos.set(play.videoId, {
                         ...play,
+                        thumbnail: StorageManager.getThumbnailUrl(play.videoId), // Generate thumbnail
                         source: 'played',
                         score: 0
                     });
@@ -317,6 +336,7 @@
                     if (!allVideos.has(fav.videoId)) {
                         allVideos.set(fav.videoId, {
                             ...fav,
+                            thumbnail: StorageManager.getThumbnailUrl(fav.videoId), // Generate thumbnail
                             playCount: 0,
                             lastPlayed: fav.addedAt,
                             source: 'favorite',
@@ -332,14 +352,13 @@
                     // Skip if already in collection or missing critical data
                     if (allVideos.has(queueItem.videoId)) return;
                     if (!queueItem.title || queueItem.title === 'Unknown' || queueItem.title === 'Unknown Title') return;
-                    if (!queueItem.thumbnail) return;
                     
                     // This is an unplayed song from queue/radio with complete data
                     allVideos.set(queueItem.videoId, {
                         videoId: queueItem.videoId,
                         title: queueItem.title,
                         channel: queueItem.channel || 'Unknown Artist',
-                        thumbnail: queueItem.thumbnail,
+                        thumbnail: StorageManager.getThumbnailUrl(queueItem.videoId), // Generate thumbnail
                         playCount: 0,
                         lastPlayed: queueItem.addedAt,
                         addedAt: queueItem.addedAt,
