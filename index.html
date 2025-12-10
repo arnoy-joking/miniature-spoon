@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">  
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -51,12 +51,14 @@
             width: 100%; height: 4px; cursor: pointer; background: #404040; border-radius: 2px;
         }
         
-        /* Skeleton Animation */
         .skeleton {
             background: linear-gradient(90deg, #222 25%, #2a2a2a 50%, #222 75%);
             background-size: 200% 100%; animation: loading 1.5s infinite;
         }
         @keyframes loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+        /* Lyrics Scroll styling */
+        .lyrics-text { text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
     </style>
 </head>
 <body class="bg-[#0f0f0f] text-white h-screen flex flex-col">
@@ -71,7 +73,7 @@
 
     <!-- Settings Modal -->
     <div id="settings-modal" class="fixed inset-0 bg-black/80 z-[60] hidden flex items-center justify-center">
-        <div class="bg-[#212121] p-6 rounded-xl w-80 sm:w-96 shadow-2xl border border-[#333]">
+        <div class="bg-[#212121] p-6 rounded-xl w-80 sm:w-96 shadow-2xl border border-[#333] mx-4">
             <div class="flex justify-between items-center mb-6">
                 <h3 class="text-xl font-bold">Settings</h3>
                 <button id="close-settings-btn" class="text-gray-400 hover:text-white">
@@ -86,8 +88,13 @@
                     </div>
                     <input type="range" id="player-size-slider" min="200" max="600" value="320" class="w-full">
                 </div>
+                <div>
+                    <label class="block text-sm text-gray-300 mb-2">Genius API Key (for Lyrics)</label>
+                    <input type="text" id="genius-api-input" class="w-full bg-[#1a1a1a] border border-[#333] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-red-500 transition" placeholder="Paste your key here...">
+                    <p class="text-[10px] text-gray-500 mt-1">Required to show lyrics button.</p>
+                </div>
                 <div class="pt-4 border-t border-[#333]">
-                    <p class="text-xs text-gray-500 text-center">YtMusic Clone v1.3</p>
+                    <p class="text-xs text-gray-500 text-center">YtMusic Clone v1.4</p>
                 </div>
             </div>
         </div>
@@ -95,29 +102,50 @@
 
     <!-- Full Player Overlay -->
     <div id="full-player-overlay" class="fixed inset-0 bg-[#030303] z-50 transform translate-y-full transition-transform duration-300 flex flex-col">
-        <div class="flex items-center justify-between p-6">
+        <div class="flex items-center justify-between p-4 sm:p-6 flex-shrink-0 z-20">
             <button id="close-full-player-btn" class="text-white hover:bg-white/10 p-2 rounded-full">
                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
             </button>
             <div class="flex bg-[#212121] rounded-lg p-1">
-                <button id="fp-mode-art" class="px-4 py-1.5 rounded-md text-sm font-medium bg-white/10 text-white">Art</button>
-                <button id="fp-mode-video" class="px-4 py-1.5 rounded-md text-sm font-medium text-gray-400 hover:text-white">Video</button>
+                <button id="fp-mode-art" class="px-3 sm:px-4 py-1.5 rounded-md text-sm font-medium bg-white/10 text-white">Art</button>
+                <button id="fp-mode-video" class="px-3 sm:px-4 py-1.5 rounded-md text-sm font-medium text-gray-400 hover:text-white">Video</button>
             </div>
             <button id="fp-settings-btn" class="text-white hover:bg-white/10 p-2 rounded-full">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
             </button>
         </div>
-        <div class="flex-1 flex flex-col items-center justify-center p-8 relative">
-            <div id="fp-art-container" class="w-full max-w-md aspect-square shadow-2xl rounded-xl overflow-hidden relative">
+        
+        <!-- Content Area -->
+        <div class="flex-1 flex flex-col items-center justify-center p-4 sm:p-8 relative min-h-0">
+            <!-- Art Container -->
+            <div id="fp-art-container" class="w-full max-w-sm sm:max-w-md aspect-square shadow-2xl rounded-xl overflow-hidden relative">
                 <img id="fp-art-img" src="" class="w-full h-full object-cover">
+                
+                <!-- Lyrics Overlay -->
+                <div id="fp-lyrics-overlay" class="absolute inset-0 bg-black/70 backdrop-blur-md z-30 hidden flex flex-col">
+                    <div class="p-4 border-b border-white/10 flex justify-between items-center bg-black/20">
+                        <h3 class="font-bold text-lg">Lyrics</h3>
+                        <button id="close-lyrics-btn" class="text-gray-400 hover:text-white"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+                    </div>
+                    <div id="lyrics-content" class="flex-1 overflow-y-auto custom-scrollbar p-6 text-center">
+                        <p id="lyrics-text" class="text-white/90 text-lg leading-relaxed whitespace-pre-wrap font-medium lyrics-text">Loading lyrics...</p>
+                        <div id="lyrics-attribution" class="mt-8 text-xs text-gray-500 hidden">Lyrics provided by Genius</div>
+                    </div>
+                </div>
             </div>
+
+            <!-- Video Placeholder -->
             <div id="fp-video-placeholder" class="absolute inset-0 pointer-events-none"></div>
-            <div class="mt-8 text-center max-w-2xl px-4">
+
+            <!-- Info -->
+            <div class="mt-6 sm:mt-8 text-center max-w-2xl px-4 w-full">
                 <h2 id="fp-title" class="text-2xl sm:text-3xl font-bold text-white mb-2 truncate"></h2>
                 <p id="fp-artist" class="text-lg sm:text-xl text-gray-400 truncate"></p>
             </div>
         </div>
-        <div class="p-6 sm:p-12 pb-16 bg-gradient-to-t from-black/50 to-transparent">
+
+        <!-- Controls -->
+        <div class="p-6 sm:p-12 pb-8 sm:pb-16 bg-gradient-to-t from-black/80 to-transparent flex-shrink-0">
             <div class="flex items-center space-x-3 text-sm text-gray-400 mb-6">
                 <span id="fp-current-time">0:00</span>
                 <div id="fp-progress-container" class="relative flex-1 h-1.5 bg-gray-600 rounded cursor-pointer group">
@@ -125,21 +153,31 @@
                 </div>
                 <span id="fp-total-duration">0:00</span>
             </div>
-            <div class="flex items-center justify-center space-x-8 sm:space-x-12">
+            
+            <div class="flex items-center justify-center space-x-8 sm:space-x-12 mb-8">
                 <button id="fp-prev-btn" class="text-white hover:text-gray-300"><svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button>
-                <button id="fp-play-btn" class="bg-white text-black rounded-full p-4 hover:scale-105 transition transform">
+                <button id="fp-play-btn" class="bg-white text-black rounded-full p-4 hover:scale-105 transition transform shadow-lg shadow-white/10">
                     <svg id="fp-play-icon" class="w-8 h-8 pl-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                 </button>
                 <button id="fp-next-btn" class="text-white hover:text-gray-300"><svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M16 6h2v12h-2zM7 18l8.5-6L7 6z"/></svg></button>
             </div>
-            <div class="flex justify-between items-center mt-8 px-4">
-                <button id="fp-yt-btn" class="text-gray-400 hover:text-red-500 flex items-center space-x-2 text-sm font-medium">
+
+            <div class="flex justify-between items-center px-2 sm:px-4">
+                <button id="fp-yt-btn" class="text-gray-400 hover:text-red-500 flex items-center space-x-2 text-sm font-medium transition" title="Open in YouTube">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
-                    <span>Open in YouTube</span>
+                    <span class="hidden sm:inline">Open in YouTube</span>
                 </button>
-                <button id="fp-love-btn" class="text-gray-400 hover:text-red-500 heart-btn">
-                     <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-                </button>
+                
+                <div class="flex items-center space-x-6">
+                    <!-- Lyrics Toggle Button -->
+                    <button id="fp-lyrics-btn" class="text-gray-400 hover:text-white transition hidden flex-col items-center" title="Lyrics">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                    </button>
+
+                    <button id="fp-love-btn" class="text-gray-400 hover:text-red-500 heart-btn transition">
+                         <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -297,7 +335,7 @@
             saveHistory(history) { this.set(STORAGE_KEYS.HISTORY, history); },
             getFavorites() { return this.get(STORAGE_KEYS.FAVORITES) || []; },
             saveFavorites(favorites) { this.set(STORAGE_KEYS.FAVORITES, favorites); },
-            getSettings() { return this.get(STORAGE_KEYS.SETTINGS) || { videoSize: 320, sidebarCollapsed: false }; },
+            getSettings() { return this.get(STORAGE_KEYS.SETTINGS) || { videoSize: 320, sidebarCollapsed: false, geniusApiKey: '' }; },
             saveSettings(settings) { this.set(STORAGE_KEYS.SETTINGS, settings); },
             getBlacklist() { return this.get(STORAGE_KEYS.BLACKLIST) || []; },
             addToBlacklist(videoId) {
@@ -397,6 +435,30 @@
             }
         }
 
+        async function fetchLyrics(title, artist) {
+            const settings = StorageManager.getSettings();
+            if(!settings.geniusApiKey) return null;
+            
+            // Clean title: Remove brackets, parens, "ft.", "feat", etc to get raw title
+            let cleanTitle = title.replace(/\([^)]*\)|\[[^\]]*\]/g, '') // remove (...) and [...]
+                                  .replace(/\b(ft\.|feat\.|official video|lyric video)\b.*/i, '') // remove ft. and everything after
+                                  .trim();
+            
+            // Take first 5 words
+            const query = cleanTitle.split(/\s+/).slice(0, 5).join(' ');
+            const url = `https://my-genius-scraper.arnoy799.workers.dev/?q=${encodeURIComponent(query)}&key=${settings.geniusApiKey}`;
+            
+            try {
+                const res = await fetch(url);
+                if(!res.ok) return "Lyrics not found.";
+                const text = await res.text();
+                return text || "Lyrics not found.";
+            } catch(e) {
+                console.error("Lyrics Error", e);
+                return "Error fetching lyrics.";
+            }
+        }
+
         function formatTime(sec) {
             const m = Math.floor(sec / 60);
             const s = Math.floor(sec % 60);
@@ -424,6 +486,17 @@
         function updateOpenInYtButton(videoId) {
             const btn = document.getElementById('open-yt-btn'), fpBtn = document.getElementById('fp-yt-btn');
             if(videoId) { const url = `https://www.youtube.com/watch?v=${videoId}`; btn.href = url; fpBtn.onclick = () => window.open(url, '_blank'); }
+        }
+        function updateLyricsButton() {
+            const settings = StorageManager.getSettings();
+            const btn = document.getElementById('fp-lyrics-btn');
+            if(settings.geniusApiKey) {
+                btn.classList.remove('hidden');
+                btn.classList.add('flex');
+            } else {
+                btn.classList.add('hidden');
+                btn.classList.remove('flex');
+            }
         }
         function updateViewModeButtons() {
             const gridBtn = document.getElementById('view-grid-btn'), listBtn = document.getElementById('view-list-btn');
@@ -463,15 +536,28 @@
         }
         function onPlayerError(event) { if (event.data === 150 || event.data === 101) setTimeout(nextTrack, 1000); }
 
-        function loadTrack(index) {
+        async function loadTrack(index) {
             if (!currentQueue[index]) return;
             if (!isPlayerReady) { pendingPlayIndex = index; return; }
             currentIndex = index; const track = currentQueue[index];
             const thumb = track.thumbnail || (track.thumbnails ? track.thumbnails[0].url : 'https://placehold.co/48x48/333/666?text=Music');
             document.getElementById('player-title').innerText = track.title; document.getElementById('player-artist').innerText = track.channel; document.getElementById('player-art').src = thumb;
             document.getElementById('fp-title').innerText = track.title; document.getElementById('fp-artist').innerText = track.channel; document.getElementById('fp-art-img').src = thumb;
+            
+            // Reset Lyrics
+            document.getElementById('fp-lyrics-overlay').classList.add('hidden');
+            document.getElementById('lyrics-text').innerText = "Loading lyrics...";
+            
             player.loadVideoById(track.videoId); updateOpenInYtButton(track.videoId);
             StorageManager.addPlay(track); updateLoveButton(); renderQueue(); updateNavButtons(); updateMediaSession(track);
+
+            // Fetch Lyrics if API Key exists
+            const settings = StorageManager.getSettings();
+            if(settings.geniusApiKey) {
+                const lyrics = await fetchLyrics(track.title, track.channel);
+                document.getElementById('lyrics-text').innerText = lyrics || "No lyrics found.";
+                if(lyrics) document.getElementById('lyrics-attribution').classList.remove('hidden');
+            }
         }
         function playVideo() { if (isPlayerReady) player.playVideo(); }
         function pauseVideo() { if (isPlayerReady) player.pauseVideo(); }
@@ -501,10 +587,21 @@
         }
 
         async function playSearchItem(video) {
-            currentQueue = [video]; loadTrack(0); StorageManager.addToQueue({ videoId: video.videoId, title: video.title, channel: video.channel }, 'search');
+            // DUPLICATE FIX: Initially only add the selected video
+            currentQueue = [video]; 
+            loadTrack(0); 
+            StorageManager.addToQueue({ videoId: video.videoId, title: video.title, channel: video.channel }, 'search');
             try {
                 const radioAPI = getRandomAPI(RADIO_APIS); const res = await fetchWithRetry(`${radioAPI}?videoId=${video.videoId}`);
-                if (res.videos && res.videos.length > 0) { res.videos.forEach(v => { StorageManager.addToQueue({ videoId: v.videoId, title: v.title, channel: v.channel }, 'radio'); currentQueue.push(v); }); renderQueue(); }
+                if (res.videos && res.videos.length > 0) { 
+                    // Filter out the video that is already playing (seed)
+                    const newVideos = res.videos.filter(v => v.videoId !== video.videoId);
+                    newVideos.forEach(v => { 
+                        StorageManager.addToQueue({ videoId: v.videoId, title: v.title, channel: v.channel }, 'radio'); 
+                        currentQueue.push(v); 
+                    }); 
+                    renderQueue(); 
+                }
             } catch (e) { console.warn("Radio fail"); }
         }
 
@@ -589,13 +686,11 @@
             const history = StorageManager.getHistory();
             const blacklist = StorageManager.getBlacklist();
             
-            // Filter Listen Again (History)
             const listenAgain = history.plays
                 .filter(p => !blacklist.includes(p.videoId))
                 .slice(0, 18)
                 .map(p => ({...p, thumbnail: StorageManager.getThumbnailUrl(p.videoId)}));
 
-            // Generate For You
             const forYou = FeedGenerator.generate();
 
             section.innerHTML = `
@@ -686,12 +781,18 @@
             sidebar.classList.toggle('sidebar-collapsed'); settings.sidebarCollapsed = sidebar.classList.contains('sidebar-collapsed');
             StorageManager.saveSettings(settings);
         }
+        function toggleLyrics() {
+            const overlay = document.getElementById('fp-lyrics-overlay');
+            overlay.classList.toggle('hidden');
+        }
 
         document.addEventListener('DOMContentLoaded', () => {
             viewMode = StorageManager.getViewMode();
             const savedSettings = StorageManager.getSettings();
             if(savedSettings.sidebarCollapsed) document.getElementById('sidebar').classList.add('sidebar-collapsed');
             document.getElementById('player-size-slider').value = savedSettings.videoSize || 320;
+            document.getElementById('genius-api-input').value = savedSettings.geniusApiKey || '';
+            updateLyricsButton();
 
             document.getElementById('search-input').addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' && e.target.value.trim()) {
@@ -731,15 +832,27 @@
             const loveHandler = () => { if (currentIndex === -1) return; StorageManager.toggleFavorite(currentQueue[currentIndex]); updateLoveButton(); if (currentView === 'favorites') renderFavorites(); if (currentView === 'home') renderHomeFeed(); };
             document.getElementById('love-btn').onclick = loveHandler; document.getElementById('mobile-love-btn').onclick = loveHandler; document.getElementById('fp-love-btn').onclick = loveHandler;
             document.getElementById('nav-settings').onclick = toggleSettings; document.getElementById('fp-settings-btn').onclick = toggleSettings; document.getElementById('close-settings-btn').onclick = toggleSettings;
+            
+            // Settings Listeners
             document.getElementById('player-size-slider').oninput = (e) => { setVideoSize(e.target.value); const settings = StorageManager.getSettings(); settings.videoSize = e.target.value; StorageManager.saveSettings(settings); };
+            document.getElementById('genius-api-input').oninput = (e) => { 
+                const settings = StorageManager.getSettings(); 
+                settings.geniusApiKey = e.target.value.trim(); 
+                StorageManager.saveSettings(settings);
+                updateLyricsButton();
+            };
+
             document.getElementById('full-player-btn').onclick = toggleFullPlayer; document.getElementById('close-full-player-btn').onclick = toggleFullPlayer;
             document.getElementById('player-art').onclick = toggleFullPlayer; document.getElementById('player-info-area').onclick = toggleFullPlayer;
             document.getElementById('fp-mode-art').onclick = () => setFullPlayerMode('art'); document.getElementById('fp-mode-video').onclick = () => setFullPlayerMode('video');
             document.getElementById('desktop-sidebar-toggle').onclick = toggleDesktopSidebar;
+            
+            // Lyrics Listeners
+            document.getElementById('fp-lyrics-btn').onclick = toggleLyrics;
+            document.getElementById('close-lyrics-btn').onclick = toggleLyrics;
 
             renderHomeFeed();
         });
     </script>
 </body>
 </html>
-
