@@ -57,7 +57,6 @@
         }
         @keyframes loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
-        /* Lyrics Scroll styling */
         .lyrics-text { text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
     </style>
 </head>
@@ -91,11 +90,25 @@
                 <div>
                     <label class="block text-sm text-gray-300 mb-2">Genius API Key (for Lyrics)</label>
                     <input type="text" id="genius-api-input" class="w-full bg-[#1a1a1a] border border-[#333] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-red-500 transition" placeholder="Paste your key here...">
-                    <p class="text-[10px] text-gray-500 mt-1">Required to show lyrics button.</p>
+                    <p class="text-[10px] text-gray-500 mt-1">Required to show lyrics.</p>
                 </div>
                 <div class="pt-4 border-t border-[#333]">
-                    <p class="text-xs text-gray-500 text-center">YtMusic Clone v1.4</p>
+                    <p class="text-xs text-gray-500 text-center">YtMusic Clone v1.5</p>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Lyrics Modal (Independent) -->
+    <div id="lyrics-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[70] hidden flex items-center justify-center">
+        <div class="bg-[#121212] w-full max-w-lg h-[70vh] rounded-2xl shadow-2xl flex flex-col mx-4 border border-[#333] relative">
+            <div class="p-4 border-b border-[#333] flex justify-between items-center bg-[#1e1e1e] rounded-t-2xl">
+                <h3 class="font-bold text-lg text-white">Lyrics</h3>
+                <button id="close-floating-lyrics-btn" class="text-gray-400 hover:text-white"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+            </div>
+            <div class="flex-1 overflow-y-auto custom-scrollbar p-6 text-center">
+                <p id="floating-lyrics-text" class="text-white/90 text-lg leading-relaxed whitespace-pre-wrap font-medium">Loading...</p>
+                <div id="floating-lyrics-attribution" class="mt-8 text-xs text-gray-500 hidden">Lyrics provided by Genius</div>
             </div>
         </div>
     </div>
@@ -120,18 +133,6 @@
             <!-- Art Container -->
             <div id="fp-art-container" class="w-full max-w-sm sm:max-w-md aspect-square shadow-2xl rounded-xl overflow-hidden relative">
                 <img id="fp-art-img" src="" class="w-full h-full object-cover">
-                
-                <!-- Lyrics Overlay -->
-                <div id="fp-lyrics-overlay" class="absolute inset-0 bg-black/70 backdrop-blur-md z-30 hidden flex flex-col">
-                    <div class="p-4 border-b border-white/10 flex justify-between items-center bg-black/20">
-                        <h3 class="font-bold text-lg">Lyrics</h3>
-                        <button id="close-lyrics-btn" class="text-gray-400 hover:text-white"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
-                    </div>
-                    <div id="lyrics-content" class="flex-1 overflow-y-auto custom-scrollbar p-6 text-center">
-                        <p id="lyrics-text" class="text-white/90 text-lg leading-relaxed whitespace-pre-wrap font-medium lyrics-text">Loading lyrics...</p>
-                        <div id="lyrics-attribution" class="mt-8 text-xs text-gray-500 hidden">Lyrics provided by Genius</div>
-                    </div>
-                </div>
             </div>
 
             <!-- Video Placeholder -->
@@ -274,6 +275,12 @@
                 <button id="mobile-love-btn" class="heart-btn sm:hidden text-gray-400 hover:text-red-500">
                     <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
                 </button>
+                
+                <!-- Footer Lyrics Button -->
+                <button id="footer-lyrics-btn" class="text-gray-400 hover:text-white hidden transition p-1" title="Lyrics">
+                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                </button>
+
                 <a id="open-yt-btn" href="#" target="_blank" class="hidden sm:block text-gray-400 hover:text-white" title="Open in YouTube">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
                 </a>
@@ -323,6 +330,7 @@
         let player, isPlayerReady = false, isPlaying = false, currentQueue = [], currentIndex = -1;
         let updateInterval, isVideoVisible = false, currentView = 'home', lastResults = [], pendingPlayIndex = -1;
         let viewMode = 'grid', isFullPlayerOpen = false, fullPlayerMode = 'art'; 
+        let currentLyricsText = null; // Cache for current song lyrics
         
         const SVG_PLAY = '<path d="M8 5v14l11-7z"/>';
         const SVG_PAUSE = '<path d="M6 19h4V5H6zm8-14v14h4V5z"/>';
@@ -340,10 +348,7 @@
             getBlacklist() { return this.get(STORAGE_KEYS.BLACKLIST) || []; },
             addToBlacklist(videoId) {
                 const list = this.getBlacklist();
-                if (!list.includes(videoId)) {
-                    list.push(videoId);
-                    this.set(STORAGE_KEYS.BLACKLIST, list);
-                }
+                if (!list.includes(videoId)) { list.push(videoId); this.set(STORAGE_KEYS.BLACKLIST, list); }
             },
             addSearch(query) {
                 const history = this.getHistory();
@@ -439,12 +444,9 @@
             const settings = StorageManager.getSettings();
             if(!settings.geniusApiKey) return null;
             
-            // Clean title: Remove brackets, parens, "ft.", "feat", etc to get raw title
-            let cleanTitle = title.replace(/\([^)]*\)|\[[^\]]*\]/g, '') // remove (...) and [...]
-                                  .replace(/\b(ft\.|feat\.|official video|lyric video)\b.*/i, '') // remove ft. and everything after
+            let cleanTitle = title.replace(/\([^)]*\)|\[[^\]]*\]/g, '')
+                                  .replace(/\b(ft\.|feat\.|official video|lyric video)\b.*/i, '')
                                   .trim();
-            
-            // Take first 5 words
             const query = cleanTitle.split(/\s+/).slice(0, 5).join(' ');
             const url = `https://my-genius-scraper.arnoy799.workers.dev/?q=${encodeURIComponent(query)}&key=${settings.geniusApiKey}`;
             
@@ -453,10 +455,7 @@
                 if(!res.ok) return "Lyrics not found.";
                 const text = await res.text();
                 return text || "Lyrics not found.";
-            } catch(e) {
-                console.error("Lyrics Error", e);
-                return "Error fetching lyrics.";
-            }
+            } catch(e) { console.error("Lyrics Error", e); return "Error fetching lyrics."; }
         }
 
         function formatTime(sec) {
@@ -469,6 +468,7 @@
             document.getElementById('play-icon-desktop').innerHTML = path;
             document.getElementById('play-icon-mobile').innerHTML = path;
             document.getElementById('fp-play-icon').innerHTML = path;
+            // Mobile Notification State
             if ('mediaSession' in navigator) navigator.mediaSession.playbackState = playing ? "playing" : "paused";
         }
         function updateNavButtons() {
@@ -489,14 +489,14 @@
         }
         function updateLyricsButton() {
             const settings = StorageManager.getSettings();
-            const btn = document.getElementById('fp-lyrics-btn');
-            if(settings.geniusApiKey) {
-                btn.classList.remove('hidden');
-                btn.classList.add('flex');
-            } else {
-                btn.classList.add('hidden');
-                btn.classList.remove('flex');
-            }
+            const hasKey = !!settings.geniusApiKey;
+            ['fp-lyrics-btn', 'footer-lyrics-btn'].forEach(id => {
+                const btn = document.getElementById(id);
+                if(btn) {
+                    if(hasKey) { btn.classList.remove('hidden'); btn.classList.add(id === 'fp-lyrics-btn' ? 'flex' : 'block'); } 
+                    else { btn.classList.add('hidden'); btn.classList.remove('flex', 'block'); }
+                }
+            });
         }
         function updateViewModeButtons() {
             const gridBtn = document.getElementById('view-grid-btn'), listBtn = document.getElementById('view-list-btn');
@@ -504,12 +504,24 @@
             if (viewMode === 'grid') { gridBtn.classList.add('bg-white/10', 'text-white'); gridBtn.classList.remove('text-gray-400'); listBtn.classList.remove('bg-white/10', 'text-white'); listBtn.classList.add('text-gray-400'); }
             else { listBtn.classList.add('bg-white/10', 'text-white'); listBtn.classList.remove('text-gray-400'); gridBtn.classList.remove('bg-white/10', 'text-white'); gridBtn.classList.add('text-gray-400'); }
         }
+        
         function updateMediaSession(track) {
             if ('mediaSession' in navigator) {
                 const thumb = track.thumbnail || (track.thumbnails ? track.thumbnails[0].url : '');
-                navigator.mediaSession.metadata = new MediaMetadata({ title: track.title, artist: track.channel, artwork: [{ src: thumb, sizes: '512x512', type: 'image/jpeg' }] });
-                navigator.mediaSession.setActionHandler('play', playVideo); navigator.mediaSession.setActionHandler('pause', pauseVideo);
-                navigator.mediaSession.setActionHandler('previoustrack', prevTrack); navigator.mediaSession.setActionHandler('nexttrack', nextTrack);
+                
+                // Clear first to force update on some devices
+                // navigator.mediaSession.metadata = null; 
+
+                navigator.mediaSession.metadata = new MediaMetadata({ 
+                    title: track.title, 
+                    artist: track.channel, 
+                    artwork: [{ src: thumb, sizes: '512x512', type: 'image/jpeg' }] 
+                });
+
+                navigator.mediaSession.setActionHandler('play', playVideo); 
+                navigator.mediaSession.setActionHandler('pause', pauseVideo);
+                navigator.mediaSession.setActionHandler('previoustrack', prevTrack); 
+                navigator.mediaSession.setActionHandler('nexttrack', nextTrack);
                 navigator.mediaSession.setActionHandler('seekto', (details) => { if (player && player.seekTo) player.seekTo(details.seekTime, true); });
             }
         }
@@ -530,7 +542,13 @@
             if (pendingPlayIndex !== -1) { loadTrack(pendingPlayIndex); pendingPlayIndex = -1; }
         }
         function onPlayerStateChange(event) {
-            if (event.data === YT.PlayerState.PLAYING) { isPlaying = true; updateIcons(true); startProgressLoop(); }
+            if (event.data === YT.PlayerState.PLAYING) { 
+                isPlaying = true; 
+                updateIcons(true); 
+                startProgressLoop(); 
+                // Force media session update on play to override iframe defaults on mobile
+                if(currentIndex !== -1 && currentQueue[currentIndex]) updateMediaSession(currentQueue[currentIndex]);
+            }
             else if (event.data === YT.PlayerState.PAUSED) { isPlaying = false; updateIcons(false); stopProgressLoop(); }
             else if (event.data === YT.PlayerState.ENDED) { isPlaying = false; updateIcons(false); nextTrack(); }
         }
@@ -544,21 +562,50 @@
             document.getElementById('player-title').innerText = track.title; document.getElementById('player-artist').innerText = track.channel; document.getElementById('player-art').src = thumb;
             document.getElementById('fp-title').innerText = track.title; document.getElementById('fp-artist').innerText = track.channel; document.getElementById('fp-art-img').src = thumb;
             
-            // Reset Lyrics
-            document.getElementById('fp-lyrics-overlay').classList.add('hidden');
-            document.getElementById('lyrics-text').innerText = "Loading lyrics...";
+            // RESET LYRICS CACHE ON SONG CHANGE
+            currentLyricsText = null; 
+            document.getElementById('floating-lyrics-text').innerText = "Loading...";
             
             player.loadVideoById(track.videoId); updateOpenInYtButton(track.videoId);
-            StorageManager.addPlay(track); updateLoveButton(); renderQueue(); updateNavButtons(); updateMediaSession(track);
+            StorageManager.addPlay(track); updateLoveButton(); renderQueue(); updateNavButtons(); 
+            
+            // Initial call, repeated in onStateChange for mobile robustness
+            updateMediaSession(track); 
+        }
 
-            // Fetch Lyrics if API Key exists
-            const settings = StorageManager.getSettings();
-            if(settings.geniusApiKey) {
+        // Shared function to show lyrics in the centralized floating modal
+        async function toggleLyrics() {
+            if(currentIndex === -1 || !currentQueue[currentIndex]) return;
+            const track = currentQueue[currentIndex];
+            const modal = document.getElementById('lyrics-modal');
+            const contentEl = document.getElementById('floating-lyrics-text');
+            const attribEl = document.getElementById('floating-lyrics-attribution');
+            
+            // Toggle Visibility
+            if(!modal.classList.contains('hidden')) {
+                modal.classList.add('hidden');
+                return;
+            }
+            
+            modal.classList.remove('hidden');
+            
+            // Check Cache
+            if(currentLyricsText) {
+                contentEl.innerText = currentLyricsText;
+                attribEl.classList.remove('hidden');
+            } else {
+                contentEl.innerText = "Fetching lyrics...";
+                attribEl.classList.add('hidden');
+                
                 const lyrics = await fetchLyrics(track.title, track.channel);
-                document.getElementById('lyrics-text').innerText = lyrics || "No lyrics found.";
-                if(lyrics) document.getElementById('lyrics-attribution').classList.remove('hidden');
+                currentLyricsText = lyrics;
+                contentEl.innerText = lyrics || "No lyrics found.";
+                if(lyrics && lyrics !== "Lyrics not found." && lyrics !== "Error fetching lyrics.") {
+                    attribEl.classList.remove('hidden');
+                }
             }
         }
+
         function playVideo() { if (isPlayerReady) player.playVideo(); }
         function pauseVideo() { if (isPlayerReady) player.pauseVideo(); }
         function togglePlay() { isPlaying ? pauseVideo() : playVideo(); }
@@ -587,14 +634,13 @@
         }
 
         async function playSearchItem(video) {
-            // DUPLICATE FIX: Initially only add the selected video
             currentQueue = [video]; 
             loadTrack(0); 
             StorageManager.addToQueue({ videoId: video.videoId, title: video.title, channel: video.channel }, 'search');
             try {
                 const radioAPI = getRandomAPI(RADIO_APIS); const res = await fetchWithRetry(`${radioAPI}?videoId=${video.videoId}`);
                 if (res.videos && res.videos.length > 0) { 
-                    // Filter out the video that is already playing (seed)
+                    // Filter duplicates from radio
                     const newVideos = res.videos.filter(v => v.videoId !== video.videoId);
                     newVideos.forEach(v => { 
                         StorageManager.addToQueue({ videoId: v.videoId, title: v.title, channel: v.channel }, 'radio'); 
@@ -781,10 +827,6 @@
             sidebar.classList.toggle('sidebar-collapsed'); settings.sidebarCollapsed = sidebar.classList.contains('sidebar-collapsed');
             StorageManager.saveSettings(settings);
         }
-        function toggleLyrics() {
-            const overlay = document.getElementById('fp-lyrics-overlay');
-            overlay.classList.toggle('hidden');
-        }
 
         document.addEventListener('DOMContentLoaded', () => {
             viewMode = StorageManager.getViewMode();
@@ -847,9 +889,11 @@
             document.getElementById('fp-mode-art').onclick = () => setFullPlayerMode('art'); document.getElementById('fp-mode-video').onclick = () => setFullPlayerMode('video');
             document.getElementById('desktop-sidebar-toggle').onclick = toggleDesktopSidebar;
             
-            // Lyrics Listeners
-            document.getElementById('fp-lyrics-btn').onclick = toggleLyrics;
-            document.getElementById('close-lyrics-btn').onclick = toggleLyrics;
+            // Lyrics Listeners (Unified Floating Modal)
+            const lyricsHandler = toggleLyrics;
+            document.getElementById('fp-lyrics-btn').onclick = lyricsHandler;
+            document.getElementById('footer-lyrics-btn').onclick = lyricsHandler;
+            document.getElementById('close-floating-lyrics-btn').onclick = () => document.getElementById('lyrics-modal').classList.add('hidden');
 
             renderHomeFeed();
         });
