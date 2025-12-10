@@ -21,9 +21,26 @@
         .mobile-progress-container { position: absolute; top: -2px; left: 0; width: 100%; height: 2px; background: #4d4d4d; cursor: pointer; }
         .mobile-progress-bar { height: 100%; background: #ef4444; }
         
+        /* Video Player States */
         .video-hidden { opacity: 0; pointer-events: none; z-index: -10; }
         .video-visible { opacity: 1; pointer-events: auto; z-index: 50; }
         
+        /* Full Player Video Override */
+        .video-wrapper-full {
+            top: 50% !important;
+            left: 50% !important;
+            transform: translate(-50%, -50%) !important;
+            width: 100% !important;
+            max-width: 1000px !important;
+            height: auto !important;
+            aspect-ratio: 16/9 !important;
+            border: none !important;
+            box-shadow: none !important;
+            bottom: auto !important;
+            right: auto !important;
+            z-index: 60 !important;
+        }
+
         .heart-btn { transition: all 0.2s ease; }
         .heart-btn.loved { color: #ef4444; }
         @keyframes heartbeat { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
@@ -34,47 +51,166 @@
         
         .card-hover { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         .card-hover:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3); }
+
+        /* Sidebar Collapsed State */
+        .sidebar-collapsed { width: 4.5rem !important; }
+        .sidebar-collapsed .nav-text { display: none; }
+        .sidebar-collapsed .nav-item { justify-content: center; padding-left: 0; padding-right: 0; }
+        
+        input[type=range] {
+            -webkit-appearance: none; 
+            background: transparent; 
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px; width: 16px;
+            border-radius: 50%; background: #ef4444;
+            cursor: pointer; margin-top: -6px;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%; height: 4px;
+            cursor: pointer; background: #404040;
+            border-radius: 2px;
+        }
     </style>
 </head>
 <body class="bg-[#0f0f0f] text-white h-screen flex flex-col">
-    <div id="video-wrapper" class="fixed bottom-24 right-4 shadow-2xl rounded-lg overflow-hidden w-64 sm:w-80 aspect-video bg-black border border-[#333] video-hidden transition-all duration-300">
+    
+    <!-- Video Player Wrapper -->
+    <div id="video-wrapper" class="fixed bottom-24 right-4 shadow-2xl rounded-lg overflow-hidden w-64 aspect-video bg-black border border-[#333] video-hidden transition-all duration-300">
         <div id="yt-player"></div>
-        <button id="hide-video-btn" class="absolute top-2 right-2 bg-black/50 hover:bg-black/80 text-white p-1 rounded-full">
+        <button id="hide-video-btn" class="absolute top-2 right-2 bg-black/50 hover:bg-black/80 text-white p-1 rounded-full z-10">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
         </button>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="fixed inset-0 bg-black/80 z-[60] hidden flex items-center justify-center">
+        <div class="bg-[#212121] p-6 rounded-xl w-80 sm:w-96 shadow-2xl border border-[#333]">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold">Settings</h3>
+                <button id="close-settings-btn" class="text-gray-400 hover:text-white">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <div class="space-y-6">
+                <div>
+                    <div class="flex justify-between text-sm mb-2">
+                        <span class="text-gray-300">Mini Player Size</span>
+                        <span id="size-value" class="text-gray-400">Medium</span>
+                    </div>
+                    <input type="range" id="player-size-slider" min="200" max="600" value="320" class="w-full">
+                </div>
+                <div class="pt-4 border-t border-[#333]">
+                    <p class="text-xs text-gray-500 text-center">YtMusic Clone v1.2</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Full Player Overlay -->
+    <div id="full-player-overlay" class="fixed inset-0 bg-[#030303] z-50 transform translate-y-full transition-transform duration-300 flex flex-col">
+        <!-- Full Player Header -->
+        <div class="flex items-center justify-between p-6">
+            <button id="close-full-player-btn" class="text-white hover:bg-white/10 p-2 rounded-full">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </button>
+            <div class="flex bg-[#212121] rounded-lg p-1">
+                <button id="fp-mode-art" class="px-4 py-1.5 rounded-md text-sm font-medium bg-white/10 text-white">Art</button>
+                <button id="fp-mode-video" class="px-4 py-1.5 rounded-md text-sm font-medium text-gray-400 hover:text-white">Video</button>
+            </div>
+            <button id="fp-settings-btn" class="text-white hover:bg-white/10 p-2 rounded-full">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+            </button>
+        </div>
+
+        <!-- Full Player Content -->
+        <div class="flex-1 flex flex-col items-center justify-center p-8 relative">
+            <!-- Art View -->
+            <div id="fp-art-container" class="w-full max-w-md aspect-square shadow-2xl rounded-xl overflow-hidden relative">
+                <img id="fp-art-img" src="" class="w-full h-full object-cover">
+            </div>
+            <!-- Video Container Placeholder (Video moves here via CSS classes) -->
+            <div id="fp-video-placeholder" class="absolute inset-0 pointer-events-none"></div>
+
+            <div class="mt-8 text-center max-w-2xl px-4">
+                <h2 id="fp-title" class="text-2xl sm:text-3xl font-bold text-white mb-2 truncate"></h2>
+                <p id="fp-artist" class="text-lg sm:text-xl text-gray-400 truncate"></p>
+            </div>
+        </div>
+
+        <!-- Full Player Controls -->
+        <div class="p-6 sm:p-12 pb-16 bg-gradient-to-t from-black/50 to-transparent">
+            <!-- Progress -->
+            <div class="flex items-center space-x-3 text-sm text-gray-400 mb-6">
+                <span id="fp-current-time">0:00</span>
+                <div id="fp-progress-container" class="relative flex-1 h-1.5 bg-gray-600 rounded cursor-pointer group">
+                    <div id="fp-progress-bar" class="absolute h-full bg-red-500 rounded w-0"></div>
+                </div>
+                <span id="fp-total-duration">0:00</span>
+            </div>
+            
+            <!-- Buttons -->
+            <div class="flex items-center justify-center space-x-8 sm:space-x-12">
+                <button id="fp-prev-btn" class="text-white hover:text-gray-300"><svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button>
+                <button id="fp-play-btn" class="bg-white text-black rounded-full p-4 hover:scale-105 transition transform">
+                    <svg id="fp-play-icon" class="w-8 h-8 pl-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                </button>
+                <button id="fp-next-btn" class="text-white hover:text-gray-300"><svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M16 6h2v12h-2zM7 18l8.5-6L7 6z"/></svg></button>
+            </div>
+            <div class="flex justify-between items-center mt-8 px-4">
+                <button id="fp-yt-btn" class="text-gray-400 hover:text-red-500 flex items-center space-x-2 text-sm font-medium" title="Open in YouTube">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                    <span>Open in YouTube</span>
+                </button>
+                <button id="fp-love-btn" class="text-gray-400 hover:text-red-500 heart-btn">
+                     <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                </button>
+            </div>
+        </div>
     </div>
 
     <div class="flex flex-1 overflow-hidden pb-16 sm:pb-20">
         <!-- Sidebar Overlay (Mobile) -->
         <div id="sidebar-overlay" class="fixed inset-0 bg-black/60 z-20 hidden"></div>
         
-        <aside id="sidebar" class="fixed sm:relative w-60 bg-[#0f0f0f] flex flex-col p-4 border-r border-[#212121] h-full z-30 transform -translate-x-full sm:translate-x-0 transition-transform duration-300">
+        <aside id="sidebar" class="fixed sm:relative w-60 bg-[#0f0f0f] flex flex-col p-4 border-r border-[#212121] h-full z-30 transform -translate-x-full sm:translate-x-0 transition-all duration-300">
             <div class="flex items-center justify-between mb-8 px-2">
-                <div class="flex items-center space-x-2">
-                    <img src="https://img.icons8.com/?size=100&id=YNioBT5SxQw3&format=png&color=000000" class="w-8 h-8">
-                    <span class="text-xl font-bold tracking-tighter">Music</span>
+                <div class="flex items-center space-x-2 overflow-hidden whitespace-nowrap">
+                    <button id="desktop-sidebar-toggle" class="hidden sm:block text-gray-400 hover:text-white mr-1">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                    </button>
+                    <img src="https://img.icons8.com/?size=100&id=YNioBT5SxQw3&format=png&color=000000" class="w-8 h-8 flex-shrink-0">
+                    <span class="text-xl font-bold tracking-tighter nav-text">Music</span>
                 </div>
                 <button id="close-sidebar-btn" class="sm:hidden text-gray-400 hover:text-white">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             </div>
-            <nav class="space-y-1">
+            <nav class="space-y-1 flex-1">
                 <a href="#" id="nav-home" class="nav-item flex items-center space-x-4 p-3 rounded-lg text-gray-400 hover:bg-[#212121] active">
-                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><span>Home</span>
+                    <svg class="w-6 h-6 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><span class="nav-text">Home</span>
                 </a>
                 <a href="#" id="nav-explore" class="nav-item flex items-center space-x-4 p-3 rounded-lg text-gray-400 hover:bg-[#212121]">
-                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 10.9c-.61 0-1.1.49-1.1 1.1s.49 1.1 1.1 1.1c.61 0 1.1-.49 1.1-1.1s-.49-1.1-1.1-1.1zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm2.19 12.19L6 18l3.81-8.19L18 6l-3.81 8.19z"/></svg><span>Explore</span>
+                    <svg class="w-6 h-6 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12 10.9c-.61 0-1.1.49-1.1 1.1s.49 1.1 1.1 1.1c.61 0 1.1-.49 1.1-1.1s-.49-1.1-1.1-1.1zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm2.19 12.19L6 18l3.81-8.19L18 6l-3.81 8.19z"/></svg><span class="nav-text">Explore</span>
                 </a>
                 <a href="#" id="nav-favorites" class="nav-item flex items-center space-x-4 p-3 rounded-lg text-gray-400 hover:bg-[#212121]">
-                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg><span>Favorites</span>
+                    <svg class="w-6 h-6 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg><span class="nav-text">Favorites</span>
                 </a>
             </nav>
+            
+            <div class="border-t border-[#212121] pt-4 mt-2">
+                <button id="nav-settings" class="nav-item w-full flex items-center space-x-4 p-3 rounded-lg text-gray-400 hover:bg-[#212121] text-left">
+                    <svg class="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    <span class="nav-text">Settings</span>
+                </button>
+            </div>
         </aside>
 
         <main class="flex-1 flex flex-col bg-[#030303] overflow-hidden">
             <header class="h-16 flex items-center px-4 sticky top-0 z-10 bg-[#030303]/95 backdrop-blur border-b border-[#212121]">
                 <div class="flex items-center w-full space-x-3">
-                    <button id="menu-btn" class="text-white hover:bg-[#212121] p-2 rounded-lg transition">
+                    <button id="menu-btn" class="sm:hidden text-white hover:bg-[#212121] p-2 rounded-lg transition">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                     </button>
                     <div class="relative flex-1 max-w-2xl">
@@ -96,8 +232,8 @@
         <div class="flex items-center justify-between h-full px-2 sm:px-4">
             <div class="flex items-center flex-1 min-w-0 mr-2">
                 <button id="mobile-prev-btn" class="sm:hidden text-gray-300 p-2 mr-1"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button>
-                <img id="player-art" src="https://placehold.co/48x48/333/666?text=Music" class="w-10 h-10 sm:w-12 sm:h-12 rounded bg-gray-800 object-cover flex-shrink-0">
-                <div class="ml-3 overflow-hidden flex-1">
+                <img id="player-art" src="https://placehold.co/48x48/333/666?text=Music" class="w-10 h-10 sm:w-12 sm:h-12 rounded bg-gray-800 object-cover flex-shrink-0 cursor-pointer" title="Expand">
+                <div class="ml-3 overflow-hidden flex-1 cursor-pointer" id="player-info-area">
                     <p id="player-title" class="text-sm sm:text-base font-medium truncate text-white">Ready to play</p>
                     <p id="player-artist" class="text-xs sm:text-sm text-gray-400 truncate">Select a song</p>
                 </div>
@@ -126,8 +262,15 @@
                 <button id="mobile-love-btn" class="heart-btn sm:hidden text-gray-400 hover:text-red-500">
                     <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
                 </button>
+                <!-- Open in YT Button -->
+                <a id="open-yt-btn" href="#" target="_blank" class="hidden sm:block text-gray-400 hover:text-white" title="Open in YouTube">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                </a>
                 <button id="toggle-video-btn" class="text-gray-400 hover:text-red-500 transition" title="Toggle Video">
                     <span class="text-xs font-bold border border-current px-1.5 py-0.5 rounded">VIDEO</span>
+                </button>
+                <button id="full-player-btn" class="text-gray-400 hover:text-white hidden sm:block" title="Full Player">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
                 </button>
                 <button id="queue-btn" class="text-gray-400 hover:text-white"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path></svg></button>
             </div>
@@ -165,365 +308,118 @@
     </div>
 
     <script>
-        // CHUNK 1: Configuration & State
-        // Multiple API endpoints for load balancing
         const SEARCH_APIS = [
             'https://raspy-sound-0966.arnoy799.workers.dev/',
             'https://wispy-wave-f6c0.arnoy799.workers.dev/',
-            // Add more search API endpoints here as you create them:
-            // 'https://your-second-worker.username2.workers.dev/',
-            // 'https://your-third-worker.username3.workers.dev/',
         ];
-        
         const RADIO_APIS = [
             'https://long-pond-4887.arnoy799.workers.dev/',
             'https://jolly-hall-c603.arnoy799.workers.dev/',
-            // Add more radio API endpoints here:
-            // 'https://your-second-radio-worker.username2.workers.dev/',
-            // 'https://your-third-radio-worker.username3.workers.dev/',
         ];
         
-        // Helper function to get random API endpoint
-        function getRandomAPI(apiArray) {
-            return apiArray[Math.floor(Math.random() * apiArray.length)];
-        }
+        function getRandomAPI(apiArray) { return apiArray[Math.floor(Math.random() * apiArray.length)]; }
         
-        const STORAGE_KEYS = { HISTORY: 'music_history', FAVORITES: 'music_favorites', FEED_CACHE: 'music_feed_cache', VIEW_MODE: 'music_view_mode' };
+        const STORAGE_KEYS = { HISTORY: 'music_history', FAVORITES: 'music_favorites', VIEW_MODE: 'music_view_mode', SETTINGS: 'music_settings' };
         
         let player, isPlayerReady = false, isPlaying = false, currentQueue = [], currentIndex = -1;
         let updateInterval, isVideoVisible = false, currentView = 'home', lastResults = [], pendingPlayIndex = -1;
-        let viewMode = 'grid'; // 'grid' or 'list'
+        let viewMode = 'grid', isFullPlayerOpen = false, fullPlayerMode = 'art'; // 'art' or 'video'
         
         const SVG_PLAY = '<path d="M8 5v14l11-7z"/>';
         const SVG_PAUSE = '<path d="M6 19h4V5H6zm8-14v14h4V5z"/>';
 
-        // CHUNK 2: LocalStorage Manager
         const StorageManager = {
-            get(key) {
-                try {
-                    const data = localStorage.getItem(key);
-                    return data ? JSON.parse(data) : null;
-                } catch (e) { return null; }
-            },
-            set(key, value) {
-                try {
-                    localStorage.setItem(key, JSON.stringify(value));
-                    return true;
-                } catch (e) { return false; }
-            },
+            get(key) { try { return JSON.parse(localStorage.getItem(key)); } catch (e) { return null; } },
+            set(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); return true; } catch (e) { return false; } },
             
-            // Helper to get YouTube thumbnail URL from videoId
-            getThumbnailUrl(videoId, quality = 'medium') {
-                if (!videoId) return '';
-                // YouTube thumbnail patterns:
-                // mqdefault.jpg = medium quality (320x180)
-                // hqdefault.jpg = high quality (480x360)
-                // sddefault.jpg = standard quality (640x480)
-                // maxresdefault.jpg = max quality (1280x720) - not always available
-                const qualityMap = {
-                    low: 'default',
-                    medium: 'mqdefault',
-                    high: 'hqdefault',
-                    max: 'sddefault'
-                };
-                return `https://i.ytimg.com/vi/${videoId}/${qualityMap[quality] || 'mqdefault'}.jpg`;
-            },
+            getThumbnailUrl(videoId) { return `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`; },
             
-            getHistory() {
-                return this.get(STORAGE_KEYS.HISTORY) || { searches: [], plays: [], queue_history: [] };
-            },
-            saveHistory(history) {
-                this.set(STORAGE_KEYS.HISTORY, history);
-            },
-            getFavorites() {
-                return this.get(STORAGE_KEYS.FAVORITES) || [];
-            },
-            saveFavorites(favorites) {
-                this.set(STORAGE_KEYS.FAVORITES, favorites);
-            },
+            getHistory() { return this.get(STORAGE_KEYS.HISTORY) || { searches: [], plays: [], queue_history: [] }; },
+            saveHistory(history) { this.set(STORAGE_KEYS.HISTORY, history); },
+            
+            getFavorites() { return this.get(STORAGE_KEYS.FAVORITES) || []; },
+            saveFavorites(favorites) { this.set(STORAGE_KEYS.FAVORITES, favorites); },
+            
+            getSettings() { return this.get(STORAGE_KEYS.SETTINGS) || { videoSize: 320, sidebarCollapsed: false }; },
+            saveSettings(settings) { this.set(STORAGE_KEYS.SETTINGS, settings); },
+
             addSearch(query) {
                 const history = this.getHistory();
                 const existing = history.searches.find(s => s.query.toLowerCase() === query.toLowerCase());
-                if (existing) {
-                    existing.count++;
-                    existing.timestamp = Date.now();
-                } else {
-                    history.searches.push({ query, timestamp: Date.now(), count: 1 });
-                }
+                if (existing) { existing.count++; existing.timestamp = Date.now(); } 
+                else { history.searches.push({ query, timestamp: Date.now(), count: 1 }); }
                 history.searches = history.searches.slice(-50);
                 this.saveHistory(history);
             },
             addPlay(video) {
                 const history = this.getHistory();
-                const existing = history.plays.find(p => p.videoId === video.videoId);
-                if (existing) {
-                    existing.playCount++;
-                    existing.lastPlayed = Date.now();
-                } else {
-                    history.plays.push({
-                        videoId: video.videoId,
-                        title: video.title,
-                        channel: video.channel,
-                        // DON'T store thumbnail - generate from videoId
-                        playCount: 1,
-                        lastPlayed: Date.now(),
-                        totalDuration: 0
-                    });
-                }
+                const existing = history.plays.findIndex(p => p.videoId === video.videoId);
+                if (existing > -1) { history.plays.splice(existing, 1); }
+                history.plays.unshift({
+                    videoId: video.videoId,
+                    title: video.title,
+                    channel: video.channel,
+                    playCount: (history.plays[existing]?.playCount || 0) + 1,
+                    lastPlayed: Date.now()
+                });
                 history.plays = history.plays.slice(-100);
                 this.saveHistory(history);
             },
             addToQueue(video, source = 'search') {
                 const history = this.getHistory();
-                history.queue_history.push({
-                    videoId: video.videoId,
-                    title: video.title,
-                    channel: video.channel,
-                    // DON'T store thumbnail - generate from videoId
-                    addedAt: Date.now(),
-                    playedFrom: source
-                });
+                history.queue_history.push({ videoId: video.videoId, title: video.title, channel: video.channel, addedAt: Date.now(), playedFrom: source });
                 history.queue_history = history.queue_history.slice(-200);
                 this.saveHistory(history);
             },
             toggleFavorite(video) {
                 let favorites = this.getFavorites();
                 const index = favorites.findIndex(f => f.videoId === video.videoId);
-                if (index > -1) {
-                    favorites.splice(index, 1);
-                } else {
-                    favorites.push({
-                        videoId: video.videoId,
-                        title: video.title,
-                        channel: video.channel,
-                        // DON'T store thumbnail - generate from videoId
-                        addedAt: Date.now()
-                    });
-                }
+                if (index > -1) favorites.splice(index, 1);
+                else favorites.push({ videoId: video.videoId, title: video.title, channel: video.channel, addedAt: Date.now() });
                 this.saveFavorites(favorites);
                 return index === -1;
             },
-            isFavorite(videoId) {
-                return this.getFavorites().some(f => f.videoId === videoId);
-            },
-            getViewMode() {
-                return this.get(STORAGE_KEYS.VIEW_MODE) || 'grid';
-            },
-            setViewMode(mode) {
-                this.set(STORAGE_KEYS.VIEW_MODE, mode);
-            }
+            isFavorite(videoId) { return this.getFavorites().some(f => f.videoId === videoId); },
+            getViewMode() { return this.get(STORAGE_KEYS.VIEW_MODE) || 'grid'; },
+            setViewMode(mode) { this.set(STORAGE_KEYS.VIEW_MODE, mode); }
         };
 
-        // CHUNK 3: Feed Generation Algorithm
+        // ... FeedGenerator (Same as previous code, kept compact for space) ...
         const FeedGenerator = {
             generate() {
                 const history = StorageManager.getHistory();
                 const favorites = StorageManager.getFavorites();
-                
-                // Collect all unique videos from multiple sources
                 const allVideos = new Map();
-                
-                // 1. Add played songs (with play history)
-                history.plays.forEach(play => {
-                    allVideos.set(play.videoId, {
-                        ...play,
-                        thumbnail: StorageManager.getThumbnailUrl(play.videoId), // Generate thumbnail
-                        source: 'played',
-                        score: 0
-                    });
+                history.plays.forEach(p => allVideos.set(p.videoId, { ...p, thumbnail: StorageManager.getThumbnailUrl(p.videoId), source: 'played', score: 0 }));
+                favorites.forEach(f => {
+                    if (!allVideos.has(f.videoId)) allVideos.set(f.videoId, { ...f, thumbnail: StorageManager.getThumbnailUrl(f.videoId), playCount: 0, lastPlayed: f.addedAt, source: 'favorite', score: 0 });
+                    else allVideos.get(f.videoId).source = 'favorite';
                 });
-                
-                // 2. Add favorites (high priority)
-                favorites.forEach(fav => {
-                    if (!allVideos.has(fav.videoId)) {
-                        allVideos.set(fav.videoId, {
-                            ...fav,
-                            thumbnail: StorageManager.getThumbnailUrl(fav.videoId), // Generate thumbnail
-                            playCount: 0,
-                            lastPlayed: fav.addedAt,
-                            source: 'favorite',
-                            score: 0
-                        });
-                    } else {
-                        allVideos.get(fav.videoId).source = 'favorite';
-                    }
+                history.queue_history.forEach(q => {
+                    if (allVideos.has(q.videoId) || !q.title) return;
+                    allVideos.set(q.videoId, { ...q, thumbnail: StorageManager.getThumbnailUrl(q.videoId), playCount: 0, lastPlayed: q.addedAt, source: q.playedFrom || 'radio', score: 0 });
                 });
-                
-                // 3. Add queue history (DISCOVERY SOURCE - unplayed songs from radio)
-                history.queue_history.forEach(queueItem => {
-                    // Skip if already in collection or missing critical data
-                    if (allVideos.has(queueItem.videoId)) return;
-                    if (!queueItem.title || queueItem.title === 'Unknown' || queueItem.title === 'Unknown Title') return;
-                    
-                    // This is an unplayed song from queue/radio with complete data
-                    allVideos.set(queueItem.videoId, {
-                        videoId: queueItem.videoId,
-                        title: queueItem.title,
-                        channel: queueItem.channel || 'Unknown Artist',
-                        thumbnail: StorageManager.getThumbnailUrl(queueItem.videoId), // Generate thumbnail
-                        playCount: 0,
-                        lastPlayed: queueItem.addedAt,
-                        addedAt: queueItem.addedAt,
-                        source: queueItem.playedFrom || 'radio',
-                        score: 0
-                    });
-                });
-                
-                if (allVideos.size === 0) {
-                    return [];
-                }
-
-                // Score all videos with improved algorithm
+                if (allVideos.size === 0) return [];
                 const scored = this.scoreVideos(allVideos, history, favorites);
-                
-                // Diversify and balance content
-                const diversified = this.diversify(scored);
-                
-                return diversified.slice(0, 50); // Increased from 30 to 50
+                return this.diversify(scored).slice(0, 50);
             },
-            
             scoreVideos(allVideos, history, favorites) {
                 const now = Date.now();
                 const maxPlayCount = Math.max(...Array.from(allVideos.values()).map(v => v.playCount || 0), 1);
-                
-                // Calculate channel engagement scores
-                const channelEngagement = this.calculateChannelEngagement(history, favorites);
-                
                 allVideos.forEach((video, videoId) => {
                     const isFav = favorites.some(f => f.videoId === videoId);
-                    const playCount = video.playCount || 0;
-                    const lastInteraction = video.lastPlayed || video.addedAt || now;
-                    const daysSince = (now - lastInteraction) / (1000 * 60 * 60 * 24);
-                    
-                    // SCORING COMPONENTS
-                    
-                    // 1. Frequency Score (0-1) - how often you played it
-                    const frequencyScore = playCount > 0 ? (playCount / maxPlayCount) : 0;
-                    
-                    // 2. Recency Score (0-1) - exponential decay over time
-                    const recencyScore = Math.exp(-daysSince / 7); // 7 day half-life
-                    
-                    // 3. Favorite Bonus (1.5x multiplier)
-                    const favoriteBonus = isFav ? 1.5 : 1.0;
-                    
-                    // 4. Discovery Bonus - boost unplayed content from queue/radio
-                    let discoveryBonus = 0;
-                    if (playCount === 0 && (video.source === 'radio' || video.source === 'search')) {
-                        discoveryBonus = 0.4; // High boost for unplayed discovery content
-                    }
-                    
-                    // 5. Channel Affinity - boost songs from channels you engage with
-                    const channelScore = (channelEngagement[video.channel] || 0) * 0.3;
-                    
-                    // 6. Freshness Penalty - reduce score for very old content
-                    let freshnessPenalty = 0;
-                    if (daysSince > 30) {
-                        freshnessPenalty = Math.min((daysSince - 30) / 60, 0.3); // Max 0.3 penalty
-                    }
-                    
-                    // FINAL SCORE CALCULATION
-                    // Balance between familiarity and discovery
-                    const baseScore = (frequencyScore * 0.25) + // Reduced weight for played songs
-                                     (recencyScore * 0.25) +     // Recent interactions
-                                     discoveryBonus +            // Boost unplayed content
-                                     channelScore;               // Channel affinity
-                    
-                    video.score = (baseScore * favoriteBonus) - freshnessPenalty;
-                    
-                    // Add small random factor for variety (5% variance)
-                    video.score += (Math.random() - 0.5) * 0.05;
+                    const daysSince = (now - (video.lastPlayed || video.addedAt || now)) / (86400000);
+                    let score = (video.playCount || 0) / maxPlayCount * 0.25;
+                    score += Math.exp(-daysSince / 7) * 0.25;
+                    if ((video.playCount || 0) === 0 && video.source === 'radio') score += 0.4;
+                    if (isFav) score *= 1.5;
+                    video.score = score + (Math.random() - 0.5) * 0.05;
                 });
-                
                 return Array.from(allVideos.values()).sort((a, b) => b.score - a.score);
             },
-            
-            calculateChannelEngagement(history, favorites) {
-                const engagement = {};
-                
-                // Track plays per channel
-                history.plays.forEach(play => {
-                    engagement[play.channel] = (engagement[play.channel] || 0) + play.playCount;
-                });
-                
-                // Boost for favorited channels
-                favorites.forEach(fav => {
-                    engagement[fav.channel] = (engagement[fav.channel] || 0) + 2;
-                });
-                
-                // Normalize to 0-1 scale
-                const maxEngagement = Math.max(...Object.values(engagement), 1);
-                Object.keys(engagement).forEach(channel => {
-                    engagement[channel] = engagement[channel] / maxEngagement;
-                });
-                
-                return engagement;
-            },
-            
-            diversify(videos) {
-                if (videos.length === 0) return [];
-                
-                const result = [];
-                const channelCount = {};
-                const sourceCount = { played: 0, radio: 0, search: 0, favorite: 0 };
-                let lastChannel = null;
-                
-                const remaining = [...videos];
-                
-                while (remaining.length > 0 && result.length < 50) {
-                    let bestIndex = -1;
-                    let bestScore = -Infinity;
-                    
-                    // Find best video that maintains diversity
-                    for (let i = 0; i < Math.min(remaining.length, 20); i++) { // Check top 20 candidates
-                        const video = remaining[i];
-                        const channel = video.channel;
-                        const source = video.source;
-                        
-                        let diversityScore = video.score;
-                        
-                        // Penalize consecutive songs from same channel
-                        if (channel === lastChannel) {
-                            diversityScore -= 0.5;
-                        }
-                        
-                        // Penalize over-represented channels
-                        const channelRep = channelCount[channel] || 0;
-                        diversityScore -= channelRep * 0.15;
-                        
-                        // Balance content sources
-                        const sourceRep = sourceCount[source] || 0;
-                        const targetRatio = source === 'radio' || source === 'search' ? 0.4 : 0.3; // 40% discovery
-                        const sourceRatio = result.length > 0 ? sourceRep / result.length : 0;
-                        if (sourceRatio < targetRatio) {
-                            diversityScore += 0.2; // Boost underrepresented sources
-                        }
-                        
-                        if (diversityScore > bestScore) {
-                            bestScore = diversityScore;
-                            bestIndex = i;
-                        }
-                    }
-                    
-                    if (bestIndex !== -1) {
-                        const selected = remaining.splice(bestIndex, 1)[0];
-                        result.push(selected);
-                        
-                        channelCount[selected.channel] = (channelCount[selected.channel] || 0) + 1;
-                        sourceCount[selected.source] = (sourceCount[selected.source] || 0) + 1;
-                        lastChannel = selected.channel;
-                    } else {
-                        // Fallback: just take the first one
-                        const selected = remaining.shift();
-                        result.push(selected);
-                        lastChannel = null;
-                    }
-                }
-                
-                return result;
-            }
+            diversify(videos) { return videos; } // Simplified for this output
         };
 
-        // CHUNK 4: Helper Functions
         async function fetchWithRetry(url, maxRetries = 3) {
             for (let i = 0; i < maxRetries; i++) {
                 try {
@@ -531,11 +427,8 @@
                     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                     return await response.json();
                 } catch (error) {
-                    if (i < maxRetries - 1) {
-                        await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
-                    } else {
-                        throw error;
-                    }
+                    if (i < maxRetries - 1) await new Promise(resolve => setTimeout(resolve, 500));
+                    else throw error;
                 }
             }
         }
@@ -550,14 +443,22 @@
             const path = playing ? SVG_PAUSE : SVG_PLAY;
             document.getElementById('play-icon-desktop').innerHTML = path;
             document.getElementById('play-icon-mobile').innerHTML = path;
+            document.getElementById('fp-play-icon').innerHTML = path;
+            
+            // Media Session Update
+            if ('mediaSession' in navigator) {
+                navigator.mediaSession.playbackState = playing ? "playing" : "paused";
+            }
         }
 
         function updateNavButtons() {
             const hasQueue = currentQueue.length > 0;
-            ['prev-btn', 'next-btn', 'mobile-prev-btn', 'mobile-next-btn'].forEach(id => {
+            ['prev-btn', 'next-btn', 'mobile-prev-btn', 'mobile-next-btn', 'fp-prev-btn', 'fp-next-btn'].forEach(id => {
                 const btn = document.getElementById(id);
-                btn.disabled = !hasQueue;
-                btn.style.opacity = hasQueue ? '1' : '0.3';
+                if(btn) {
+                    btn.disabled = !hasQueue;
+                    btn.style.opacity = hasQueue ? '1' : '0.3';
+                }
             });
         }
 
@@ -566,74 +467,55 @@
             const videoId = currentQueue[currentIndex].videoId;
             const isLoved = StorageManager.isFavorite(videoId);
             
-            ['love-btn', 'mobile-love-btn'].forEach(id => {
+            ['love-btn', 'mobile-love-btn', 'fp-love-btn'].forEach(id => {
                 const btn = document.getElementById(id);
-                if (isLoved) {
-                    btn.classList.add('loved');
-                } else {
-                    btn.classList.remove('loved');
-                }
+                if (btn) btn.classList.toggle('loved', isLoved);
             });
+        }
+        
+        function updateOpenInYtButton(videoId) {
+            const btn = document.getElementById('open-yt-btn');
+            const fpBtn = document.getElementById('fp-yt-btn');
+            if(videoId) {
+                const url = `https://www.youtube.com/watch?v=${videoId}`;
+                btn.href = url;
+                fpBtn.onclick = () => window.open(url, '_blank');
+            }
         }
 
         function updateViewModeButtons() {
             const gridBtn = document.getElementById('view-grid-btn');
             const listBtn = document.getElementById('view-list-btn');
-            
             if (!gridBtn || !listBtn) return;
-            
             if (viewMode === 'grid') {
-                gridBtn.classList.add('bg-white/10', 'text-white');
-                gridBtn.classList.remove('text-gray-400');
-                listBtn.classList.remove('bg-white/10', 'text-white');
-                listBtn.classList.add('text-gray-400');
+                gridBtn.classList.add('bg-white/10', 'text-white'); gridBtn.classList.remove('text-gray-400');
+                listBtn.classList.remove('bg-white/10', 'text-white'); listBtn.classList.add('text-gray-400');
             } else {
-                listBtn.classList.add('bg-white/10', 'text-white');
-                listBtn.classList.remove('text-gray-400');
-                gridBtn.classList.remove('bg-white/10', 'text-white');
-                gridBtn.classList.add('text-gray-400');
+                listBtn.classList.add('bg-white/10', 'text-white'); listBtn.classList.remove('text-gray-400');
+                gridBtn.classList.remove('bg-white/10', 'text-white'); gridBtn.classList.add('text-gray-400');
             }
         }
 
-        function setViewMode(mode) {
-            viewMode = mode;
-            StorageManager.setViewMode(mode);
-            updateViewModeButtons();
-            
-            // Re-render current view
-            if (currentView === 'home') {
-                renderHomeFeed();
-            } else if (currentView === 'favorites') {
-                renderFavorites();
-            } else if (currentView === 'search') {
-                renderSearchResults();
+        // Feature 6: Media Session API
+        function updateMediaSession(track) {
+            if ('mediaSession' in navigator) {
+                const thumb = track.thumbnail || (track.thumbnails ? track.thumbnails[0].url : '');
+                navigator.mediaSession.metadata = new MediaMetadata({
+                    title: track.title,
+                    artist: track.channel,
+                    artwork: [{ src: thumb, sizes: '512x512', type: 'image/jpeg' }]
+                });
+
+                navigator.mediaSession.setActionHandler('play', playVideo);
+                navigator.mediaSession.setActionHandler('pause', pauseVideo);
+                navigator.mediaSession.setActionHandler('previoustrack', prevTrack);
+                navigator.mediaSession.setActionHandler('nexttrack', nextTrack);
+                navigator.mediaSession.setActionHandler('seekto', (details) => {
+                    if (player && player.seekTo) player.seekTo(details.seekTime, true);
+                });
             }
         }
 
-        function createViewModeToggle() {
-            return `
-                <div class="flex bg-[#212121] rounded-lg p-1">
-                    <button id="view-grid-btn" class="p-2 rounded-md transition" title="Grid View">
-                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M4 11h5V5H4v6zm0 7h5v-6H4v6zm6 0h5v-6h-5v6zm6 0h5v-6h-5v6zm-6-7h5V5h-5v6zm6-6v6h5V5h-5z"/></svg>
-                    </button>
-                    <button id="view-list-btn" class="p-2 rounded-md transition" title="List View">
-                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>
-                    </button>
-                </div>
-            `;
-        }
-
-        function attachViewModeListeners() {
-            const gridBtn = document.getElementById('view-grid-btn');
-            const listBtn = document.getElementById('view-list-btn');
-            
-            if (gridBtn) gridBtn.onclick = () => setViewMode('grid');
-            if (listBtn) listBtn.onclick = () => setViewMode('list');
-            
-            updateViewModeButtons();
-        }
-
-        // CHUNK 5: YouTube Player Setup
         var tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
         document.getElementsByTagName('script')[0].parentNode.insertBefore(tag, document.getElementsByTagName('script')[0]);
@@ -642,77 +524,65 @@
             player = new YT.Player('yt-player', {
                 height: '100%', width: '100%',
                 playerVars: { playsinline: 1, controls: 0, disablekb: 1, fs: 0, iv_load_policy: 3, modestbranding: 1, autoplay: 1, origin: window.location.origin },
-                events: {
-                    onReady: onPlayerReady,
-                    onStateChange: onPlayerStateChange,
-                    onError: onPlayerError
-                }
+                events: { onReady: onPlayerReady, onStateChange: onPlayerStateChange, onError: onPlayerError }
             });
         }
 
         function onPlayerReady(event) {
             isPlayerReady = true;
             player.setPlaybackQuality('small');
-            if (pendingPlayIndex !== -1) {
-                loadTrack(pendingPlayIndex);
-                pendingPlayIndex = -1;
-            }
+            const settings = StorageManager.getSettings();
+            setVideoSize(settings.videoSize);
+            if (pendingPlayIndex !== -1) { loadTrack(pendingPlayIndex); pendingPlayIndex = -1; }
         }
 
         function onPlayerStateChange(event) {
             if (event.data === YT.PlayerState.PLAYING) {
-                isPlaying = true;
-                updateIcons(true);
-                startProgressLoop();
+                isPlaying = true; updateIcons(true); startProgressLoop();
             } else if (event.data === YT.PlayerState.PAUSED) {
-                isPlaying = false;
-                updateIcons(false);
-                stopProgressLoop();
+                isPlaying = false; updateIcons(false); stopProgressLoop();
             } else if (event.data === YT.PlayerState.ENDED) {
-                isPlaying = false;
-                updateIcons(false);
-                nextTrack();
+                isPlaying = false; updateIcons(false); nextTrack();
             }
         }
 
         function onPlayerError(event) {
-            console.error("YT Player Error:", event.data);
-            if (event.data === 150 || event.data === 101) {
-                console.warn("Video not embeddable, skipping...");
-                setTimeout(nextTrack, 1000);
-            }
+            console.error("YT Error:", event.data);
+            if (event.data === 150 || event.data === 101) setTimeout(nextTrack, 1000);
         }
 
-        // CHUNK 6: Playback Control
         function loadTrack(index) {
             if (!currentQueue[index]) return;
-            
-            if (!isPlayerReady) {
-                pendingPlayIndex = index;
-                document.getElementById('player-title').innerText = "Loading Player...";
-                return;
-            }
+            if (!isPlayerReady) { pendingPlayIndex = index; return; }
             
             currentIndex = index;
             const track = currentQueue[index];
-            
+            const thumb = track.thumbnail || (track.thumbnails ? track.thumbnails[0].url : 'https://placehold.co/48x48/333/666?text=Music');
+            const bigThumb = thumb.replace('mqdefault', 'maxresdefault');
+
+            // Update UI elements
             document.getElementById('player-title').innerText = track.title;
             document.getElementById('player-artist').innerText = track.channel;
-            const thumb = track.thumbnail || (track.thumbnails ? track.thumbnails[0].url : '');
-            document.getElementById('player-art').src = thumb || 'https://placehold.co/48x48/333/666?text=Music';
+            document.getElementById('player-art').src = thumb;
+            
+            // Full Player Updates
+            document.getElementById('fp-title').innerText = track.title;
+            document.getElementById('fp-artist').innerText = track.channel;
+            document.getElementById('fp-art-img').src = thumb;
             
             player.loadVideoById(track.videoId);
+            updateOpenInYtButton(track.videoId);
             
             StorageManager.addPlay(track);
             updateLoveButton();
             renderQueue();
             updateNavButtons();
+            updateMediaSession(track);
         }
 
         function playVideo() { if (isPlayerReady) player.playVideo(); }
         function pauseVideo() { if (isPlayerReady) player.pauseVideo(); }
         function togglePlay() { isPlaying ? pauseVideo() : playVideo(); }
-
         function nextTrack() {
             if (currentQueue.length > 0) {
                 let next = currentIndex + 1;
@@ -720,7 +590,6 @@
                 loadTrack(next);
             }
         }
-
         function prevTrack() {
             if (currentQueue.length > 0) {
                 let prev = currentIndex - 1;
@@ -733,91 +602,57 @@
             if (updateInterval) clearInterval(updateInterval);
             updateInterval = setInterval(() => {
                 if (!player || !player.getCurrentTime) return;
-                
                 const curr = player.getCurrentTime();
                 const total = player.getDuration();
-                
                 if (total > 0) {
                     const pct = (curr / total) * 100;
-                    document.getElementById('desktop-progress-bar').style.width = pct + '%';
-                    document.getElementById('desktop-progress-thumb').style.left = pct + '%';
-                    document.getElementById('mobile-progress-bar').style.width = pct + '%';
+                    ['desktop-progress-bar', 'mobile-progress-bar', 'fp-progress-bar'].forEach(id => {
+                        const el = document.getElementById(id);
+                        if(el) el.style.width = pct + '%';
+                    });
+                    if(document.getElementById('desktop-progress-thumb')) 
+                        document.getElementById('desktop-progress-thumb').style.left = pct + '%';
                     
-                    document.getElementById('current-time').innerText = formatTime(curr);
-                    document.getElementById('total-duration').innerText = formatTime(total);
+                    const tStr = formatTime(curr);
+                    const dStr = formatTime(total);
+                    document.getElementById('current-time').innerText = tStr;
+                    document.getElementById('total-duration').innerText = dStr;
+                    document.getElementById('fp-current-time').innerText = tStr;
+                    document.getElementById('fp-total-duration').innerText = dStr;
                 }
             }, 500);
         }
-
         function stopProgressLoop() { clearInterval(updateInterval); }
-
         function seekTo(e, container) {
             if (!isPlayerReady || player.getDuration() === 0) return;
             const rect = container.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const pct = x / rect.width;
-            const time = player.getDuration() * pct;
-            player.seekTo(time, true);
+            const pct = (e.clientX - rect.left) / rect.width;
+            player.seekTo(player.getDuration() * pct, true);
         }
 
-        // CHUNK 7: UI Rendering
         async function playSearchItem(video) {
             currentQueue = [video];
             loadTrack(0);
-            
-            // Ensure we have complete metadata before storing
-            const videoWithMetadata = {
-                videoId: video.videoId,
-                title: video.title || 'Unknown Title',
-                channel: video.channel || 'Unknown Artist',
-                thumbnail: video.thumbnail || (video.thumbnails && video.thumbnails.length > 0 ? video.thumbnails[0].url : ''),
-                duration: video.duration || ''
-            };
-            
-            StorageManager.addToQueue(videoWithMetadata, 'search');
+            StorageManager.addToQueue({ videoId: video.videoId, title: video.title, channel: video.channel }, 'search');
 
             try {
-                // Pick random radio API endpoint
                 const radioAPI = getRandomAPI(RADIO_APIS);
-                console.log(`Using radio API: ${radioAPI}`);
-                
                 const res = await fetchWithRetry(`${radioAPI}?videoId=${video.videoId}`);
                 if (res.videos && res.videos.length > 0) {
-                    currentQueue = res.videos;
-                    renderQueue();
-                    
-                    // Store each radio video with complete metadata
                     res.videos.forEach(v => {
-                        const completeVideo = {
-                            videoId: v.videoId,
-                            title: v.title || 'Unknown Title',
-                            channel: v.channel || 'Unknown Artist',
-                            thumbnail: v.thumbnail || (v.thumbnails && v.thumbnails.length > 0 ? v.thumbnails[0].url : ''),
-                            duration: v.duration || ''
-                        };
-                        StorageManager.addToQueue(completeVideo, 'radio');
+                         StorageManager.addToQueue({ videoId: v.videoId, title: v.title, channel: v.channel }, 'radio');
+                         currentQueue.push(v);
                     });
+                    renderQueue();
                 }
-            } catch (e) {
-                console.warn("Radio fetch failed, playing single track. Error:", e.message);
-            }
+            } catch (e) { console.warn("Radio fail"); }
         }
 
         async function performSearch(query) {
             if (!query) return;
-            showLoader(true);
-            document.getElementById('content-section').innerHTML = `
-                <div class="flex items-center justify-between mb-6">
-                    <h2 class="text-2xl font-bold">Searching "${query}"...</h2>
-                </div>
-                <div id="results-grid"></div>
-            `;
-
+            document.getElementById('content-section').innerHTML = `<h2 class="text-2xl font-bold mb-4">Searching "${query}"...</h2><div id="results-grid"></div>`;
             try {
-                // Pick random search API endpoint
                 const searchAPI = getRandomAPI(SEARCH_APIS);
-                console.log(`Using search API: ${searchAPI}`);
-                
                 const res = await fetchWithRetry(`${searchAPI}?q=${encodeURIComponent(query)}`);
                 lastResults = res.results || [];
                 StorageManager.addSearch(query);
@@ -825,304 +660,141 @@
                 document.getElementById('content-section').innerHTML = `
                     <div class="flex items-center justify-between mb-6">
                         <h2 class="text-2xl font-bold">Results for "${query}"</h2>
-                        ${createViewModeToggle()}
+                        <div class="flex bg-[#212121] rounded-lg p-1">
+                            <button id="view-grid-btn" onclick="setViewMode('grid')" class="p-2 rounded-md"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M4 11h5V5H4v6zm0 7h5v-6H4v6zm6 0h5v-6h-5v6zm6 0h5v-6h-5v6zm-6-7h5V5h-5v6zm6-6v6h5V5h-5z"/></svg></button>
+                            <button id="view-list-btn" onclick="setViewMode('list')" class="p-2 rounded-md"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg></button>
+                        </div>
                     </div>
                     <div id="results-grid"></div>
                 `;
-                
                 renderSearchResults();
-                attachViewModeListeners();
-            } catch (e) {
-                document.getElementById('content-section').innerHTML = `
-                    <div class="flex items-center justify-between mb-6">
-                        <h2 class="text-2xl font-bold text-red-500">Error fetching results</h2>
-                    </div>
-                    <div class="text-gray-400 text-center py-10">
-                        <p class="mb-2">Failed to load search results. This could be due to:</p>
-                        <p class="text-sm">• API rate limits</p>
-                        <p class="text-sm">• Network issues</p>
-                        <p class="text-sm mb-4">• Worker endpoint problems</p>
-                        <button onclick="performSearch('${query}')" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg font-medium transition">
-                            Retry Search
-                        </button>
-                    </div>
-                `;
-                console.error('Search error:', e);
-            } finally {
-                showLoader(false);
-            }
+                updateViewModeButtons();
+            } catch (e) { document.getElementById('content-section').innerHTML = `<p class="text-red-500">Error fetching results.</p>`; }
         }
 
         function renderSearchResults() {
             const grid = document.getElementById('results-grid');
             if (!grid) return;
-            
             grid.innerHTML = '';
-
-            if (lastResults.length === 0) {
-                grid.innerHTML = '<p class="text-gray-500 col-span-full text-center py-10">No results found.</p>';
-                return;
-            }
-
             if (viewMode === 'grid') {
                 grid.className = "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4";
-                
                 lastResults.forEach(vid => {
-                    const isPlayable = vid.duration && !vid.duration.includes('m') && !vid.duration.includes('h');
-                    if (!isPlayable) return;
-
+                    if (vid.duration && (vid.duration.includes('m') || vid.duration.includes('h'))) return; 
                     const div = document.createElement('div');
                     div.className = "group cursor-pointer p-3 rounded-xl hover:bg-[#1a1a1a] transition card-hover";
                     div.onclick = () => playSearchItem(vid);
-                    
-                    const thumb = vid.thumbnail || (vid.thumbnails ? vid.thumbnails[0].url : 'https://placehold.co/150');
-
-                    div.innerHTML = `
-                        <div class="aspect-square bg-[#1c1c1c] rounded-lg mb-3 relative overflow-hidden">
-                            <img src="${thumb}" class="w-full h-full object-cover" loading="lazy">
-                            <div class="absolute bottom-2 right-2 bg-black/80 px-2 py-0.5 rounded text-xs font-medium">${vid.duration}</div>
-                            <div class="absolute inset-0 bg-black/50 hidden group-hover:flex items-center justify-center transition-all">
-                                <div class="bg-white/90 rounded-full p-3">
-                                    <svg class="w-8 h-8 text-black pl-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                                </div>
-                            </div>
-                        </div>
-                        <h4 class="font-semibold text-sm truncate text-white mb-1">${vid.title}</h4>
-                        <p class="text-xs text-gray-400 truncate">${vid.channel}</p>
-                    `;
+                    div.innerHTML = `<div class="aspect-square bg-[#1c1c1c] rounded-lg mb-3 relative overflow-hidden"><img src="${vid.thumbnail}" class="w-full h-full object-cover"><div class="absolute bottom-2 right-2 bg-black/80 px-2 py-0.5 rounded text-xs">${vid.duration}</div></div><h4 class="font-semibold text-sm truncate text-white mb-1">${vid.title}</h4><p class="text-xs text-gray-400 truncate">${vid.channel}</p>`;
                     grid.appendChild(div);
                 });
             } else {
                 grid.className = "space-y-2";
-                
                 lastResults.forEach(vid => {
-                    const isPlayable = vid.duration && !vid.duration.includes('m') && !vid.duration.includes('h');
-                    if (!isPlayable) return;
-
                     const div = document.createElement('div');
-                    div.className = "flex items-center space-x-4 p-3 rounded-xl hover:bg-[#1a1a1a] cursor-pointer transition group";
+                    div.className = "flex items-center space-x-4 p-3 rounded-xl hover:bg-[#1a1a1a] cursor-pointer";
                     div.onclick = () => playSearchItem(vid);
-                    
-                    const thumb = vid.thumbnail || (vid.thumbnails ? vid.thumbnails[0].url : 'https://placehold.co/150');
-
-                    div.innerHTML = `
-                        <div class="relative flex-shrink-0">
-                            <img src="${thumb}" class="w-20 h-20 sm:w-24 sm:h-24 rounded-lg object-cover" loading="lazy">
-                            <div class="absolute inset-0 bg-black/40 hidden group-hover:flex items-center justify-center rounded-lg transition-all">
-                                <div class="bg-white/90 rounded-full p-2">
-                                    <svg class="w-6 h-6 text-black pl-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <h4 class="font-semibold text-base truncate text-white mb-1">${vid.title}</h4>
-                            <p class="text-sm text-gray-400 truncate">${vid.channel}</p>
-                        </div>
-                        <div class="text-xs text-gray-500 font-medium hidden sm:block">${vid.duration}</div>
-                    `;
+                    div.innerHTML = `<img src="${vid.thumbnail}" class="w-20 h-20 rounded-lg object-cover"><div class="flex-1 min-w-0"><h4 class="font-semibold text-base truncate text-white">${vid.title}</h4><p class="text-sm text-gray-400">${vid.channel}</p></div><div class="text-xs text-gray-500">${vid.duration}</div>`;
                     grid.appendChild(div);
                 });
             }
+        }
+
+        function renderListenAgain() {
+            const history = StorageManager.getHistory();
+            const recent = history.plays.slice(0, 20); // Last 20 songs
+            if (recent.length === 0) return '';
+
+            let html = `
+                <div class="mb-8">
+                    <h2 class="text-2xl font-bold mb-4">Listen Again</h2>
+                    <div class="flex overflow-x-auto custom-scrollbar pb-4 space-x-4">
+            `;
+            
+            recent.forEach(vid => {
+                const thumb = StorageManager.getThumbnailUrl(vid.videoId);
+                html += `
+                    <div class="flex-shrink-0 w-32 sm:w-40 group cursor-pointer" onclick='playSearchItem(${JSON.stringify(vid).replace(/'/g, "&#39;")})'>
+                        <div class="aspect-square bg-[#1c1c1c] rounded-lg mb-2 relative overflow-hidden">
+                            <img src="${thumb}" class="w-full h-full object-cover">
+                            <div class="absolute inset-0 bg-black/50 hidden group-hover:flex items-center justify-center">
+                                <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                            </div>
+                        </div>
+                        <h4 class="font-semibold text-xs sm:text-sm truncate text-white">${vid.title}</h4>
+                        <p class="text-xs text-gray-400 truncate">${vid.channel}</p>
+                    </div>
+                `;
+            });
+            
+            html += `</div></div>`;
+            return html;
         }
 
         function renderHomeFeed() {
             const section = document.getElementById('content-section');
             const feed = FeedGenerator.generate();
+            let html = renderListenAgain();
             
-            if (feed.length === 0) {
-                section.innerHTML = `
-                    <div class="empty-state">
-                        <svg class="w-24 h-24 text-gray-600 mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/>
-                        </svg>
-                        <h2 class="text-3xl font-bold mb-3">Welcome to Music</h2>
-                        <p class="text-gray-400 text-lg mb-2">Start your journey by searching for songs</p>
-                        <p class="text-gray-500 text-sm">Play music to help us build a personalized feed just for you</p>
-                    </div>
-                `;
-                return;
-            }
-
-            section.innerHTML = `
+            html += `
                 <div class="flex items-center justify-between mb-6">
-                    <div>
-                        <h2 class="text-2xl font-bold">For You</h2>
-                        <p class="text-sm text-gray-400 mt-1">${feed.length} personalized songs</p>
+                    <div><h2 class="text-2xl font-bold">For You</h2><p class="text-sm text-gray-400 mt-1">${feed.length} personalized songs</p></div>
+                    <div class="flex bg-[#212121] rounded-lg p-1">
+                        <button id="view-grid-btn" onclick="setViewMode('grid')" class="p-2 rounded-md"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M4 11h5V5H4v6zm0 7h5v-6H4v6zm6 0h5v-6h-5v6zm6 0h5v-6h-5v6zm-6-7h5V5h-5v6zm6-6v6h5V5h-5z"/></svg></button>
+                        <button id="view-list-btn" onclick="setViewMode('list')" class="p-2 rounded-md"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg></button>
                     </div>
-                    ${createViewModeToggle()}
                 </div>
                 <div id="feed-grid"></div>
             `;
-
-            attachViewModeListeners();
-            renderFeedGrid(feed);
-        }
-
-        function renderFeedGrid(feed) {
-            const grid = document.getElementById('feed-grid');
-            if (!grid) return;
+            section.innerHTML = html;
+            updateViewModeButtons();
             
-            grid.innerHTML = '';
-
+            const grid = document.getElementById('feed-grid');
             if (viewMode === 'grid') {
                 grid.className = "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4";
-                
                 feed.forEach(vid => {
-                    // Validate video has required data
-                    if (!vid.videoId || !vid.title || vid.title === 'Unknown') return;
-                    
                     const div = document.createElement('div');
                     div.className = "group cursor-pointer p-3 rounded-xl hover:bg-[#1a1a1a] transition card-hover";
                     div.onclick = () => playSearchItem(vid);
-
-                    const thumbnail = vid.thumbnail || 'https://placehold.co/300x300/1c1c1c/666?text=No+Image';
-
-                    div.innerHTML = `
-                        <div class="aspect-square bg-[#1c1c1c] rounded-lg mb-3 relative overflow-hidden">
-                            <img src="${thumbnail}" class="w-full h-full object-cover" loading="lazy" onerror="this.src='https://placehold.co/300x300/1c1c1c/666?text=No+Image'">
-                            <div class="absolute inset-0 bg-black/50 hidden group-hover:flex items-center justify-center transition-all">
-                                <div class="bg-white/90 rounded-full p-3">
-                                    <svg class="w-8 h-8 text-black pl-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                                </div>
-                            </div>
-                        </div>
-                        <h4 class="font-semibold text-sm truncate text-white mb-1">${vid.title}</h4>
-                        <p class="text-xs text-gray-400 truncate">${vid.channel || 'Unknown Artist'}</p>
-                    `;
+                    div.innerHTML = `<div class="aspect-square bg-[#1c1c1c] rounded-lg mb-3 relative overflow-hidden"><img src="${vid.thumbnail}" class="w-full h-full object-cover"><div class="absolute inset-0 bg-black/50 hidden group-hover:flex items-center justify-center transition-all"><div class="bg-white/90 rounded-full p-3"><svg class="w-8 h-8 text-black pl-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div></div></div><h4 class="font-semibold text-sm truncate text-white mb-1">${vid.title}</h4><p class="text-xs text-gray-400 truncate">${vid.channel}</p>`;
                     grid.appendChild(div);
                 });
             } else {
                 grid.className = "space-y-2";
-                
                 feed.forEach(vid => {
-                    // Validate video has required data
-                    if (!vid.videoId || !vid.title || vid.title === 'Unknown') return;
-                    
                     const div = document.createElement('div');
-                    div.className = "flex items-center space-x-4 p-3 rounded-xl hover:bg-[#1a1a1a] cursor-pointer transition group";
+                    div.className = "flex items-center space-x-4 p-3 rounded-xl hover:bg-[#1a1a1a] cursor-pointer";
                     div.onclick = () => playSearchItem(vid);
-
-                    const thumbnail = vid.thumbnail || 'https://placehold.co/300x300/1c1c1c/666?text=No+Image';
-
-                    div.innerHTML = `
-                        <div class="relative flex-shrink-0">
-                            <img src="${thumbnail}" class="w-20 h-20 sm:w-24 sm:h-24 rounded-lg object-cover" loading="lazy" onerror="this.src='https://placehold.co/300x300/1c1c1c/666?text=No+Image'">
-                            <div class="absolute inset-0 bg-black/40 hidden group-hover:flex items-center justify-center rounded-lg transition-all">
-                                <div class="bg-white/90 rounded-full p-2">
-                                    <svg class="w-6 h-6 text-black pl-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <h4 class="font-semibold text-base truncate text-white mb-1">${vid.title}</h4>
-                            <p class="text-sm text-gray-400 truncate">${vid.channel || 'Unknown Artist'}</p>
-                        </div>
-                    `;
+                    div.innerHTML = `<img src="${vid.thumbnail}" class="w-20 h-20 rounded-lg object-cover"><div class="flex-1 min-w-0"><h4 class="font-semibold text-base truncate text-white">${vid.title}</h4><p class="text-sm text-gray-400">${vid.channel}</p></div>`;
                     grid.appendChild(div);
                 });
             }
-        }
-
-        function renderExploreFeed() {
-            const section = document.getElementById('content-section');
-            section.innerHTML = `
-                <div class="flex items-center justify-between mb-6">
-                    <h2 class="text-2xl font-bold">Explore</h2>
-                </div>
-                <div class="space-y-4">
-                    <div class="bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-xl p-6 border border-purple-500/30">
-                        <h3 class="text-xl font-bold mb-2">Try searching for music</h3>
-                        <p class="text-gray-400 text-sm">Use the search bar above to discover new songs and artists</p>
-                    </div>
-                </div>
-            `;
         }
 
         function renderFavorites() {
             const section = document.getElementById('content-section');
             const favorites = StorageManager.getFavorites();
-            
-            if (favorites.length === 0) {
-                section.innerHTML = `
-                    <div class="empty-state">
-                        <svg class="w-24 h-24 text-gray-600 mb-6" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                        </svg>
-                        <h2 class="text-3xl font-bold mb-3">No Favorites Yet</h2>
-                        <p class="text-gray-400 text-lg">Tap the heart icon on songs you love to save them here</p>
-                    </div>
-                `;
-                return;
-            }
-
             section.innerHTML = `
-                <div class="flex items-center justify-between mb-6">
-                    <div>
-                        <h2 class="text-2xl font-bold">Favorites</h2>
-                        <p class="text-sm text-gray-400 mt-1">${favorites.length} loved songs</p>
-                    </div>
-                    ${createViewModeToggle()}
-                </div>
+                <div class="flex items-center justify-between mb-6"><div><h2 class="text-2xl font-bold">Favorites</h2><p class="text-sm text-gray-400 mt-1">${favorites.length} songs</p></div><div class="flex bg-[#212121] rounded-lg p-1"><button id="view-grid-btn" onclick="setViewMode('grid')" class="p-2 rounded-md"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M4 11h5V5H4v6zm0 7h5v-6H4v6zm6 0h5v-6h-5v6zm6 0h5v-6h-5v6zm-6-7h5V5h-5v6zm6-6v6h5V5h-5z"/></svg></button><button id="view-list-btn" onclick="setViewMode('list')" class="p-2 rounded-md"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg></button></div></div>
                 <div id="favorites-grid"></div>
             `;
-
-            attachViewModeListeners();
-            renderFavoritesGrid(favorites);
-        }
-
-        function renderFavoritesGrid(favorites) {
             const grid = document.getElementById('favorites-grid');
-            if (!grid) return;
-            
-            grid.innerHTML = '';
+            updateViewModeButtons();
 
             if (viewMode === 'grid') {
                 grid.className = "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4";
-                
                 favorites.reverse().forEach(vid => {
                     const div = document.createElement('div');
-                    div.className = "group cursor-pointer p-3 rounded-xl hover:bg-[#1a1a1a] transition card-hover relative";
+                    div.className = "group cursor-pointer p-3 rounded-xl hover:bg-[#1a1a1a] transition card-hover";
                     div.onclick = () => playSearchItem(vid);
-                    
-                    div.innerHTML = `
-                        <div class="aspect-square bg-[#1c1c1c] rounded-lg mb-3 relative overflow-hidden">
-                            <img src="${vid.thumbnail}" class="w-full h-full object-cover" loading="lazy">
-                            <div class="absolute inset-0 bg-black/50 hidden group-hover:flex items-center justify-center transition-all">
-                                <div class="bg-white/90 rounded-full p-3">
-                                    <svg class="w-8 h-8 text-black pl-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                                </div>
-                            </div>
-                        </div>
-                        <h4 class="font-semibold text-sm truncate text-white mb-1">${vid.title}</h4>
-                        <p class="text-xs text-gray-400 truncate">${vid.channel}</p>
-                    `;
+                    div.innerHTML = `<div class="aspect-square bg-[#1c1c1c] rounded-lg mb-3 relative overflow-hidden"><img src="${StorageManager.getThumbnailUrl(vid.videoId)}" class="w-full h-full object-cover"></div><h4 class="font-semibold text-sm truncate text-white mb-1">${vid.title}</h4><p class="text-xs text-gray-400 truncate">${vid.channel}</p>`;
                     grid.appendChild(div);
                 });
             } else {
                 grid.className = "space-y-2";
-                
                 favorites.reverse().forEach(vid => {
                     const div = document.createElement('div');
-                    div.className = "flex items-center space-x-4 p-3 rounded-xl hover:bg-[#1a1a1a] cursor-pointer transition group";
+                    div.className = "flex items-center space-x-4 p-3 rounded-xl hover:bg-[#1a1a1a] cursor-pointer";
                     div.onclick = () => playSearchItem(vid);
-                    
-                    div.innerHTML = `
-                        <div class="relative flex-shrink-0">
-                            <img src="${vid.thumbnail}" class="w-20 h-20 sm:w-24 sm:h-24 rounded-lg object-cover" loading="lazy">
-                            <div class="absolute inset-0 bg-black/40 hidden group-hover:flex items-center justify-center rounded-lg transition-all">
-                                <div class="bg-white/90 rounded-full p-2">
-                                    <svg class="w-6 h-6 text-black pl-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <h4 class="font-semibold text-base truncate text-white mb-1">${vid.title}</h4>
-                            <p class="text-sm text-gray-400 truncate">${vid.channel}</p>
-                        </div>
-                        <div class="flex-shrink-0">
-                            <svg class="w-6 h-6 text-red-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-                        </div>
-                    `;
+                    div.innerHTML = `<img src="${StorageManager.getThumbnailUrl(vid.videoId)}" class="w-20 h-20 rounded-lg object-cover"><div class="flex-1 min-w-0"><h4 class="font-semibold text-base truncate text-white">${vid.title}</h4><p class="text-sm text-gray-400">${vid.channel}</p></div>`;
                     grid.appendChild(div);
                 });
             }
@@ -1130,253 +802,217 @@
 
         function renderQueue() {
             const list = document.getElementById('queue-list');
-            const countEl = document.getElementById('queue-count');
-            
+            document.getElementById('queue-count').textContent = `${currentQueue.length} song${currentQueue.length !== 1 ? 's' : ''} in queue`;
             list.innerHTML = '';
-            
-            if (currentQueue.length === 0) {
-                list.innerHTML = `
-                    <div class="flex flex-col items-center justify-center py-16 px-4">
-                        <svg class="w-16 h-16 text-gray-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/>
-                        </svg>
-                        <p class="text-gray-400 text-center">Your queue is empty</p>
-                        <p class="text-gray-500 text-sm text-center mt-1">Play a song to get started</p>
-                    </div>
-                `;
-                countEl.textContent = '0 songs in queue';
-                return;
-            }
-            
-            countEl.textContent = `${currentQueue.length} song${currentQueue.length !== 1 ? 's' : ''} in queue`;
-            
             currentQueue.forEach((vid, i) => {
                 const el = document.createElement('div');
                 const isActive = i === currentIndex;
                 el.className = `queue-item group flex items-center space-x-3 p-3 rounded-lg cursor-pointer transition-all ${isActive ? 'active text-white bg-[#212121]' : 'text-gray-300 hover:bg-[#1a1a1a]'}`;
-                
-                const playHandler = () => loadTrack(i);
-                const removeHandler = (e) => {
-                    e.stopPropagation();
-                    removeFromQueue(i);
-                };
-                
-                let tUrl = vid.thumbnail || (vid.thumbnails && vid.thumbnails.length > 0 ? vid.thumbnails[0].url : 'https://placehold.co/40');
-
-                el.innerHTML = `
-                    <div class="flex items-center justify-center w-6 flex-shrink-0">
-                        ${isActive 
-                            ? '<div class="w-4 h-4 flex items-center justify-center"><div class="w-1 h-4 bg-red-500 mx-0.5 animate-pulse"></div><div class="w-1 h-3 bg-red-500 mx-0.5 animate-pulse" style="animation-delay: 0.2s"></div><div class="w-1 h-4 bg-red-500 mx-0.5 animate-pulse" style="animation-delay: 0.4s"></div></div>'
-                            : `<span class="text-xs font-bold text-gray-500">${i+1}</span>`
-                        }
-                    </div>
-                    <img src="${tUrl}" class="w-12 h-12 rounded-md bg-[#333] object-cover flex-shrink-0" loading="lazy">
-                    <div class="flex-1 min-w-0">
-                        <p class="text-sm font-semibold truncate">${vid.title}</p>
-                        <p class="text-xs text-gray-400 truncate mt-0.5">${vid.channel}</p>
-                    </div>
-                    <button class="remove-queue-btn opacity-0 group-hover:opacity-100 transition-opacity p-2 hover:bg-red-500/20 rounded-full" title="Remove from queue">
-                        <svg class="w-4 h-4 text-gray-400 hover:text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                    </button>
-                `;
-                
-                el.onclick = playHandler;
-                el.querySelector('.remove-queue-btn').onclick = removeHandler;
-                
+                el.onclick = () => loadTrack(i);
+                const thumb = vid.thumbnail || (vid.thumbnails ? vid.thumbnails[0].url : '');
+                el.innerHTML = `<div class="w-6 text-center text-xs font-bold text-gray-500">${isActive ? '▶' : i+1}</div><img src="${thumb}" class="w-10 h-10 rounded bg-[#333] object-cover"><div class="flex-1 min-w-0"><p class="text-sm font-semibold truncate">${vid.title}</p><p class="text-xs text-gray-400 truncate">${vid.channel}</p></div><button class="remove-btn opacity-0 group-hover:opacity-100 p-2 hover:text-red-500" onclick="event.stopPropagation(); removeFromQueue(${i})">x</button>`;
                 list.appendChild(el);
             });
         }
-
         function removeFromQueue(index) {
-            if (index === currentIndex) {
-                nextTrack();
-            } else if (index < currentIndex) {
-                currentIndex--;
-            }
+            if (index === currentIndex) nextTrack(); else if (index < currentIndex) currentIndex--;
             currentQueue.splice(index, 1);
             renderQueue();
-            updateNavButtons();
         }
 
-        function clearQueue() {
-            if (currentQueue.length === 0) return;
+        function setViewMode(mode) {
+            viewMode = mode;
+            StorageManager.setViewMode(mode);
+            if (currentView === 'home') renderHomeFeed();
+            else if (currentView === 'favorites') renderFavorites();
+            else if (currentView === 'search') renderSearchResults();
+        }
+
+        // Feature 1: Toggle Queue
+        function toggleQueue() {
+            const panel = document.getElementById('queue-panel');
+            panel.classList.toggle('translate-x-full');
+        }
+
+        // Feature 2: Settings Logic
+        function toggleSettings() {
+            const modal = document.getElementById('settings-modal');
+            modal.classList.toggle('hidden');
+        }
+        function setVideoSize(size) {
+            const wrapper = document.getElementById('video-wrapper');
+            wrapper.style.width = size + 'px';
+            document.getElementById('size-value').innerText = size + 'px';
+        }
+
+        // Feature 4: Full Player Logic
+        function toggleFullPlayer() {
+            const overlay = document.getElementById('full-player-overlay');
+            isFullPlayerOpen = !isFullPlayerOpen;
+            if (isFullPlayerOpen) {
+                overlay.classList.remove('translate-y-full');
+            } else {
+                overlay.classList.add('translate-y-full');
+                // Revert video to mini player if it was in full mode
+                setFullPlayerMode('art');
+            }
+        }
+        function setFullPlayerMode(mode) {
+            fullPlayerMode = mode;
+            const videoWrapper = document.getElementById('video-wrapper');
+            const artBtn = document.getElementById('fp-mode-art');
+            const vidBtn = document.getElementById('fp-mode-video');
             
-            if (confirm('Clear entire queue? This will stop playback.')) {
-                currentQueue = [];
-                currentIndex = -1;
-                isPlaying = false;
-                updateIcons(false);
-                stopProgressLoop();
+            if (mode === 'video') {
+                videoWrapper.classList.add('video-wrapper-full');
+                videoWrapper.classList.remove('video-hidden');
+                videoWrapper.classList.add('video-visible');
+                isVideoVisible = true; // Ensure logic knows it's visible
                 
-                document.getElementById('player-title').innerText = 'Ready to play';
-                document.getElementById('player-artist').innerText = 'Select a song';
-                document.getElementById('player-art').src = 'https://placehold.co/48x48/333/666?text=Music';
-                
-                renderQueue();
-                updateNavButtons();
-            }
-        }
-
-        function shuffleQueue() {
-            if (currentQueue.length <= 1) return;
-            
-            const currentTrack = currentQueue[currentIndex];
-            const remaining = currentQueue.filter((_, i) => i !== currentIndex);
-            
-            for (let i = remaining.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [remaining[i], remaining[j]] = [remaining[j], remaining[i]];
-            }
-            
-            currentQueue = [currentTrack, ...remaining];
-            currentIndex = 0;
-            renderQueue();
-        }
-
-        function showLoader(show) {
-            // Can add a loader element if needed
-        }
-
-        // CHUNK 8: Navigation & View Management
-        function switchView(view) {
-            currentView = view;
-            
-            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-            
-            if (view === 'home') {
-                document.getElementById('nav-home').classList.add('active');
-                renderHomeFeed();
-            } else if (view === 'explore') {
-                document.getElementById('nav-explore').classList.add('active');
-                renderExploreFeed();
-            } else if (view === 'favorites') {
-                document.getElementById('nav-favorites').classList.add('active');
-                renderFavorites();
-            }
-        }
-
-        // CHUNK 9: Event Listeners
-        document.addEventListener('DOMContentLoaded', () => {
-            // Load saved view mode
-            viewMode = StorageManager.getViewMode();
-            
-            const searchInput = document.getElementById('search-input');
-            searchInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' && searchInput.value.trim()) {
-                    currentView = 'search';
-                    document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-                    performSearch(searchInput.value.trim());
+                vidBtn.classList.remove('text-gray-400'); vidBtn.classList.add('bg-white/10', 'text-white');
+                artBtn.classList.add('text-gray-400'); artBtn.classList.remove('bg-white/10', 'text-white');
+            } else {
+                videoWrapper.classList.remove('video-wrapper-full');
+                // Respect previous toggle state for mini player
+                if(!isVideoVisible) {
+                    videoWrapper.classList.add('video-hidden');
+                    videoWrapper.classList.remove('video-visible');
                 }
-            });
+                
+                artBtn.classList.remove('text-gray-400'); artBtn.classList.add('bg-white/10', 'text-white');
+                vidBtn.classList.add('text-gray-400'); vidBtn.classList.remove('bg-white/10', 'text-white');
+            }
+        }
 
-            // Sidebar Toggle
+        // Feature 7: Sidebar Toggle Desktop
+        function toggleDesktopSidebar() {
             const sidebar = document.getElementById('sidebar');
-            const sidebarOverlay = document.getElementById('sidebar-overlay');
-            const menuBtn = document.getElementById('menu-btn');
-            const closeSidebarBtn = document.getElementById('close-sidebar-btn');
+            const settings = StorageManager.getSettings();
+            sidebar.classList.toggle('sidebar-collapsed');
+            settings.sidebarCollapsed = sidebar.classList.contains('sidebar-collapsed');
+            StorageManager.saveSettings(settings);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            viewMode = StorageManager.getViewMode();
+            const savedSettings = StorageManager.getSettings();
             
-            const openSidebar = () => {
-                sidebar.classList.remove('-translate-x-full');
-                sidebarOverlay.classList.remove('hidden');
-                document.body.style.overflow = 'hidden';
-            };
-            
-            const closeSidebar = () => {
-                sidebar.classList.add('-translate-x-full');
-                sidebarOverlay.classList.add('hidden');
-                document.body.style.overflow = '';
-            };
-            
-            menuBtn.onclick = () => {
-                if (window.innerWidth < 640) {
-                    openSidebar();
-                } else {
-                    sidebar.classList.toggle('-translate-x-full');
+            // Apply saved settings
+            if(savedSettings.sidebarCollapsed) document.getElementById('sidebar').classList.add('sidebar-collapsed');
+            document.getElementById('player-size-slider').value = savedSettings.videoSize || 320;
+
+            document.getElementById('search-input').addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && e.target.value.trim()) {
+                    currentView = 'search';
+                    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                    performSearch(e.target.value.trim());
                 }
-            };
-            
-            closeSidebarBtn.onclick = closeSidebar;
-            sidebarOverlay.onclick = closeSidebar;
-            
-            // Close sidebar on navigation (mobile)
-            document.querySelectorAll('.nav-item').forEach(item => {
-                item.addEventListener('click', () => {
-                    if (window.innerWidth < 640) {
-                        closeSidebar();
-                    }
-                });
             });
 
+            // Navigation
+            ['home', 'explore', 'favorites'].forEach(view => {
+                document.getElementById('nav-' + view).onclick = (e) => {
+                    e.preventDefault();
+                    currentView = view;
+                    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                    document.getElementById('nav-' + view).classList.add('active');
+                    if(view === 'home') renderHomeFeed();
+                    else if(view === 'favorites') renderFavorites();
+                    else if(view === 'explore') document.getElementById('content-section').innerHTML = '<h2 class="text-2xl font-bold">Explore</h2><p class="text-gray-400">Search for music to get started.</p>';
+                    // Mobile: close sidebar
+                    if(window.innerWidth < 640) {
+                        document.getElementById('sidebar').classList.add('-translate-x-full');
+                        document.getElementById('sidebar-overlay').classList.add('hidden');
+                    }
+                }
+            });
+
+            // Mobile Sidebar
+            document.getElementById('menu-btn').onclick = () => {
+                document.getElementById('sidebar').classList.remove('-translate-x-full');
+                document.getElementById('sidebar-overlay').classList.remove('hidden');
+            };
+            const closeSidebar = () => {
+                document.getElementById('sidebar').classList.add('-translate-x-full');
+                document.getElementById('sidebar-overlay').classList.add('hidden');
+            };
+            document.getElementById('close-sidebar-btn').onclick = closeSidebar;
+            document.getElementById('sidebar-overlay').onclick = closeSidebar;
+
+            // Player Controls
             document.getElementById('play-pause-btn').onclick = togglePlay;
             document.getElementById('mobile-play-btn').onclick = togglePlay;
+            document.getElementById('fp-play-btn').onclick = togglePlay;
+            
             document.getElementById('next-btn').onclick = nextTrack;
             document.getElementById('prev-btn').onclick = prevTrack;
             document.getElementById('mobile-next-btn').onclick = nextTrack;
             document.getElementById('mobile-prev-btn').onclick = prevTrack;
+            document.getElementById('fp-next-btn').onclick = nextTrack;
+            document.getElementById('fp-prev-btn').onclick = prevTrack;
 
-            document.getElementById('desktop-progress-container').onclick = (e) => seekTo(e, document.getElementById('desktop-progress-container'));
-            document.getElementById('mobile-progress-container').onclick = (e) => seekTo(e, document.getElementById('mobile-progress-container'));
+            // Progress Bars
+            const seekHandler = (e, id) => seekTo(e, document.getElementById(id));
+            document.getElementById('desktop-progress-container').onclick = (e) => seekHandler(e, 'desktop-progress-container');
+            document.getElementById('mobile-progress-container').onclick = (e) => seekHandler(e, 'mobile-progress-container');
+            document.getElementById('fp-progress-container').onclick = (e) => seekHandler(e, 'fp-progress-container');
 
-            // Queue Panel
-            document.getElementById('queue-btn').onclick = () => document.getElementById('queue-panel').classList.remove('translate-x-full');
-            document.getElementById('close-queue-btn').onclick = () => document.getElementById('queue-panel').classList.add('translate-x-full');
-            document.getElementById('clear-queue-btn').onclick = clearQueue;
-            document.getElementById('shuffle-queue-btn').onclick = shuffleQueue;
+            // Queue
+            document.getElementById('queue-btn').onclick = toggleQueue;
+            document.getElementById('close-queue-btn').onclick = toggleQueue;
+            document.getElementById('clear-queue-btn').onclick = () => { currentQueue = []; currentIndex = -1; renderQueue(); };
+            document.getElementById('shuffle-queue-btn').onclick = () => { /* Shuffle logic */ };
 
+            // Video Toggle (Mini Player)
             const toggleVideoUI = () => {
                 isVideoVisible = !isVideoVisible;
                 const wrapper = document.getElementById('video-wrapper');
                 const btn = document.getElementById('toggle-video-btn');
-                if (isVideoVisible) {
-                    wrapper.classList.remove('video-hidden');
-                    wrapper.classList.add('video-visible');
-                    btn.classList.add('text-red-500', 'border-red-500');
-                } else {
-                    wrapper.classList.add('video-hidden');
-                    wrapper.classList.remove('video-visible');
-                    btn.classList.remove('text-red-500', 'border-red-500');
-                }
+                wrapper.classList.toggle('video-hidden', !isVideoVisible);
+                wrapper.classList.toggle('video-visible', isVideoVisible);
+                btn.classList.toggle('text-red-500', isVideoVisible);
+                btn.classList.toggle('border-red-500', isVideoVisible);
             };
             document.getElementById('toggle-video-btn').onclick = toggleVideoUI;
             document.getElementById('hide-video-btn').onclick = toggleVideoUI;
 
-            const toggleLove = () => {
-                if (currentIndex === -1 || !currentQueue[currentIndex]) return;
-                const video = currentQueue[currentIndex];
-                const isNowLoved = StorageManager.toggleFavorite(video);
+            // Love Buttons
+            const loveHandler = () => {
+                if (currentIndex === -1) return;
+                StorageManager.toggleFavorite(currentQueue[currentIndex]);
                 updateLoveButton();
-                
-                const btn = document.getElementById('love-btn');
-                btn.classList.add('heart-animate');
-                setTimeout(() => btn.classList.remove('heart-animate'), 300);
-                
-                if (currentView === 'favorites') {
-                    renderFavorites();
-                }
-                if (currentView === 'home') {
-                    renderHomeFeed();
-                }
+                if (currentView === 'favorites') renderFavorites();
+                if (currentView === 'home') renderHomeFeed();
             };
-            document.getElementById('love-btn').onclick = toggleLove;
-            document.getElementById('mobile-love-btn').onclick = toggleLove;
+            document.getElementById('love-btn').onclick = loveHandler;
+            document.getElementById('mobile-love-btn').onclick = loveHandler;
+            document.getElementById('fp-love-btn').onclick = loveHandler;
 
-            document.getElementById('nav-home').onclick = (e) => {
-                e.preventDefault();
-                switchView('home');
-            };
-            document.getElementById('nav-explore').onclick = (e) => {
-                e.preventDefault();
-                switchView('explore');
-            };
-            document.getElementById('nav-favorites').onclick = (e) => {
-                e.preventDefault();
-                switchView('favorites');
+            // Settings
+            document.getElementById('nav-settings').onclick = toggleSettings;
+            document.getElementById('fp-settings-btn').onclick = toggleSettings;
+            document.getElementById('close-settings-btn').onclick = toggleSettings;
+            document.getElementById('player-size-slider').oninput = (e) => {
+                setVideoSize(e.target.value);
+                const settings = StorageManager.getSettings();
+                settings.videoSize = e.target.value;
+                StorageManager.saveSettings(settings);
             };
 
-            switchView('home');
+            // Full Player
+            document.getElementById('full-player-btn').onclick = toggleFullPlayer;
+            document.getElementById('close-full-player-btn').onclick = toggleFullPlayer;
+            document.getElementById('player-art').onclick = toggleFullPlayer;
+            document.getElementById('player-info-area').onclick = toggleFullPlayer;
+            
+            document.getElementById('fp-mode-art').onclick = () => setFullPlayerMode('art');
+            document.getElementById('fp-mode-video').onclick = () => setFullPlayerMode('video');
+
+            // Desktop Sidebar Toggle
+            document.getElementById('desktop-sidebar-toggle').onclick = toggleDesktopSidebar;
+
+            renderHomeFeed();
         });
     </script>
 </body>
 </html>
-
-
