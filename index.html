@@ -42,14 +42,20 @@
         .sidebar-collapsed .nav-text { display: none; }
         .sidebar-collapsed .nav-item { justify-content: center; padding-left: 0; padding-right: 0; }
         
+        /* Slider Styling */
         input[type=range] { -webkit-appearance: none; background: transparent; }
         input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%; background: #ef4444;
-            cursor: pointer; margin-top: -6px;
+            -webkit-appearance: none; height: 12px; width: 12px; border-radius: 50%; background: #fff;
+            cursor: pointer; margin-top: -4px; box-shadow: 0 1px 3px rgba(0,0,0,0.5);
         }
+        input[type=range]:hover::-webkit-slider-thumb { background: #ef4444; transform: scale(1.2); }
         input[type=range]::-webkit-slider-runnable-track {
             width: 100%; height: 4px; cursor: pointer; background: #404040; border-radius: 2px;
         }
+        
+        /* Toggle Switch Styling */
+        .toggle-checkbox:checked { right: 0; border-color: #ef4444; }
+        .toggle-checkbox:checked + .toggle-label { background-color: #ef4444; }
         
         .skeleton {
             background: linear-gradient(90deg, #222 25%, #2a2a2a 50%, #222 75%);
@@ -80,6 +86,18 @@
                 </button>
             </div>
             <div class="space-y-6">
+                <!-- Incognito Toggle -->
+                <div class="flex items-center justify-between">
+                    <div>
+                        <span class="text-sm font-medium text-white block">Incognito Mode</span>
+                        <span class="text-xs text-gray-400">Don't save history</span>
+                    </div>
+                    <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                        <input type="checkbox" name="toggle" id="incognito-toggle" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
+                        <label for="incognito-toggle" class="toggle-label block overflow-hidden h-5 rounded-full bg-gray-600 cursor-pointer"></label>
+                    </div>
+                </div>
+
                 <div>
                     <div class="flex justify-between text-sm mb-2">
                         <span class="text-gray-300">Mini Player Size</span>
@@ -90,16 +108,15 @@
                 <div>
                     <label class="block text-sm text-gray-300 mb-2">Genius API Key (for Lyrics)</label>
                     <input type="text" id="genius-api-input" class="w-full bg-[#1a1a1a] border border-[#333] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-red-500 transition" placeholder="Paste your key here...">
-                    <p class="text-[10px] text-gray-500 mt-1">Required to show lyrics.</p>
                 </div>
                 <div class="pt-4 border-t border-[#333]">
-                    <p class="text-xs text-gray-500 text-center">YtMusic Clone v1.5</p>
+                    <p class="text-xs text-gray-500 text-center">YtMusic Clone v1.6</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Floating Lyrics Modal (Independent) -->
+    <!-- Floating Lyrics Modal -->
     <div id="lyrics-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[70] hidden flex items-center justify-center">
         <div class="bg-[#121212] w-full max-w-lg h-[70vh] rounded-2xl shadow-2xl flex flex-col mx-4 border border-[#333] relative">
             <div class="p-4 border-b border-[#333] flex justify-between items-center bg-[#1e1e1e] rounded-t-2xl">
@@ -128,24 +145,17 @@
             </button>
         </div>
         
-        <!-- Content Area -->
         <div class="flex-1 flex flex-col items-center justify-center p-4 sm:p-8 relative min-h-0">
-            <!-- Art Container -->
             <div id="fp-art-container" class="w-full max-w-sm sm:max-w-md aspect-square shadow-2xl rounded-xl overflow-hidden relative">
                 <img id="fp-art-img" src="" class="w-full h-full object-cover">
             </div>
-
-            <!-- Video Placeholder -->
             <div id="fp-video-placeholder" class="absolute inset-0 pointer-events-none"></div>
-
-            <!-- Info -->
             <div class="mt-6 sm:mt-8 text-center max-w-2xl px-4 w-full">
                 <h2 id="fp-title" class="text-2xl sm:text-3xl font-bold text-white mb-2 truncate"></h2>
                 <p id="fp-artist" class="text-lg sm:text-xl text-gray-400 truncate"></p>
             </div>
         </div>
 
-        <!-- Controls -->
         <div class="p-6 sm:p-12 pb-8 sm:pb-16 bg-gradient-to-t from-black/80 to-transparent flex-shrink-0">
             <div class="flex items-center space-x-3 text-sm text-gray-400 mb-6">
                 <span id="fp-current-time">0:00</span>
@@ -163,18 +173,17 @@
                 <button id="fp-next-btn" class="text-white hover:text-gray-300"><svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M16 6h2v12h-2zM7 18l8.5-6L7 6z"/></svg></button>
             </div>
 
+            <!-- Full Player Volume & Lyrics -->
             <div class="flex justify-between items-center px-2 sm:px-4">
-                <button id="fp-yt-btn" class="text-gray-400 hover:text-red-500 flex items-center space-x-2 text-sm font-medium transition" title="Open in YouTube">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
-                    <span class="hidden sm:inline">Open in YouTube</span>
-                </button>
-                
+                 <div class="flex items-center w-32 space-x-2">
+                    <svg class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+                    <input type="range" id="fp-volume-slider" min="0" max="100" value="100" class="w-full">
+                </div>
+
                 <div class="flex items-center space-x-6">
-                    <!-- Lyrics Toggle Button -->
                     <button id="fp-lyrics-btn" class="text-gray-400 hover:text-white transition hidden flex-col items-center" title="Lyrics">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
                     </button>
-
                     <button id="fp-love-btn" class="text-gray-400 hover:text-red-500 heart-btn transition">
                          <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
                     </button>
@@ -230,7 +239,8 @@
                         <input type="text" id="search-input" placeholder="Search songs, artists..." class="w-full bg-[#212121] text-white rounded-full py-2.5 pl-11 pr-4 focus:outline-none focus:ring-2 focus:ring-red-500/50 placeholder-gray-500 transition">
                         <svg class="w-5 h-5 text-gray-500 absolute left-4 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                     </div>
-                    <div class="w-9 h-9 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-sm font-bold flex-shrink-0">U</div>
+                    <!-- User Avatar / Incognito Indicator -->
+                    <div id="user-avatar" class="w-9 h-9 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-sm font-bold flex-shrink-0 transition-colors">U</div>
                 </div>
             </header>
 
@@ -276,10 +286,17 @@
                     <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
                 </button>
                 
-                <!-- Footer Lyrics Button -->
                 <button id="footer-lyrics-btn" class="text-gray-400 hover:text-white hidden transition p-1" title="Lyrics">
                      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
                 </button>
+
+                <!-- Desktop Volume -->
+                <div class="hidden sm:flex items-center w-24 group/vol">
+                    <button id="mute-btn" class="text-gray-400 hover:text-white pr-2">
+                        <svg id="vol-icon" class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+                    </button>
+                    <input type="range" id="volume-slider" min="0" max="100" value="100" class="w-full opacity-0 group-hover/vol:opacity-100 transition-opacity">
+                </div>
 
                 <a id="open-yt-btn" href="#" target="_blank" class="hidden sm:block text-gray-400 hover:text-white" title="Open in YouTube">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
@@ -330,10 +347,13 @@
         let player, isPlayerReady = false, isPlaying = false, currentQueue = [], currentIndex = -1;
         let updateInterval, isVideoVisible = false, currentView = 'home', lastResults = [], pendingPlayIndex = -1;
         let viewMode = 'grid', isFullPlayerOpen = false, fullPlayerMode = 'art'; 
-        let currentLyricsText = null; // Cache for current song lyrics
+        let currentLyricsText = null;
+        let isMuted = false, volume = 100;
         
         const SVG_PLAY = '<path d="M8 5v14l11-7z"/>';
         const SVG_PAUSE = '<path d="M6 19h4V5H6zm8-14v14h4V5z"/>';
+        const SVG_VOL_HIGH = '<path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>';
+        const SVG_VOL_MUTE = '<path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>';
 
         const StorageManager = {
             get(key) { try { return JSON.parse(localStorage.getItem(key)); } catch (e) { return null; } },
@@ -343,7 +363,7 @@
             saveHistory(history) { this.set(STORAGE_KEYS.HISTORY, history); },
             getFavorites() { return this.get(STORAGE_KEYS.FAVORITES) || []; },
             saveFavorites(favorites) { this.set(STORAGE_KEYS.FAVORITES, favorites); },
-            getSettings() { return this.get(STORAGE_KEYS.SETTINGS) || { videoSize: 320, sidebarCollapsed: false, geniusApiKey: '' }; },
+            getSettings() { return this.get(STORAGE_KEYS.SETTINGS) || { videoSize: 320, sidebarCollapsed: false, geniusApiKey: '', incognito: false, volume: 100 }; },
             saveSettings(settings) { this.set(STORAGE_KEYS.SETTINGS, settings); },
             getBlacklist() { return this.get(STORAGE_KEYS.BLACKLIST) || []; },
             addToBlacklist(videoId) {
@@ -351,6 +371,7 @@
                 if (!list.includes(videoId)) { list.push(videoId); this.set(STORAGE_KEYS.BLACKLIST, list); }
             },
             addSearch(query) {
+                if(this.getSettings().incognito) return;
                 const history = this.getHistory();
                 const existing = history.searches.find(s => s.query.toLowerCase() === query.toLowerCase());
                 if (existing) { existing.count++; existing.timestamp = Date.now(); } 
@@ -359,6 +380,7 @@
                 this.saveHistory(history);
             },
             addPlay(video) {
+                if(this.getSettings().incognito) return;
                 const history = this.getHistory();
                 const existing = history.plays.findIndex(p => p.videoId === video.videoId);
                 if (existing > -1) { history.plays.splice(existing, 1); }
@@ -370,6 +392,10 @@
                 this.saveHistory(history);
             },
             addToQueue(video, source = 'search') {
+                // Queue isn't persistent history, but incognito might imply not saving this.
+                // For music apps, queue usually persists for session, so we keep it.
+                // However, queue_history is used for recommendations.
+                if(this.getSettings().incognito) return; 
                 const history = this.getHistory();
                 history.queue_history.push({ videoId: video.videoId, title: video.title, channel: video.channel, addedAt: Date.now(), playedFrom: source });
                 history.queue_history = history.queue_history.slice(-200);
@@ -468,7 +494,6 @@
             document.getElementById('play-icon-desktop').innerHTML = path;
             document.getElementById('play-icon-mobile').innerHTML = path;
             document.getElementById('fp-play-icon').innerHTML = path;
-            // Mobile Notification State
             if ('mediaSession' in navigator) navigator.mediaSession.playbackState = playing ? "playing" : "paused";
         }
         function updateNavButtons() {
@@ -504,25 +529,61 @@
             if (viewMode === 'grid') { gridBtn.classList.add('bg-white/10', 'text-white'); gridBtn.classList.remove('text-gray-400'); listBtn.classList.remove('bg-white/10', 'text-white'); listBtn.classList.add('text-gray-400'); }
             else { listBtn.classList.add('bg-white/10', 'text-white'); listBtn.classList.remove('text-gray-400'); gridBtn.classList.remove('bg-white/10', 'text-white'); gridBtn.classList.add('text-gray-400'); }
         }
-        
         function updateMediaSession(track) {
             if ('mediaSession' in navigator) {
                 const thumb = track.thumbnail || (track.thumbnails ? track.thumbnails[0].url : '');
-                
-                // Clear first to force update on some devices
-                // navigator.mediaSession.metadata = null; 
-
-                navigator.mediaSession.metadata = new MediaMetadata({ 
-                    title: track.title, 
-                    artist: track.channel, 
-                    artwork: [{ src: thumb, sizes: '512x512', type: 'image/jpeg' }] 
-                });
-
-                navigator.mediaSession.setActionHandler('play', playVideo); 
-                navigator.mediaSession.setActionHandler('pause', pauseVideo);
-                navigator.mediaSession.setActionHandler('previoustrack', prevTrack); 
-                navigator.mediaSession.setActionHandler('nexttrack', nextTrack);
+                navigator.mediaSession.metadata = new MediaMetadata({ title: track.title, artist: track.channel, artwork: [{ src: thumb, sizes: '512x512', type: 'image/jpeg' }] });
+                navigator.mediaSession.setActionHandler('play', playVideo); navigator.mediaSession.setActionHandler('pause', pauseVideo);
+                navigator.mediaSession.setActionHandler('previoustrack', prevTrack); navigator.mediaSession.setActionHandler('nexttrack', nextTrack);
                 navigator.mediaSession.setActionHandler('seekto', (details) => { if (player && player.seekTo) player.seekTo(details.seekTime, true); });
+            }
+        }
+        function updateIncognitoUI(isIncognito) {
+            const avatar = document.getElementById('user-avatar');
+            if(isIncognito) {
+                avatar.classList.remove('from-purple-500', 'to-pink-500');
+                avatar.classList.add('bg-gray-600');
+                avatar.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path></svg>';
+            } else {
+                avatar.classList.add('from-purple-500', 'to-pink-500');
+                avatar.classList.remove('bg-gray-600');
+                avatar.innerHTML = 'U';
+            }
+        }
+
+        // Volume Logic
+        function setVolume(val) {
+            volume = val;
+            if(player && isPlayerReady) player.setVolume(volume);
+            document.getElementById('volume-slider').value = volume;
+            document.getElementById('fp-volume-slider').value = volume;
+            
+            const settings = StorageManager.getSettings();
+            settings.volume = volume;
+            StorageManager.saveSettings(settings);
+
+            if(volume > 0 && isMuted) {
+                isMuted = false;
+                if(player) player.unMute();
+                document.getElementById('vol-icon').innerHTML = SVG_VOL_HIGH;
+            } else if(volume == 0 && !isMuted) {
+                isMuted = true;
+                if(player) player.mute();
+                document.getElementById('vol-icon').innerHTML = SVG_VOL_MUTE;
+            }
+        }
+
+        function toggleMute() {
+            isMuted = !isMuted;
+            if(isMuted) {
+                if(player) player.mute();
+                document.getElementById('vol-icon').innerHTML = SVG_VOL_MUTE;
+                document.getElementById('volume-slider').value = 0;
+            } else {
+                if(player) player.unMute();
+                document.getElementById('vol-icon').innerHTML = SVG_VOL_HIGH;
+                document.getElementById('volume-slider').value = volume;
+                if(volume === 0) setVolume(20); // Restore if was 0
             }
         }
 
@@ -538,7 +599,9 @@
         }
         function onPlayerReady(event) {
             isPlayerReady = true; player.setPlaybackQuality('small');
-            const settings = StorageManager.getSettings(); setVideoSize(settings.videoSize);
+            const settings = StorageManager.getSettings(); 
+            setVideoSize(settings.videoSize);
+            setVolume(settings.volume || 100);
             if (pendingPlayIndex !== -1) { loadTrack(pendingPlayIndex); pendingPlayIndex = -1; }
         }
         function onPlayerStateChange(event) {
@@ -546,7 +609,6 @@
                 isPlaying = true; 
                 updateIcons(true); 
                 startProgressLoop(); 
-                // Force media session update on play to override iframe defaults on mobile
                 if(currentIndex !== -1 && currentQueue[currentIndex]) updateMediaSession(currentQueue[currentIndex]);
             }
             else if (event.data === YT.PlayerState.PAUSED) { isPlaying = false; updateIcons(false); stopProgressLoop(); }
@@ -562,18 +624,15 @@
             document.getElementById('player-title').innerText = track.title; document.getElementById('player-artist').innerText = track.channel; document.getElementById('player-art').src = thumb;
             document.getElementById('fp-title').innerText = track.title; document.getElementById('fp-artist').innerText = track.channel; document.getElementById('fp-art-img').src = thumb;
             
-            // RESET LYRICS CACHE ON SONG CHANGE
+            // RESET LYRICS CACHE
             currentLyricsText = null; 
             document.getElementById('floating-lyrics-text').innerText = "Loading...";
             
             player.loadVideoById(track.videoId); updateOpenInYtButton(track.videoId);
             StorageManager.addPlay(track); updateLoveButton(); renderQueue(); updateNavButtons(); 
-            
-            // Initial call, repeated in onStateChange for mobile robustness
             updateMediaSession(track); 
         }
 
-        // Shared function to show lyrics in the centralized floating modal
         async function toggleLyrics() {
             if(currentIndex === -1 || !currentQueue[currentIndex]) return;
             const track = currentQueue[currentIndex];
@@ -581,22 +640,15 @@
             const contentEl = document.getElementById('floating-lyrics-text');
             const attribEl = document.getElementById('floating-lyrics-attribution');
             
-            // Toggle Visibility
-            if(!modal.classList.contains('hidden')) {
-                modal.classList.add('hidden');
-                return;
-            }
-            
+            if(!modal.classList.contains('hidden')) { modal.classList.add('hidden'); return; }
             modal.classList.remove('hidden');
             
-            // Check Cache
             if(currentLyricsText) {
                 contentEl.innerText = currentLyricsText;
                 attribEl.classList.remove('hidden');
             } else {
                 contentEl.innerText = "Fetching lyrics...";
                 attribEl.classList.add('hidden');
-                
                 const lyrics = await fetchLyrics(track.title, track.channel);
                 currentLyricsText = lyrics;
                 contentEl.innerText = lyrics || "No lyrics found.";
@@ -634,18 +686,12 @@
         }
 
         async function playSearchItem(video) {
-            currentQueue = [video]; 
-            loadTrack(0); 
-            StorageManager.addToQueue({ videoId: video.videoId, title: video.title, channel: video.channel }, 'search');
+            currentQueue = [video]; loadTrack(0); StorageManager.addToQueue({ videoId: video.videoId, title: video.title, channel: video.channel }, 'search');
             try {
                 const radioAPI = getRandomAPI(RADIO_APIS); const res = await fetchWithRetry(`${radioAPI}?videoId=${video.videoId}`);
                 if (res.videos && res.videos.length > 0) { 
-                    // Filter duplicates from radio
                     const newVideos = res.videos.filter(v => v.videoId !== video.videoId);
-                    newVideos.forEach(v => { 
-                        StorageManager.addToQueue({ videoId: v.videoId, title: v.title, channel: v.channel }, 'radio'); 
-                        currentQueue.push(v); 
-                    }); 
+                    newVideos.forEach(v => { StorageManager.addToQueue({ videoId: v.videoId, title: v.title, channel: v.channel }, 'radio'); currentQueue.push(v); }); 
                     renderQueue(); 
                 }
             } catch (e) { console.warn("Radio fail"); }
@@ -827,13 +873,15 @@
             sidebar.classList.toggle('sidebar-collapsed'); settings.sidebarCollapsed = sidebar.classList.contains('sidebar-collapsed');
             StorageManager.saveSettings(settings);
         }
-
+        
         document.addEventListener('DOMContentLoaded', () => {
             viewMode = StorageManager.getViewMode();
             const savedSettings = StorageManager.getSettings();
             if(savedSettings.sidebarCollapsed) document.getElementById('sidebar').classList.add('sidebar-collapsed');
             document.getElementById('player-size-slider').value = savedSettings.videoSize || 320;
             document.getElementById('genius-api-input').value = savedSettings.geniusApiKey || '';
+            document.getElementById('incognito-toggle').checked = savedSettings.incognito || false;
+            updateIncognitoUI(savedSettings.incognito);
             updateLyricsButton();
 
             document.getElementById('search-input').addEventListener('keydown', (e) => {
@@ -883,13 +931,24 @@
                 StorageManager.saveSettings(settings);
                 updateLyricsButton();
             };
+            document.getElementById('incognito-toggle').onchange = (e) => {
+                const settings = StorageManager.getSettings();
+                settings.incognito = e.target.checked;
+                StorageManager.saveSettings(settings);
+                updateIncognitoUI(settings.incognito);
+            };
+
+            // Volume Listeners
+            document.getElementById('mute-btn').onclick = toggleMute;
+            document.getElementById('volume-slider').oninput = (e) => setVolume(e.target.value);
+            document.getElementById('fp-volume-slider').oninput = (e) => setVolume(e.target.value);
 
             document.getElementById('full-player-btn').onclick = toggleFullPlayer; document.getElementById('close-full-player-btn').onclick = toggleFullPlayer;
             document.getElementById('player-art').onclick = toggleFullPlayer; document.getElementById('player-info-area').onclick = toggleFullPlayer;
             document.getElementById('fp-mode-art').onclick = () => setFullPlayerMode('art'); document.getElementById('fp-mode-video').onclick = () => setFullPlayerMode('video');
             document.getElementById('desktop-sidebar-toggle').onclick = toggleDesktopSidebar;
             
-            // Lyrics Listeners (Unified Floating Modal)
+            // Lyrics Listeners
             const lyricsHandler = toggleLyrics;
             document.getElementById('fp-lyrics-btn').onclick = lyricsHandler;
             document.getElementById('footer-lyrics-btn').onclick = lyricsHandler;
