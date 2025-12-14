@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Lyra</title>
     <link rel="icon" type="image/png" href="https://icons.iconarchive.com/icons/graphicloads/polygon/256/sound-2-icon.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; overflow: hidden; }
+        body { font-family: 'Inter', sans-serif; overflow: hidden; background-color: #030303; }
         
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
@@ -16,6 +16,7 @@
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #555; }
         
         .queue-item.active { background-color: #212121; border-left: 3px solid #ef4444; padding-left: 5px; }
+        .queue-item.active .queue-title { color: #ef4444; }
         
         .video-hidden { opacity: 0; pointer-events: none; z-index: -10; }
         .video-visible { opacity: 1; pointer-events: auto; z-index: 50; }
@@ -28,7 +29,7 @@
         }
 
         .heart-btn { transition: all 0.2s ease; }
-        .heart-btn.loved { color: #ef4444; }
+        .heart-btn.loved { color: #ef4444; fill: #ef4444; }
         @keyframes heartbeat { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
         .heart-animate { animation: heartbeat 0.3s ease; }
         
@@ -42,7 +43,6 @@
         .sidebar-collapsed .nav-text { display: none; }
         .sidebar-collapsed .nav-item { justify-content: center; padding-left: 0; padding-right: 0; }
         
-        /* Slider Styling */
         input[type=range] { -webkit-appearance: none; background: transparent; }
         input[type=range]::-webkit-slider-thumb {
             -webkit-appearance: none; height: 12px; width: 12px; border-radius: 50%; background: #fff;
@@ -53,7 +53,6 @@
             width: 100%; height: 4px; cursor: pointer; background: #404040; border-radius: 2px;
         }
         
-        /* Toggle Switch Styling */
         .toggle-checkbox:checked { right: 0; border-color: #ef4444; }
         .toggle-checkbox:checked + .toggle-label { background-color: #ef4444; }
         
@@ -64,9 +63,14 @@
         @keyframes loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
         .lyrics-text { text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
+        
+        /* Mobile optimizations */
+        @media (max-width: 640px) {
+            .mobile-safe-bottom { padding-bottom: calc(4rem + env(safe-area-inset-bottom)); }
+        }
     </style>
 </head>
-<body class="bg-[#0f0f0f] text-white h-screen flex flex-col">
+<body class="text-white h-screen flex flex-col overflow-hidden">
     
     <!-- Video Player Wrapper -->
     <div id="video-wrapper" class="fixed bottom-24 right-4 shadow-2xl rounded-lg overflow-hidden w-64 aspect-video bg-black border border-[#333] video-hidden transition-all duration-300">
@@ -77,8 +81,8 @@
     </div>
 
     <!-- Settings Modal -->
-    <div id="settings-modal" class="fixed inset-0 bg-black/80 z-[60] hidden flex items-center justify-center">
-        <div class="bg-[#212121] p-6 rounded-xl w-80 sm:w-96 shadow-2xl border border-[#333] mx-4">
+    <div id="settings-modal" class="fixed inset-0 bg-black/80 z-[60] hidden flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-[#212121] p-6 rounded-xl w-80 sm:w-96 shadow-2xl border border-[#333] mx-4 animate-fade-in">
             <div class="flex justify-between items-center mb-6">
                 <h3 class="text-xl font-bold">Settings</h3>
                 <button id="close-settings-btn" class="text-gray-400 hover:text-white">
@@ -86,7 +90,6 @@
                 </button>
             </div>
             <div class="space-y-6">
-                <!-- Incognito Toggle -->
                 <div class="flex items-center justify-between">
                     <div>
                         <span class="text-sm font-medium text-white block">Incognito Mode</span>
@@ -97,7 +100,6 @@
                         <label for="incognito-toggle" class="toggle-label block overflow-hidden h-5 rounded-full bg-gray-600 cursor-pointer"></label>
                     </div>
                 </div>
-
                 <div>
                     <div class="flex justify-between text-sm mb-2">
                         <span class="text-gray-300">Mini Player Size</span>
@@ -110,7 +112,7 @@
                     <input type="text" id="genius-api-input" class="w-full bg-[#1a1a1a] border border-[#333] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-red-500 transition" placeholder="Paste your key here...">
                 </div>
                 <div class="pt-4 border-t border-[#333]">
-                    <p class="text-xs text-gray-500 text-center">Lyra</p>
+                    <p class="text-xs text-gray-500 text-center">YtMusic Clone v1.7</p>
                 </div>
             </div>
         </div>
@@ -131,32 +133,49 @@
     </div>
 
     <!-- Full Player Overlay -->
-    <div id="full-player-overlay" class="fixed inset-0 bg-[#030303] z-50 transform translate-y-full transition-transform duration-300 flex flex-col">
+    <div id="full-player-overlay" class="fixed inset-0 bg-[#000] z-50 transform translate-y-full transition-transform duration-300 flex flex-col">
+        <!-- Header -->
         <div class="flex items-center justify-between p-4 sm:p-6 flex-shrink-0 z-20">
             <button id="close-full-player-btn" class="text-white hover:bg-white/10 p-2 rounded-full">
                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
             </button>
             <div class="flex bg-[#212121] rounded-lg p-1">
-                <button id="fp-mode-art" class="px-3 sm:px-4 py-1.5 rounded-md text-sm font-medium bg-white/10 text-white">Art</button>
-                <button id="fp-mode-video" class="px-3 sm:px-4 py-1.5 rounded-md text-sm font-medium text-gray-400 hover:text-white">Video</button>
+                <button id="fp-mode-art" class="px-3 sm:px-4 py-1.5 rounded-md text-sm font-medium bg-white/10 text-white transition">Art</button>
+                <button id="fp-mode-video" class="px-3 sm:px-4 py-1.5 rounded-md text-sm font-medium text-gray-400 hover:text-white transition">Video</button>
+                <button id="fp-mode-queue" class="px-3 sm:px-4 py-1.5 rounded-md text-sm font-medium text-gray-400 hover:text-white transition">Queue</button>
             </div>
             <button id="fp-settings-btn" class="text-white hover:bg-white/10 p-2 rounded-full">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
             </button>
         </div>
         
-        <div class="flex-1 flex flex-col items-center justify-center p-4 sm:p-8 relative min-h-0">
-            <div id="fp-art-container" class="w-full max-w-sm sm:max-w-md aspect-square shadow-2xl rounded-xl overflow-hidden relative">
+        <!-- Content Area -->
+        <div class="flex-1 flex flex-col items-center justify-center p-4 relative min-h-0 overflow-hidden">
+            <!-- Art Container -->
+            <div id="fp-art-container" class="w-full max-w-sm sm:max-w-md aspect-square shadow-2xl rounded-xl overflow-hidden relative transition-all duration-300">
                 <img id="fp-art-img" src="" class="w-full h-full object-cover">
             </div>
+
+            <!-- Video Placeholder -->
             <div id="fp-video-placeholder" class="absolute inset-0 pointer-events-none"></div>
-            <div class="mt-6 sm:mt-8 text-center max-w-2xl px-4 w-full">
+
+            <!-- Full Player Queue Container -->
+            <div id="fp-queue-container" class="absolute inset-0 px-4 py-2 hidden overflow-hidden flex flex-col items-center w-full max-w-2xl mx-auto">
+                 <h3 class="text-xl font-bold mb-4 flex-shrink-0">Up Next</h3>
+                 <div class="flex-1 w-full overflow-y-auto custom-scrollbar bg-[#111] rounded-xl p-2 border border-[#333]">
+                     <div id="fp-queue-list" class="space-y-1"></div>
+                 </div>
+            </div>
+
+            <!-- Info -->
+            <div id="fp-info-container" class="mt-6 sm:mt-8 text-center max-w-2xl px-4 w-full">
                 <h2 id="fp-title" class="text-2xl sm:text-3xl font-bold text-white mb-2 truncate"></h2>
                 <p id="fp-artist" class="text-lg sm:text-xl text-gray-400 truncate"></p>
             </div>
         </div>
 
-        <div class="p-6 sm:p-12 pb-8 sm:pb-16 bg-gradient-to-t from-black/80 to-transparent flex-shrink-0">
+        <!-- Controls -->
+        <div class="p-6 sm:p-12 pb-8 sm:pb-16 bg-gradient-to-t from-black/90 to-transparent flex-shrink-0">
             <div class="flex items-center space-x-3 text-sm text-gray-400 mb-6">
                 <span id="fp-current-time">0:00</span>
                 <div id="fp-progress-container" class="relative flex-1 h-1.5 bg-gray-600 rounded cursor-pointer group">
@@ -166,14 +185,13 @@
             </div>
             
             <div class="flex items-center justify-center space-x-8 sm:space-x-12 mb-8">
-                <button id="fp-prev-btn" class="text-white hover:text-gray-300"><svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button>
+                <button id="fp-prev-btn" class="text-white hover:text-gray-300 p-2"><svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button>
                 <button id="fp-play-btn" class="bg-white text-black rounded-full p-4 hover:scale-105 transition transform shadow-lg shadow-white/10">
                     <svg id="fp-play-icon" class="w-8 h-8 pl-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                 </button>
-                <button id="fp-next-btn" class="text-white hover:text-gray-300"><svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M16 6h2v12h-2zM7 18l8.5-6L7 6z"/></svg></button>
+                <button id="fp-next-btn" class="text-white hover:text-gray-300 p-2"><svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M16 6h2v12h-2zM7 18l8.5-6L7 6z"/></svg></button>
             </div>
 
-            <!-- Full Player Volume & Lyrics -->
             <div class="flex justify-between items-center px-2 sm:px-4">
                  <div class="flex items-center w-32 space-x-2">
                     <svg class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
@@ -244,15 +262,16 @@
                 </div>
             </header>
 
-            <section class="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-8 relative z-10" id="content-section"></section>
+            <section class="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-8 relative z-10 mobile-safe-bottom" id="content-section"></section>
         </main>
     </div>
 
-    <footer id="player-bar" class="fixed bottom-0 left-0 w-full bg-[#121212]/90 backdrop-blur-xl border-t border-white/5 z-40 h-16 sm:h-20 transition-all duration-300">
+    <footer id="player-bar" class="fixed bottom-0 left-0 w-full bg-[#121212]/95 backdrop-blur-xl border-t border-white/5 z-40 h-16 sm:h-20 transition-all duration-300">
         <div class="block sm:hidden mobile-progress-container" id="mobile-progress-container">
             <div id="mobile-progress-bar" class="mobile-progress-bar" style="width: 0%"></div>
         </div>
         <div class="flex items-center justify-between h-full px-2 sm:px-4">
+            <!-- Mobile/Mini Left: Info -->
             <div class="flex items-center flex-1 min-w-0 mr-2">
                 <button id="mobile-prev-btn" class="sm:hidden text-gray-300 p-2 mr-1"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button>
                 <img id="player-art" src="https://placehold.co/48x48/333/666?text=Lyra" class="w-10 h-10 sm:w-12 sm:h-12 rounded bg-gray-800 object-cover flex-shrink-0 cursor-pointer" title="Expand">
@@ -264,6 +283,8 @@
                     <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
                 </button>
             </div>
+            
+            <!-- Desktop Middle: Controls -->
             <div class="hidden sm:flex flex-col items-center flex-1 max-w-xl">
                 <div class="flex items-center space-x-6 mb-1">
                     <button id="prev-btn" class="text-gray-400 hover:text-white disabled:opacity-30"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button>
@@ -279,6 +300,8 @@
                     <span id="total-duration">0:00</span>
                 </div>
             </div>
+
+            <!-- Right Side Controls -->
             <div class="flex items-center justify-end space-x-2 sm:space-x-4 flex-1 sm:flex-none">
                 <button id="mobile-play-btn" class="sm:hidden p-2 text-white"><svg id="play-icon-mobile" class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
                 <button id="mobile-next-btn" class="sm:hidden p-2 text-gray-300"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M16 6h2v12h-2zM7 18l8.5-6L7 6z"/></svg></button>
@@ -382,19 +405,24 @@
             addPlay(video) {
                 if(this.getSettings().incognito) return;
                 const history = this.getHistory();
+                // Remove existing if present to move to top
                 const existing = history.plays.findIndex(p => p.videoId === video.videoId);
                 if (existing > -1) { history.plays.splice(existing, 1); }
+                
                 history.plays.unshift({
                     videoId: video.videoId, title: video.title, channel: video.channel,
-                    playCount: (history.plays[existing]?.playCount || 0) + 1, lastPlayed: Date.now()
+                    playCount: (existing > -1 ? history.plays[existing]?.playCount || 0 : 0) + 1, lastPlayed: Date.now()
                 });
                 history.plays = history.plays.slice(-100);
                 this.saveHistory(history);
             },
+            removePlay(videoId) {
+                // Remove from history only
+                const history = this.getHistory();
+                history.plays = history.plays.filter(p => p.videoId !== videoId);
+                this.saveHistory(history);
+            },
             addToQueue(video, source = 'search') {
-                // Queue isn't persistent history, but incognito might imply not saving this.
-                // For music apps, queue usually persists for session, so we keep it.
-                // However, queue_history is used for recommendations.
                 if(this.getSettings().incognito) return; 
                 const history = this.getHistory();
                 history.queue_history.push({ videoId: video.videoId, title: video.title, channel: video.channel, addedAt: Date.now(), playedFrom: source });
@@ -469,13 +497,9 @@
         async function fetchLyrics(title, artist) {
             const settings = StorageManager.getSettings();
             if(!settings.geniusApiKey) return null;
-            
-            let cleanTitle = title.replace(/\([^)]*\)|\[[^\]]*\]/g, '')
-                                  .replace(/\b(ft\.|feat\.|official video|lyric video)\b.*/i, '')
-                                  .trim();
+            let cleanTitle = title.replace(/\([^)]*\)|\[[^\]]*\]/g, '').replace(/\b(ft\.|feat\.|official video|lyric video)\b.*/i, '').trim();
             const query = cleanTitle.split(/\s+/).slice(0, 5).join(' ');
             const url = `https://my-genius-scraper.arnoy799.workers.dev/?q=${encodeURIComponent(query)}&key=${settings.geniusApiKey}`;
-            
             try {
                 const res = await fetch(url);
                 if(!res.ok) return "Lyrics not found.";
@@ -541,50 +565,25 @@
         function updateIncognitoUI(isIncognito) {
             const avatar = document.getElementById('user-avatar');
             if(isIncognito) {
-                avatar.classList.remove('from-purple-500', 'to-pink-500');
-                avatar.classList.add('bg-gray-600');
+                avatar.classList.remove('from-purple-500', 'to-pink-500'); avatar.classList.add('bg-gray-600');
                 avatar.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path></svg>';
             } else {
-                avatar.classList.add('from-purple-500', 'to-pink-500');
-                avatar.classList.remove('bg-gray-600');
-                avatar.innerHTML = 'U';
+                avatar.classList.add('from-purple-500', 'to-pink-500'); avatar.classList.remove('bg-gray-600'); avatar.innerHTML = 'U';
             }
         }
-
-        // Volume Logic
         function setVolume(val) {
             volume = val;
             if(player && isPlayerReady) player.setVolume(volume);
             document.getElementById('volume-slider').value = volume;
             document.getElementById('fp-volume-slider').value = volume;
-            
-            const settings = StorageManager.getSettings();
-            settings.volume = volume;
-            StorageManager.saveSettings(settings);
-
-            if(volume > 0 && isMuted) {
-                isMuted = false;
-                if(player) player.unMute();
-                document.getElementById('vol-icon').innerHTML = SVG_VOL_HIGH;
-            } else if(volume == 0 && !isMuted) {
-                isMuted = true;
-                if(player) player.mute();
-                document.getElementById('vol-icon').innerHTML = SVG_VOL_MUTE;
-            }
+            const settings = StorageManager.getSettings(); settings.volume = volume; StorageManager.saveSettings(settings);
+            if(volume > 0 && isMuted) { isMuted = false; if(player) player.unMute(); document.getElementById('vol-icon').innerHTML = SVG_VOL_HIGH; }
+            else if(volume == 0 && !isMuted) { isMuted = true; if(player) player.mute(); document.getElementById('vol-icon').innerHTML = SVG_VOL_MUTE; }
         }
-
         function toggleMute() {
             isMuted = !isMuted;
-            if(isMuted) {
-                if(player) player.mute();
-                document.getElementById('vol-icon').innerHTML = SVG_VOL_MUTE;
-                document.getElementById('volume-slider').value = 0;
-            } else {
-                if(player) player.unMute();
-                document.getElementById('vol-icon').innerHTML = SVG_VOL_HIGH;
-                document.getElementById('volume-slider').value = volume;
-                if(volume === 0) setVolume(20); // Restore if was 0
-            }
+            if(isMuted) { if(player) player.mute(); document.getElementById('vol-icon').innerHTML = SVG_VOL_MUTE; document.getElementById('volume-slider').value = 0; }
+            else { if(player) player.unMute(); document.getElementById('vol-icon').innerHTML = SVG_VOL_HIGH; document.getElementById('volume-slider').value = volume; if(volume === 0) setVolume(20); }
         }
 
         var tag = document.createElement('script'); tag.src = "https://www.youtube.com/iframe_api";
@@ -599,18 +598,11 @@
         }
         function onPlayerReady(event) {
             isPlayerReady = true; player.setPlaybackQuality('small');
-            const settings = StorageManager.getSettings(); 
-            setVideoSize(settings.videoSize);
-            setVolume(settings.volume || 100);
+            const settings = StorageManager.getSettings(); setVideoSize(settings.videoSize); setVolume(settings.volume || 100);
             if (pendingPlayIndex !== -1) { loadTrack(pendingPlayIndex); pendingPlayIndex = -1; }
         }
         function onPlayerStateChange(event) {
-            if (event.data === YT.PlayerState.PLAYING) { 
-                isPlaying = true; 
-                updateIcons(true); 
-                startProgressLoop(); 
-                if(currentIndex !== -1 && currentQueue[currentIndex]) updateMediaSession(currentQueue[currentIndex]);
-            }
+            if (event.data === YT.PlayerState.PLAYING) { isPlaying = true; updateIcons(true); startProgressLoop(); if(currentIndex !== -1 && currentQueue[currentIndex]) updateMediaSession(currentQueue[currentIndex]); }
             else if (event.data === YT.PlayerState.PAUSED) { isPlaying = false; updateIcons(false); stopProgressLoop(); }
             else if (event.data === YT.PlayerState.ENDED) { isPlaying = false; updateIcons(false); nextTrack(); }
         }
@@ -623,38 +615,23 @@
             const thumb = track.thumbnail || (track.thumbnails ? track.thumbnails[0].url : 'https://placehold.co/48x48/333/666?text=Music');
             document.getElementById('player-title').innerText = track.title; document.getElementById('player-artist').innerText = track.channel; document.getElementById('player-art').src = thumb;
             document.getElementById('fp-title').innerText = track.title; document.getElementById('fp-artist').innerText = track.channel; document.getElementById('fp-art-img').src = thumb;
-            
-            // RESET LYRICS CACHE
-            currentLyricsText = null; 
-            document.getElementById('floating-lyrics-text').innerText = "Loading...";
-            
+            currentLyricsText = null; document.getElementById('floating-lyrics-text').innerText = "Loading...";
             player.loadVideoById(track.videoId); updateOpenInYtButton(track.videoId);
-            StorageManager.addPlay(track); updateLoveButton(); renderQueue(); updateNavButtons(); 
-            updateMediaSession(track); 
+            StorageManager.addPlay(track); updateLoveButton(); renderQueue(); updateNavButtons(); updateMediaSession(track);
         }
 
         async function toggleLyrics() {
             if(currentIndex === -1 || !currentQueue[currentIndex]) return;
             const track = currentQueue[currentIndex];
             const modal = document.getElementById('lyrics-modal');
-            const contentEl = document.getElementById('floating-lyrics-text');
-            const attribEl = document.getElementById('floating-lyrics-attribution');
-            
             if(!modal.classList.contains('hidden')) { modal.classList.add('hidden'); return; }
             modal.classList.remove('hidden');
-            
-            if(currentLyricsText) {
-                contentEl.innerText = currentLyricsText;
-                attribEl.classList.remove('hidden');
-            } else {
-                contentEl.innerText = "Fetching lyrics...";
-                attribEl.classList.add('hidden');
-                const lyrics = await fetchLyrics(track.title, track.channel);
-                currentLyricsText = lyrics;
-                contentEl.innerText = lyrics || "No lyrics found.";
-                if(lyrics && lyrics !== "Lyrics not found." && lyrics !== "Error fetching lyrics.") {
-                    attribEl.classList.remove('hidden');
-                }
+            const contentEl = document.getElementById('floating-lyrics-text'), attribEl = document.getElementById('floating-lyrics-attribution');
+            if(currentLyricsText) { contentEl.innerText = currentLyricsText; attribEl.classList.remove('hidden'); } 
+            else {
+                contentEl.innerText = "Fetching lyrics..."; attribEl.classList.add('hidden');
+                const lyrics = await fetchLyrics(track.title, track.channel); currentLyricsText = lyrics;
+                contentEl.innerText = lyrics || "No lyrics found."; if(lyrics && lyrics !== "Lyrics not found." && lyrics !== "Error fetching lyrics.") attribEl.classList.remove('hidden');
             }
         }
 
@@ -711,7 +688,7 @@
             } catch (e) { document.getElementById('content-section').innerHTML = `<p class="text-red-500">Error fetching results.</p>`; }
         }
 
-        function renderGenericGrid(containerId, videos, isRemovable = false) {
+        function renderGenericGrid(containerId, videos, removeType = null) {
             const grid = document.getElementById(containerId);
             if (!grid) return;
             grid.innerHTML = '';
@@ -735,7 +712,7 @@
                         </div>
                         <h4 class="font-bold text-white text-sm truncate mb-1 group-hover:text-white transition-colors">${vid.title}</h4>
                         <p class="text-xs text-gray-400 font-medium truncate group-hover:text-gray-300 transition-colors">${vid.channel}</p>
-                        ${isRemovable ? `<button class="absolute top-2 right-2 p-1.5 bg-black/60 hover:bg-red-500/80 rounded-full opacity-0 group-hover:opacity-100 transition-all z-20" onclick="event.stopPropagation(); removeVideo('${vid.videoId}')"><svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>` : ''}
+                        ${removeType ? `<button class="absolute top-2 right-2 p-1.5 bg-black/60 hover:bg-red-500/80 rounded-full opacity-0 group-hover:opacity-100 transition-all z-20" onclick="event.stopPropagation(); removeVideo('${vid.videoId}', '${removeType}')"><svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>` : ''}
                     `;
                     grid.appendChild(div);
                 });
@@ -757,17 +734,24 @@
                             <p class="text-sm text-gray-400 truncate">${vid.channel}</p>
                         </div>
                         ${vid.duration ? `<div class="text-xs text-gray-500 font-medium">${vid.duration}</div>` : ''}
-                        ${isRemovable ? `<button class="p-2 hover:bg-red-500/20 rounded-full opacity-0 group-hover:opacity-100 transition-all ml-2" onclick="event.stopPropagation(); removeVideo('${vid.videoId}')"><svg class="w-5 h-5 text-gray-400 hover:text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>` : ''}
+                        ${removeType ? `<button class="p-2 hover:bg-red-500/20 rounded-full opacity-0 group-hover:opacity-100 transition-all ml-2" onclick="event.stopPropagation(); removeVideo('${vid.videoId}', '${removeType}')"><svg class="w-5 h-5 text-gray-400 hover:text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>` : ''}
                     `;
                     grid.appendChild(div);
                 });
             }
         }
 
-        function removeVideo(videoId) {
-            if(confirm("Remove this song? It won't appear in recommendations again.")) {
-                StorageManager.addToBlacklist(videoId);
-                renderHomeFeed();
+        function removeVideo(videoId, type) {
+            if (type === 'history') {
+                if(confirm("Remove this song from your history?")) {
+                    StorageManager.removePlay(videoId);
+                    renderHomeFeed();
+                }
+            } else if (type === 'blacklist') {
+                if(confirm("Don't recommend this song again?")) {
+                    StorageManager.addToBlacklist(videoId);
+                    renderHomeFeed();
+                }
             }
         }
 
@@ -778,8 +762,15 @@
             const history = StorageManager.getHistory();
             const blacklist = StorageManager.getBlacklist();
             
+            // Unique history items for Listen Again
+            const seenHistory = new Set();
             const listenAgain = history.plays
                 .filter(p => !blacklist.includes(p.videoId))
+                .filter(p => {
+                    if (seenHistory.has(p.videoId)) return false;
+                    seenHistory.add(p.videoId);
+                    return true;
+                })
                 .slice(0, 18)
                 .map(p => ({...p, thumbnail: StorageManager.getThumbnailUrl(p.videoId)}));
 
@@ -813,8 +804,8 @@
             `;
             
             updateViewModeButtons();
-            if(listenAgain.length > 0) renderGenericGrid('listen-again-grid', listenAgain, true);
-            renderGenericGrid('for-you-grid', forYou, true);
+            if(listenAgain.length > 0) renderGenericGrid('listen-again-grid', listenAgain, 'history');
+            renderGenericGrid('for-you-grid', forYou, 'blacklist');
         }
 
         function renderFavorites() {
@@ -830,18 +821,36 @@
         }
 
         function renderQueue() {
+            // Render sidebar queue
             const list = document.getElementById('queue-list');
             document.getElementById('queue-count').textContent = `${currentQueue.length} song${currentQueue.length !== 1 ? 's' : ''} in queue`;
-            list.innerHTML = '';
-            currentQueue.forEach((vid, i) => {
-                const el = document.createElement('div');
+            
+            const renderItem = (vid, i) => {
                 const isActive = i === currentIndex;
-                el.className = `queue-item group flex items-center space-x-3 p-3 rounded-lg cursor-pointer transition-all ${isActive ? 'active text-white bg-[#212121]' : 'text-gray-300 hover:bg-[#1a1a1a]'}`;
-                el.onclick = () => loadTrack(i);
                 const thumb = vid.thumbnail || (vid.thumbnails ? vid.thumbnails[0].url : '');
-                el.innerHTML = `<div class="w-6 text-center text-xs font-bold text-gray-500">${isActive ? '▶' : i+1}</div><img src="${thumb}" class="w-10 h-10 rounded bg-[#333] object-cover"><div class="flex-1 min-w-0"><p class="text-sm font-semibold truncate">${vid.title}</p><p class="text-xs text-gray-400 truncate">${vid.channel}</p></div><button class="opacity-0 group-hover:opacity-100 p-2 hover:text-red-500" onclick="event.stopPropagation(); removeFromQueue(${i})">x</button>`;
-                list.appendChild(el);
-            });
+                return `
+                    <div class="queue-item group flex items-center space-x-3 p-3 rounded-lg cursor-pointer transition-all ${isActive ? 'active bg-[#212121]' : 'text-gray-300 hover:bg-[#1a1a1a]'}" onclick="loadTrack(${i})">
+                        <div class="w-6 text-center text-xs font-bold text-gray-500">${isActive ? '<span class="text-red-500">▶</span>' : i+1}</div>
+                        <img src="${thumb}" class="w-10 h-10 rounded bg-[#333] object-cover">
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-semibold truncate queue-title ${isActive ? 'text-red-500' : ''}">${vid.title}</p>
+                            <p class="text-xs text-gray-400 truncate">${vid.channel}</p>
+                        </div>
+                        <button class="opacity-0 group-hover:opacity-100 p-2 hover:text-red-500" onclick="event.stopPropagation(); removeFromQueue(${i})">x</button>
+                    </div>`;
+            };
+
+            list.innerHTML = currentQueue.map((vid, i) => renderItem(vid, i)).join('');
+            
+            // Render Full Player Queue
+            const fpList = document.getElementById('fp-queue-list');
+            if(fpList) {
+                fpList.innerHTML = currentQueue.map((vid, i) => renderItem(vid, i)).join('');
+            }
+            
+            // Scroll sidebar queue to current item
+            const activeItem = list.children[currentIndex];
+            if(activeItem) activeItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
         function removeFromQueue(index) {
             if (index === currentIndex) nextTrack(); else if (index < currentIndex) currentIndex--;
@@ -854,20 +863,46 @@
         function toggleQueue() { document.getElementById('queue-panel').classList.toggle('translate-x-full'); }
         function toggleSettings() { document.getElementById('settings-modal').classList.toggle('hidden'); }
         function setVideoSize(size) { document.getElementById('video-wrapper').style.width = size + 'px'; document.getElementById('size-value').innerText = size + 'px'; }
+        
         function toggleFullPlayer() {
             const overlay = document.getElementById('full-player-overlay'); isFullPlayerOpen = !isFullPlayerOpen;
             if (isFullPlayerOpen) overlay.classList.remove('translate-y-full'); else { overlay.classList.add('translate-y-full'); setFullPlayerMode('art'); }
         }
+        
         function setFullPlayerMode(mode) {
-            fullPlayerMode = mode; const videoWrapper = document.getElementById('video-wrapper'), artBtn = document.getElementById('fp-mode-art'), vidBtn = document.getElementById('fp-mode-video');
+            fullPlayerMode = mode; 
+            const videoWrapper = document.getElementById('video-wrapper');
+            const artContainer = document.getElementById('fp-art-container');
+            const queueContainer = document.getElementById('fp-queue-container');
+            const infoContainer = document.getElementById('fp-info-container');
+            const btns = {
+                art: document.getElementById('fp-mode-art'),
+                video: document.getElementById('fp-mode-video'),
+                queue: document.getElementById('fp-mode-queue')
+            };
+
+            // Reset UI states
+            videoWrapper.classList.remove('video-wrapper-full', 'video-visible');
+            if(!isVideoVisible) videoWrapper.classList.add('video-hidden');
+            artContainer.classList.remove('hidden');
+            queueContainer.classList.add('hidden');
+            infoContainer.classList.remove('hidden');
+            
+            Object.values(btns).forEach(b => { b.classList.remove('bg-white/10', 'text-white'); b.classList.add('text-gray-400'); });
+            btns[mode].classList.add('bg-white/10', 'text-white'); btns[mode].classList.remove('text-gray-400');
+
             if (mode === 'video') {
-                videoWrapper.classList.add('video-wrapper-full'); videoWrapper.classList.remove('video-hidden'); videoWrapper.classList.add('video-visible'); isVideoVisible = true;
-                vidBtn.classList.remove('text-gray-400'); vidBtn.classList.add('bg-white/10', 'text-white'); artBtn.classList.add('text-gray-400'); artBtn.classList.remove('bg-white/10', 'text-white');
-            } else {
-                videoWrapper.classList.remove('video-wrapper-full'); if(!isVideoVisible) { videoWrapper.classList.add('video-hidden'); videoWrapper.classList.remove('video-visible'); }
-                artBtn.classList.remove('text-gray-400'); artBtn.classList.add('bg-white/10', 'text-white'); vidBtn.classList.add('text-gray-400'); vidBtn.classList.remove('bg-white/10', 'text-white');
+                videoWrapper.classList.add('video-wrapper-full', 'video-visible');
+                videoWrapper.classList.remove('video-hidden');
+                artContainer.classList.add('hidden');
+            } else if (mode === 'queue') {
+                artContainer.classList.add('hidden');
+                infoContainer.classList.add('hidden');
+                queueContainer.classList.remove('hidden');
+                renderQueue(); // Refresh queue view
             }
         }
+        
         function toggleDesktopSidebar() {
             const sidebar = document.getElementById('sidebar'), settings = StorageManager.getSettings();
             sidebar.classList.toggle('sidebar-collapsed'); settings.sidebarCollapsed = sidebar.classList.contains('sidebar-collapsed');
@@ -945,7 +980,9 @@
 
             document.getElementById('full-player-btn').onclick = toggleFullPlayer; document.getElementById('close-full-player-btn').onclick = toggleFullPlayer;
             document.getElementById('player-art').onclick = toggleFullPlayer; document.getElementById('player-info-area').onclick = toggleFullPlayer;
-            document.getElementById('fp-mode-art').onclick = () => setFullPlayerMode('art'); document.getElementById('fp-mode-video').onclick = () => setFullPlayerMode('video');
+            document.getElementById('fp-mode-art').onclick = () => setFullPlayerMode('art'); 
+            document.getElementById('fp-mode-video').onclick = () => setFullPlayerMode('video');
+            document.getElementById('fp-mode-queue').onclick = () => setFullPlayerMode('queue');
             document.getElementById('desktop-sidebar-toggle').onclick = toggleDesktopSidebar;
             
             // Lyrics Listeners
@@ -959,6 +996,3 @@
     </script>
 </body>
 </html>
-
-
-
