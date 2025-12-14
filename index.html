@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>YtMusic</title>
-    <link rel="icon" type="image/png" href="https://img.icons8.com/?size=100&id=YNioBT5SxQw3&format=png&color=000000">
+    <title>Lyra</title>
+    <link rel="icon" type="image/png" href="https://icons.iconarchive.com/icons/graphicloads/polygon/256/sound-2-icon.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
@@ -16,9 +16,10 @@
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #404040; border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #555; }
         
-        /* Active Queue Item styling */
-        .queue-item.active { background-color: #1a1a1a; border-left: 3px solid #ef4444; }
-        .queue-item.active .title-text { color: #ef4444; font-weight: 600; }
+        /* Active Queue Item styling - FORCE OVERRIDE */
+        .queue-item.active { background-color: #2a2a2a !important; border-left: 3px solid #ef4444; }
+        .queue-item.active .title-text { color: #ef4444 !important; font-weight: 700; }
+        .queue-item.active .artist-text { color: #fff !important; }
         
         /* Video States */
         .video-hidden { opacity: 0; pointer-events: none; z-index: -10; }
@@ -91,7 +92,7 @@
                 </div>
                 <div><div class="flex justify-between text-sm mb-2"><span class="text-gray-300">Mini Player Size</span></div><input type="range" id="player-size-slider" min="200" max="600" value="320" class="w-full"></div>
                 <div><label class="block text-sm text-gray-300 mb-2">Genius API Key (Lyrics)</label><input type="text" id="genius-api-input" class="w-full bg-[#1a1a1a] border border-[#333] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-red-500 transition" placeholder="Paste key here..."></div>
-                <div class="pt-4 border-t border-[#333]"><p class="text-xs text-gray-500 text-center">YtMusic Clone v1.8</p></div>
+                <div class="pt-4 border-t border-[#333]"><p class="text-xs text-gray-500 text-center">Lyra v1.9</p></div>
             </div>
         </div>
     </div>
@@ -174,8 +175,8 @@
             <div class="flex items-center justify-between mb-8 px-2">
                 <div class="flex items-center space-x-2 overflow-hidden whitespace-nowrap">
                     <button id="desktop-sidebar-toggle" class="hidden sm:block text-gray-400 hover:text-white mr-1"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg></button>
-                    <img src="https://img.icons8.com/?size=100&id=YNioBT5SxQw3&format=png&color=000000" class="w-8 h-8 flex-shrink-0">
-                    <span class="text-xl font-bold tracking-tighter nav-text">Music</span>
+                    <img src="https://icons.iconarchive.com/icons/graphicloads/polygon/256/sound-2-icon.png" class="w-8 h-8 flex-shrink-0">
+                    <span class="text-xl font-bold tracking-tighter nav-text">Lyra</span>
                 </div>
                 <button id="close-sidebar-btn" class="sm:hidden text-gray-400 hover:text-white"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
             </div>
@@ -210,7 +211,7 @@
         <div class="flex items-center justify-between h-full px-2 sm:px-4">
             <div class="flex items-center flex-1 min-w-0 mr-2">
                 <button id="mobile-prev-btn" class="sm:hidden text-gray-300 p-2 mr-1"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button>
-                <img id="player-art" src="https://placehold.co/48x48/333/666?text=Music" class="w-10 h-10 sm:w-12 sm:h-12 rounded bg-gray-800 object-cover flex-shrink-0 cursor-pointer" title="Expand">
+                <img id="player-art" src="https://placehold.co/48x48/333/666?text=Lyra" class="w-10 h-10 sm:w-12 sm:h-12 rounded bg-gray-800 object-cover flex-shrink-0 cursor-pointer" title="Expand">
                 <div class="ml-3 overflow-hidden flex-1 cursor-pointer" id="player-info-area">
                     <p id="player-title" class="text-sm sm:text-base font-medium truncate text-white">Ready to play</p>
                     <p id="player-artist" class="text-xs sm:text-sm text-gray-400 truncate">Select a song</p>
@@ -295,24 +296,36 @@
             addPlay(video) {
                 if(this.getSettings().incognito) return;
                 const history = this.getHistory();
-                // Filter out existing play of this song to move it to top
+                // Ensure plays array exists
+                if(!history.plays) history.plays = [];
+                
+                // Remove existing to move to top
                 history.plays = history.plays.filter(p => p.videoId !== video.videoId);
+                
+                // Add new play
                 history.plays.unshift({
-                    videoId: video.videoId, title: video.title, channel: video.channel,
+                    videoId: video.videoId,
+                    title: video.title || 'Unknown Title',
+                    channel: video.channel || 'Unknown Artist',
                     thumbnail: video.thumbnail || this.getThumbnailUrl(video.videoId),
-                    playCount: 1, lastPlayed: Date.now()
+                    playCount: 1, 
+                    lastPlayed: Date.now()
                 });
-                if(history.plays.length > 50) history.plays.pop();
+                
+                if(history.plays.length > 50) history.plays = history.plays.slice(0, 50);
                 this.saveHistory(history);
             },
             removePlay(videoId) {
                 const history = this.getHistory();
-                history.plays = history.plays.filter(p => p.videoId !== videoId);
-                this.saveHistory(history);
+                if(history.plays) {
+                    history.plays = history.plays.filter(p => p.videoId !== videoId);
+                    this.saveHistory(history);
+                }
             },
             addToQueue(video, source = 'search') {
                 if(this.getSettings().incognito) return; 
                 const history = this.getHistory();
+                if(!history.queue_history) history.queue_history = [];
                 history.queue_history.push({ videoId: video.videoId, title: video.title, channel: video.channel, addedAt: Date.now(), playedFrom: source });
                 history.queue_history = history.queue_history.slice(-200); this.saveHistory(history);
             },
@@ -335,9 +348,11 @@
                 const blacklist = StorageManager.getBlacklist();
                 const allVideos = new Map();
                 const filterBlacklist = (v) => !blacklist.includes(v.videoId);
-                history.plays.filter(filterBlacklist).forEach(p => allVideos.set(p.videoId, { ...p, thumbnail: StorageManager.getThumbnailUrl(p.videoId), source: 'played', score: 0 }));
+                
+                if(history.plays) history.plays.filter(filterBlacklist).forEach(p => allVideos.set(p.videoId, { ...p, thumbnail: StorageManager.getThumbnailUrl(p.videoId), source: 'played', score: 0 }));
                 favorites.filter(filterBlacklist).forEach(f => { if (!allVideos.has(f.videoId)) allVideos.set(f.videoId, { ...f, thumbnail: StorageManager.getThumbnailUrl(f.videoId), playCount: 0, lastPlayed: f.addedAt, source: 'favorite', score: 0 }); });
-                history.queue_history.filter(filterBlacklist).forEach(q => { if (allVideos.has(q.videoId) || !q.title) return; allVideos.set(q.videoId, { ...q, thumbnail: StorageManager.getThumbnailUrl(q.videoId), playCount: 0, lastPlayed: q.addedAt, source: q.playedFrom || 'radio', score: 0 }); });
+                if(history.queue_history) history.queue_history.filter(filterBlacklist).forEach(q => { if (allVideos.has(q.videoId) || !q.title) return; allVideos.set(q.videoId, { ...q, thumbnail: StorageManager.getThumbnailUrl(q.videoId), playCount: 0, lastPlayed: q.addedAt, source: q.playedFrom || 'radio', score: 0 }); });
+                
                 if (allVideos.size === 0) return [];
                 const scored = this.scoreVideos(allVideos, history, favorites);
                 return this.diversify(scored).slice(0, 50);
@@ -463,8 +478,12 @@
             document.getElementById('fp-title').innerText = track.title; document.getElementById('fp-artist').innerText = track.channel; document.getElementById('fp-art-img').src = thumb;
             currentLyricsText = null; document.getElementById('floating-lyrics-text').innerText = "Loading...";
             player.loadVideoById(track.videoId); updateOpenInYtButton(track.videoId);
-            StorageManager.addPlay(track); updateLoveButton(); renderQueue(); updateNavButtons(); updateMediaSession(track);
-            if(currentView === 'home') renderHomeFeed(); // Refresh Home to show new History
+            
+            StorageManager.addPlay(track); // SAVE IMMEDIATELY
+            updateLoveButton(); renderQueue(); updateNavButtons(); updateMediaSession(track);
+            
+            // Force refresh of Home to show new History immediately
+            if(currentView === 'home') renderHomeFeed();
         }
 
         async function toggleLyrics() {
@@ -571,8 +590,7 @@
             const history = StorageManager.getHistory();
             const blacklist = StorageManager.getBlacklist();
             
-            const seenHistory = new Set();
-            const listenAgain = history.plays.filter(p => !blacklist.includes(p.videoId)).filter(p => { if (seenHistory.has(p.videoId)) return false; seenHistory.add(p.videoId); return true; }).slice(0, 18).map(p => ({...p, thumbnail: StorageManager.getThumbnailUrl(p.videoId)}));
+            const listenAgain = history.plays ? history.plays.filter(p => !blacklist.includes(p.videoId)).slice(0, 18).map(p => ({...p, thumbnail: StorageManager.getThumbnailUrl(p.videoId)})) : [];
             const forYou = FeedGenerator.generate();
 
             section.innerHTML = `
@@ -598,13 +616,17 @@
             document.getElementById('queue-count').textContent = `${currentQueue.length} song${currentQueue.length !== 1 ? 's' : ''} in queue`;
             
             const renderItem = (vid, i) => {
-                const isActive = i === currentIndex;
+                const isActive = (i === currentIndex);
                 const thumb = vid.thumbnail || (vid.thumbnails ? vid.thumbnails[0].url : '');
-                return `<div class="queue-item group flex items-center space-x-3 p-3 rounded-lg cursor-pointer transition-all ${isActive ? 'active' : 'text-gray-300 hover:bg-[#1a1a1a]'}" onclick="loadTrack(${i})"><div class="w-6 text-center text-xs font-bold text-gray-500">${isActive ? '<span class="text-red-500">▶</span>' : i+1}</div><img src="${thumb}" class="w-10 h-10 rounded bg-[#333] object-cover"><div class="flex-1 min-w-0"><p class="text-sm font-semibold truncate title-text">${vid.title}</p><p class="text-xs text-gray-400 truncate">${vid.channel}</p></div><button class="opacity-0 group-hover:opacity-100 p-2 hover:text-red-500" onclick="event.stopPropagation(); removeFromQueue(${i})">x</button></div>`;
+                // Corrected Active Class Application
+                return `<div class="queue-item group flex items-center space-x-3 p-3 rounded-lg cursor-pointer transition-all ${isActive ? 'active' : 'text-gray-300 hover:bg-[#1a1a1a]'}" onclick="loadTrack(${i})"><div class="w-6 text-center text-xs font-bold text-gray-500">${isActive ? '<span class="text-red-500">▶</span>' : i+1}</div><img src="${thumb}" class="w-10 h-10 rounded bg-[#333] object-cover"><div class="flex-1 min-w-0"><p class="text-sm font-semibold truncate title-text">${vid.title}</p><p class="text-xs text-gray-400 truncate artist-text">${vid.channel}</p></div><button class="opacity-0 group-hover:opacity-100 p-2 hover:text-red-500" onclick="event.stopPropagation(); removeFromQueue(${i})">x</button></div>`;
             };
 
-            list.innerHTML = currentQueue.map((vid, i) => renderItem(vid, i)).join('');
-            const fpList = document.getElementById('fp-queue-list'); if(fpList) fpList.innerHTML = currentQueue.map((vid, i) => renderItem(vid, i)).join('');
+            const html = currentQueue.map((vid, i) => renderItem(vid, i)).join('');
+            list.innerHTML = html;
+            
+            const fpList = document.getElementById('fp-queue-list'); 
+            if(fpList) fpList.innerHTML = html;
             
             if(list.children[currentIndex]) list.children[currentIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
