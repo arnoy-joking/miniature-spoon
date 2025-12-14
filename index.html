@@ -51,6 +51,14 @@
             width: 100%; height: 4px; cursor: pointer; background: #404040; border-radius: 2px;
         }
         
+        /* Volume Slider Specifics */
+        .vol-range::-webkit-slider-thumb { height: 12px; width: 12px; margin-top: -4px; background: white; }
+        .vol-range::-webkit-slider-runnable-track { height: 4px; background: #555; }
+
+        /* Toggle Switch for Incognito */
+        .toggle-checkbox:checked { right: 0; border-color: #ef4444; }
+        .toggle-checkbox:checked + .toggle-label { background-color: #ef4444; }
+        
         .skeleton {
             background: linear-gradient(90deg, #222 25%, #2a2a2a 50%, #222 75%);
             background-size: 200% 100%; animation: loading 1.5s infinite;
@@ -80,6 +88,18 @@
                 </button>
             </div>
             <div class="space-y-6">
+                <!-- Incognito Mode -->
+                <div class="flex items-center justify-between">
+                    <div>
+                        <span class="text-gray-200 block">Incognito Mode</span>
+                        <span class="text-xs text-gray-500">Don't save history or queue</span>
+                    </div>
+                    <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                        <input type="checkbox" name="toggle" id="incognito-toggle" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer border-[#333] transition-all duration-300"/>
+                        <label for="incognito-toggle" class="toggle-label block overflow-hidden h-5 rounded-full bg-[#333] cursor-pointer"></label>
+                    </div>
+                </div>
+
                 <div>
                     <div class="flex justify-between text-sm mb-2">
                         <span class="text-gray-300">Mini Player Size</span>
@@ -93,7 +113,7 @@
                     <p class="text-[10px] text-gray-500 mt-1">Required to show lyrics.</p>
                 </div>
                 <div class="pt-4 border-t border-[#333]">
-                    <p class="text-xs text-gray-500 text-center">Lyra</p>
+                    <p class="text-xs text-gray-500 text-center">Lyra v2.0</p>
                 </div>
             </div>
         </div>
@@ -119,9 +139,10 @@
             <button id="close-full-player-btn" class="text-white hover:bg-white/10 p-2 rounded-full">
                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
             </button>
-            <div class="flex bg-[#212121] rounded-lg p-1">
-                <button id="fp-mode-art" class="px-3 sm:px-4 py-1.5 rounded-md text-sm font-medium bg-white/10 text-white">Art</button>
-                <button id="fp-mode-video" class="px-3 sm:px-4 py-1.5 rounded-md text-sm font-medium text-gray-400 hover:text-white">Video</button>
+            <div class="flex bg-[#212121] rounded-lg p-1 space-x-1">
+                <button id="fp-mode-art" class="px-3 py-1.5 rounded-md text-sm font-medium bg-white/10 text-white transition">Art</button>
+                <button id="fp-mode-video" class="px-3 py-1.5 rounded-md text-sm font-medium text-gray-400 hover:text-white transition">Video</button>
+                <button id="fp-mode-queue" class="px-3 py-1.5 rounded-md text-sm font-medium text-gray-400 hover:text-white transition">Queue</button>
             </div>
             <button id="fp-settings-btn" class="text-white hover:bg-white/10 p-2 rounded-full">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
@@ -129,7 +150,7 @@
         </div>
         
         <!-- Content Area -->
-        <div class="flex-1 flex flex-col items-center justify-center p-4 sm:p-8 relative min-h-0">
+        <div class="flex-1 flex flex-col items-center justify-center p-4 sm:p-8 relative min-h-0 overflow-hidden">
             <!-- Art Container -->
             <div id="fp-art-container" class="w-full max-w-sm sm:max-w-md aspect-square shadow-2xl rounded-xl overflow-hidden relative">
                 <img id="fp-art-img" src="" class="w-full h-full object-cover">
@@ -138,15 +159,21 @@
             <!-- Video Placeholder -->
             <div id="fp-video-placeholder" class="absolute inset-0 pointer-events-none"></div>
 
+            <!-- Full Player Queue Container -->
+            <div id="fp-queue-container" class="hidden absolute inset-0 bg-[#030303] z-40 flex flex-col w-full max-w-2xl mx-auto px-4 pb-4">
+                <h3 class="text-xl font-bold mb-4 sticky top-0 bg-[#030303] py-2 z-10">Up Next</h3>
+                <div id="fp-queue-list" class="flex-1 overflow-y-auto custom-scrollbar space-y-2"></div>
+            </div>
+
             <!-- Info -->
-            <div class="mt-6 sm:mt-8 text-center max-w-2xl px-4 w-full">
+            <div id="fp-info-container" class="mt-6 sm:mt-8 text-center max-w-2xl px-4 w-full">
                 <h2 id="fp-title" class="text-2xl sm:text-3xl font-bold text-white mb-2 truncate"></h2>
                 <p id="fp-artist" class="text-lg sm:text-xl text-gray-400 truncate"></p>
             </div>
         </div>
 
         <!-- Controls -->
-        <div class="p-6 sm:p-12 pb-8 sm:pb-16 bg-gradient-to-t from-black/80 to-transparent flex-shrink-0">
+        <div class="p-6 sm:p-12 pb-8 sm:pb-16 bg-gradient-to-t from-black/80 to-transparent flex-shrink-0 z-50">
             <div class="flex items-center space-x-3 text-sm text-gray-400 mb-6">
                 <span id="fp-current-time">0:00</span>
                 <div id="fp-progress-container" class="relative flex-1 h-1.5 bg-gray-600 rounded cursor-pointer group">
@@ -170,11 +197,9 @@
                 </button>
                 
                 <div class="flex items-center space-x-6">
-                    <!-- Lyrics Toggle Button -->
                     <button id="fp-lyrics-btn" class="text-gray-400 hover:text-white transition hidden flex-col items-center" title="Lyrics">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
                     </button>
-
                     <button id="fp-love-btn" class="text-gray-400 hover:text-red-500 heart-btn transition">
                          <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
                     </button>
@@ -230,7 +255,11 @@
                         <input type="text" id="search-input" placeholder="Search songs, artists..." class="w-full bg-[#212121] text-white rounded-full py-2.5 pl-11 pr-4 focus:outline-none focus:ring-2 focus:ring-red-500/50 placeholder-gray-500 transition">
                         <svg class="w-5 h-5 text-gray-500 absolute left-4 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                     </div>
-                    <div class="w-9 h-9 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-sm font-bold flex-shrink-0">U</div>
+                    <!-- Incognito Indicator -->
+                    <div id="incognito-indicator" class="hidden flex items-center justify-center w-9 h-9 rounded-full bg-gray-800 text-gray-400 mr-2" title="Incognito Mode Active">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 6c3.79 0 7.17 2.13 8.82 5.5C19.17 14.87 15.79 17 12 17s-7.17-2.13-8.82-5.5C4.83 8.13 8.21 6 12 6m0-2C7 4 2.73 7.11 1 11.5 2.73 15.89 7 19 12 19s9.27-3.11 11-7.5C21.27 7.11 17 4 12 4zm0 5c1.38 0 2.5 1.12 2.5 2.5S13.38 14 12 14s-2.5-1.12-2.5-2.5S10.62 9 12 9m0-2c-2.48 0-4.5 2.02-4.5 4.5S9.52 16 12 16s4.5-2.02 4.5-4.5S14.48 7 12 7z"/></svg>
+                    </div>
+                    <div class="w-9 h-9 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-sm font-bold flex-shrink-0">L</div>
                 </div>
             </header>
 
@@ -269,17 +298,22 @@
                     <span id="total-duration">0:00</span>
                 </div>
             </div>
-            <div class="flex items-center justify-end space-x-2 sm:space-x-4 flex-1 sm:flex-none">
+            <div class="flex items-center justify-end space-x-2 sm:space-x-3 flex-1 sm:flex-none">
                 <button id="mobile-play-btn" class="sm:hidden p-2 text-white"><svg id="play-icon-mobile" class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
                 <button id="mobile-next-btn" class="sm:hidden p-2 text-gray-300"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M16 6h2v12h-2zM7 18l8.5-6L7 6z"/></svg></button>
                 <button id="mobile-love-btn" class="heart-btn sm:hidden text-gray-400 hover:text-red-500">
                     <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
                 </button>
                 
-                <!-- Footer Lyrics Button -->
                 <button id="footer-lyrics-btn" class="text-gray-400 hover:text-white hidden transition p-1" title="Lyrics">
                      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
                 </button>
+
+                <!-- Volume Control -->
+                <div class="hidden sm:flex items-center group relative w-24 mr-1">
+                    <svg id="vol-icon" class="w-5 h-5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
+                    <input type="range" id="volume-slider" min="0" max="100" value="100" class="vol-range w-full h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer">
+                </div>
 
                 <a id="open-yt-btn" href="#" target="_blank" class="hidden sm:block text-gray-400 hover:text-white" title="Open in YouTube">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
@@ -330,7 +364,7 @@
         let player, isPlayerReady = false, isPlaying = false, currentQueue = [], currentIndex = -1;
         let updateInterval, isVideoVisible = false, currentView = 'home', lastResults = [], pendingPlayIndex = -1;
         let viewMode = 'grid', isFullPlayerOpen = false, fullPlayerMode = 'art'; 
-        let currentLyricsText = null; // Cache for current song lyrics
+        let currentLyricsText = null;
         
         const SVG_PLAY = '<path d="M8 5v14l11-7z"/>';
         const SVG_PAUSE = '<path d="M6 19h4V5H6zm8-14v14h4V5z"/>';
@@ -343,7 +377,7 @@
             saveHistory(history) { this.set(STORAGE_KEYS.HISTORY, history); },
             getFavorites() { return this.get(STORAGE_KEYS.FAVORITES) || []; },
             saveFavorites(favorites) { this.set(STORAGE_KEYS.FAVORITES, favorites); },
-            getSettings() { return this.get(STORAGE_KEYS.SETTINGS) || { videoSize: 320, sidebarCollapsed: false, geniusApiKey: '' }; },
+            getSettings() { return this.get(STORAGE_KEYS.SETTINGS) || { videoSize: 320, sidebarCollapsed: false, geniusApiKey: '', incognito: false, volume: 100 }; },
             saveSettings(settings) { this.set(STORAGE_KEYS.SETTINGS, settings); },
             getBlacklist() { return this.get(STORAGE_KEYS.BLACKLIST) || []; },
             addToBlacklist(videoId) {
@@ -351,6 +385,7 @@
                 if (!list.includes(videoId)) { list.push(videoId); this.set(STORAGE_KEYS.BLACKLIST, list); }
             },
             addSearch(query) {
+                if (this.getSettings().incognito) return;
                 const history = this.getHistory();
                 const existing = history.searches.find(s => s.query.toLowerCase() === query.toLowerCase());
                 if (existing) { existing.count++; existing.timestamp = Date.now(); } 
@@ -359,6 +394,7 @@
                 this.saveHistory(history);
             },
             addPlay(video) {
+                if (this.getSettings().incognito) return;
                 const history = this.getHistory();
                 const existing = history.plays.findIndex(p => p.videoId === video.videoId);
                 if (existing > -1) { history.plays.splice(existing, 1); }
@@ -370,6 +406,7 @@
                 this.saveHistory(history);
             },
             addToQueue(video, source = 'search') {
+                if (this.getSettings().incognito) return;
                 const history = this.getHistory();
                 history.queue_history.push({ videoId: video.videoId, title: video.title, channel: video.channel, addedAt: Date.now(), playedFrom: source });
                 history.queue_history = history.queue_history.slice(-200);
@@ -394,9 +431,7 @@
                 const favorites = StorageManager.getFavorites();
                 const blacklist = StorageManager.getBlacklist();
                 const allVideos = new Map();
-
                 const filterBlacklist = (v) => !blacklist.includes(v.videoId);
-
                 history.plays.filter(filterBlacklist).forEach(p => allVideos.set(p.videoId, { ...p, thumbnail: StorageManager.getThumbnailUrl(p.videoId), source: 'played', score: 0 }));
                 favorites.filter(filterBlacklist).forEach(f => {
                     if (!allVideos.has(f.videoId)) allVideos.set(f.videoId, { ...f, thumbnail: StorageManager.getThumbnailUrl(f.videoId), playCount: 0, lastPlayed: f.addedAt, source: 'favorite', score: 0 });
@@ -443,13 +478,9 @@
         async function fetchLyrics(title, artist) {
             const settings = StorageManager.getSettings();
             if(!settings.geniusApiKey) return null;
-            
-            let cleanTitle = title.replace(/\([^)]*\)|\[[^\]]*\]/g, '')
-                                  .replace(/\b(ft\.|feat\.|official video|lyric video)\b.*/i, '')
-                                  .trim();
+            let cleanTitle = title.replace(/\([^)]*\)|\[[^\]]*\]/g, '').replace(/\b(ft\.|feat\.|official video|lyric video)\b.*/i, '').trim();
             const query = cleanTitle.split(/\s+/).slice(0, 5).join(' ');
             const url = `https://my-genius-scraper.arnoy799.workers.dev/?q=${encodeURIComponent(query)}&key=${settings.geniusApiKey}`;
-            
             try {
                 const res = await fetch(url);
                 if(!res.ok) return "Lyrics not found.";
@@ -468,7 +499,6 @@
             document.getElementById('play-icon-desktop').innerHTML = path;
             document.getElementById('play-icon-mobile').innerHTML = path;
             document.getElementById('fp-play-icon').innerHTML = path;
-            // Mobile Notification State
             if ('mediaSession' in navigator) navigator.mediaSession.playbackState = playing ? "playing" : "paused";
         }
         function updateNavButtons() {
@@ -504,26 +534,21 @@
             if (viewMode === 'grid') { gridBtn.classList.add('bg-white/10', 'text-white'); gridBtn.classList.remove('text-gray-400'); listBtn.classList.remove('bg-white/10', 'text-white'); listBtn.classList.add('text-gray-400'); }
             else { listBtn.classList.add('bg-white/10', 'text-white'); listBtn.classList.remove('text-gray-400'); gridBtn.classList.remove('bg-white/10', 'text-white'); gridBtn.classList.add('text-gray-400'); }
         }
-        
         function updateMediaSession(track) {
             if ('mediaSession' in navigator) {
                 const thumb = track.thumbnail || (track.thumbnails ? track.thumbnails[0].url : '');
-                
-                // Clear first to force update on some devices
-                // navigator.mediaSession.metadata = null; 
-
                 navigator.mediaSession.metadata = new MediaMetadata({ 
-                    title: track.title, 
-                    artist: track.channel, 
-                    artwork: [{ src: thumb, sizes: '512x512', type: 'image/jpeg' }] 
+                    title: track.title, artist: track.channel, artwork: [{ src: thumb, sizes: '512x512', type: 'image/jpeg' }] 
                 });
-
-                navigator.mediaSession.setActionHandler('play', playVideo); 
-                navigator.mediaSession.setActionHandler('pause', pauseVideo);
-                navigator.mediaSession.setActionHandler('previoustrack', prevTrack); 
-                navigator.mediaSession.setActionHandler('nexttrack', nextTrack);
+                navigator.mediaSession.setActionHandler('play', playVideo); navigator.mediaSession.setActionHandler('pause', pauseVideo);
+                navigator.mediaSession.setActionHandler('previoustrack', prevTrack); navigator.mediaSession.setActionHandler('nexttrack', nextTrack);
                 navigator.mediaSession.setActionHandler('seekto', (details) => { if (player && player.seekTo) player.seekTo(details.seekTime, true); });
             }
+        }
+        function updateIncognitoUI() {
+            const isIncognito = StorageManager.getSettings().incognito;
+            const ind = document.getElementById('incognito-indicator');
+            if (isIncognito) ind.classList.remove('hidden'); else ind.classList.add('hidden');
         }
 
         var tag = document.createElement('script'); tag.src = "https://www.youtube.com/iframe_api";
@@ -538,15 +563,15 @@
         }
         function onPlayerReady(event) {
             isPlayerReady = true; player.setPlaybackQuality('small');
-            const settings = StorageManager.getSettings(); setVideoSize(settings.videoSize);
+            const settings = StorageManager.getSettings(); 
+            setVideoSize(settings.videoSize);
+            player.setVolume(settings.volume || 100);
+            document.getElementById('volume-slider').value = settings.volume || 100;
             if (pendingPlayIndex !== -1) { loadTrack(pendingPlayIndex); pendingPlayIndex = -1; }
         }
         function onPlayerStateChange(event) {
             if (event.data === YT.PlayerState.PLAYING) { 
-                isPlaying = true; 
-                updateIcons(true); 
-                startProgressLoop(); 
-                // Force media session update on play to override iframe defaults on mobile
+                isPlaying = true; updateIcons(true); startProgressLoop(); 
                 if(currentIndex !== -1 && currentQueue[currentIndex]) updateMediaSession(currentQueue[currentIndex]);
             }
             else if (event.data === YT.PlayerState.PAUSED) { isPlaying = false; updateIcons(false); stopProgressLoop(); }
@@ -558,51 +583,30 @@
             if (!currentQueue[index]) return;
             if (!isPlayerReady) { pendingPlayIndex = index; return; }
             currentIndex = index; const track = currentQueue[index];
-            const thumb = track.thumbnail || (track.thumbnails ? track.thumbnails[0].url : 'https://placehold.co/48x48/333/666?text=Lyra');
+            const thumb = track.thumbnail || (track.thumbnails ? track.thumbnails[0].url : 'https://placehold.co/48x48/333/666?text=Music');
             document.getElementById('player-title').innerText = track.title; document.getElementById('player-artist').innerText = track.channel; document.getElementById('player-art').src = thumb;
             document.getElementById('fp-title').innerText = track.title; document.getElementById('fp-artist').innerText = track.channel; document.getElementById('fp-art-img').src = thumb;
-            
-            // RESET LYRICS CACHE ON SONG CHANGE
-            currentLyricsText = null; 
-            document.getElementById('floating-lyrics-text').innerText = "Loading...";
+            currentLyricsText = null; document.getElementById('floating-lyrics-text').innerText = "Loading...";
             
             player.loadVideoById(track.videoId); updateOpenInYtButton(track.videoId);
-            StorageManager.addPlay(track); updateLoveButton(); renderQueue(); updateNavButtons(); 
+            StorageManager.addPlay(track); updateLoveButton(); renderQueue(); updateNavButtons(); updateMediaSession(track);
             
-            // Initial call, repeated in onStateChange for mobile robustness
-            updateMediaSession(track); 
+            if (fullPlayerMode === 'queue') renderFullPlayerQueue();
         }
 
-        // Shared function to show lyrics in the centralized floating modal
         async function toggleLyrics() {
             if(currentIndex === -1 || !currentQueue[currentIndex]) return;
             const track = currentQueue[currentIndex];
             const modal = document.getElementById('lyrics-modal');
-            const contentEl = document.getElementById('floating-lyrics-text');
-            const attribEl = document.getElementById('floating-lyrics-attribution');
-            
-            // Toggle Visibility
-            if(!modal.classList.contains('hidden')) {
-                modal.classList.add('hidden');
-                return;
-            }
-            
+            const contentEl = document.getElementById('floating-lyrics-text'), attribEl = document.getElementById('floating-lyrics-attribution');
+            if(!modal.classList.contains('hidden')) { modal.classList.add('hidden'); return; }
             modal.classList.remove('hidden');
-            
-            // Check Cache
-            if(currentLyricsText) {
-                contentEl.innerText = currentLyricsText;
-                attribEl.classList.remove('hidden');
-            } else {
-                contentEl.innerText = "Fetching lyrics...";
-                attribEl.classList.add('hidden');
-                
+            if(currentLyricsText) { contentEl.innerText = currentLyricsText; attribEl.classList.remove('hidden'); }
+            else {
+                contentEl.innerText = "Fetching lyrics..."; attribEl.classList.add('hidden');
                 const lyrics = await fetchLyrics(track.title, track.channel);
-                currentLyricsText = lyrics;
-                contentEl.innerText = lyrics || "No lyrics found.";
-                if(lyrics && lyrics !== "Lyrics not found." && lyrics !== "Error fetching lyrics.") {
-                    attribEl.classList.remove('hidden');
-                }
+                currentLyricsText = lyrics; contentEl.innerText = lyrics || "No lyrics found.";
+                if(lyrics && lyrics !== "Lyrics not found." && lyrics !== "Error fetching lyrics.") attribEl.classList.remove('hidden');
             }
         }
 
@@ -634,18 +638,12 @@
         }
 
         async function playSearchItem(video) {
-            currentQueue = [video]; 
-            loadTrack(0); 
-            StorageManager.addToQueue({ videoId: video.videoId, title: video.title, channel: video.channel }, 'search');
+            currentQueue = [video]; loadTrack(0); StorageManager.addToQueue({ videoId: video.videoId, title: video.title, channel: video.channel }, 'search');
             try {
                 const radioAPI = getRandomAPI(RADIO_APIS); const res = await fetchWithRetry(`${radioAPI}?videoId=${video.videoId}`);
                 if (res.videos && res.videos.length > 0) { 
-                    // Filter duplicates from radio
                     const newVideos = res.videos.filter(v => v.videoId !== video.videoId);
-                    newVideos.forEach(v => { 
-                        StorageManager.addToQueue({ videoId: v.videoId, title: v.title, channel: v.channel }, 'radio'); 
-                        currentQueue.push(v); 
-                    }); 
+                    newVideos.forEach(v => { StorageManager.addToQueue({ videoId: v.videoId, title: v.title, channel: v.channel }, 'radio'); currentQueue.push(v); }); 
                     renderQueue(); 
                 }
             } catch (e) { console.warn("Radio fail"); }
@@ -732,11 +730,7 @@
             const history = StorageManager.getHistory();
             const blacklist = StorageManager.getBlacklist();
             
-            const listenAgain = history.plays
-                .filter(p => !blacklist.includes(p.videoId))
-                .slice(0, 18)
-                .map(p => ({...p, thumbnail: StorageManager.getThumbnailUrl(p.videoId)}));
-
+            const listenAgain = history.plays.filter(p => !blacklist.includes(p.videoId)).slice(0, 18).map(p => ({...p, thumbnail: StorageManager.getThumbnailUrl(p.videoId)}));
             const forYou = FeedGenerator.generate();
 
             section.innerHTML = `
@@ -747,23 +741,8 @@
                         <button id="view-list-btn" onclick="setViewMode('list')" class="p-2 rounded-md transition"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg></button>
                     </div>
                 </div>
-
-                ${listenAgain.length > 0 ? `
-                <div class="mb-10">
-                    <div class="flex items-center space-x-2 mb-4">
-                        <svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        <h3 class="text-xl font-bold">Listen Again</h3>
-                    </div>
-                    <div id="listen-again-grid"></div>
-                </div>` : ''}
-
-                <div>
-                    <div class="flex items-center space-x-2 mb-4">
-                         <svg class="w-6 h-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
-                        <h3 class="text-xl font-bold">For You</h3>
-                    </div>
-                    <div id="for-you-grid"></div>
-                </div>
+                ${listenAgain.length > 0 ? `<div class="mb-10"><div class="flex items-center space-x-2 mb-4"><svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg><h3 class="text-xl font-bold">Listen Again</h3></div><div id="listen-again-grid"></div></div>` : ''}
+                <div><div class="flex items-center space-x-2 mb-4"><svg class="w-6 h-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg><h3 class="text-xl font-bold">For You</h3></div><div id="for-you-grid"></div></div>
             `;
             
             updateViewModeButtons();
@@ -774,10 +753,7 @@
         function renderFavorites() {
             const section = document.getElementById('content-section');
             const favorites = StorageManager.getFavorites();
-            section.innerHTML = `
-                <div class="flex items-center justify-between mb-6"><div><h2 class="text-2xl font-bold">Favorites</h2><p class="text-sm text-gray-400 mt-1">${favorites.length} songs</p></div><div class="flex bg-[#212121] rounded-lg p-1"><button id="view-grid-btn" onclick="setViewMode('grid')" class="p-2 rounded-md"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M4 11h5V5H4v6zm0 7h5v-6H4v6zm6 0h5v-6h-5v6zm6 0h5v-6h-5v6zm-6-7h5V5h-5v6zm6-6v6h5V5h-5z"/></svg></button><button id="view-list-btn" onclick="setViewMode('list')" class="p-2 rounded-md"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg></button></div></div>
-                <div id="favorites-grid"></div>
-            `;
+            section.innerHTML = `<div class="flex items-center justify-between mb-6"><div><h2 class="text-2xl font-bold">Favorites</h2><p class="text-sm text-gray-400 mt-1">${favorites.length} songs</p></div><div class="flex bg-[#212121] rounded-lg p-1"><button id="view-grid-btn" onclick="setViewMode('grid')" class="p-2 rounded-md"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M4 11h5V5H4v6zm0 7h5v-6H4v6zm6 0h5v-6h-5v6zm6 0h5v-6h-5v6zm-6-7h5V5h-5v6zm6-6v6h5V5h-5z"/></svg></button><button id="view-list-btn" onclick="setViewMode('list')" class="p-2 rounded-md"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg></button></div></div><div id="favorites-grid"></div>`;
             const mappedFavs = favorites.reverse().map(f => ({...f, thumbnail: StorageManager.getThumbnailUrl(f.videoId)}));
             updateViewModeButtons();
             renderGenericGrid('favorites-grid', mappedFavs);
@@ -796,7 +772,23 @@
                 el.innerHTML = `<div class="w-6 text-center text-xs font-bold text-gray-500">${isActive ? '▶' : i+1}</div><img src="${thumb}" class="w-10 h-10 rounded bg-[#333] object-cover"><div class="flex-1 min-w-0"><p class="text-sm font-semibold truncate">${vid.title}</p><p class="text-xs text-gray-400 truncate">${vid.channel}</p></div><button class="opacity-0 group-hover:opacity-100 p-2 hover:text-red-500" onclick="event.stopPropagation(); removeFromQueue(${i})">x</button>`;
                 list.appendChild(el);
             });
+            if(fullPlayerMode === 'queue') renderFullPlayerQueue();
         }
+        
+        function renderFullPlayerQueue() {
+            const list = document.getElementById('fp-queue-list');
+            list.innerHTML = '';
+            currentQueue.forEach((vid, i) => {
+                const el = document.createElement('div');
+                const isActive = i === currentIndex;
+                el.className = `flex items-center space-x-3 p-2 rounded-lg cursor-pointer transition-all ${isActive ? 'bg-white/10' : 'hover:bg-white/5'}`;
+                el.onclick = () => loadTrack(i);
+                const thumb = vid.thumbnail || (vid.thumbnails ? vid.thumbnails[0].url : '');
+                el.innerHTML = `<div class="w-6 text-center text-xs text-gray-400">${isActive ? '▶' : i+1}</div><img src="${thumb}" class="w-10 h-10 rounded bg-[#333] object-cover"><div class="flex-1 min-w-0"><p class="text-sm font-medium truncate ${isActive ? 'text-white' : 'text-gray-300'}">${vid.title}</p><p class="text-xs text-gray-500 truncate">${vid.channel}</p></div>`;
+                list.appendChild(el);
+            });
+        }
+
         function removeFromQueue(index) {
             if (index === currentIndex) nextTrack(); else if (index < currentIndex) currentIndex--;
             currentQueue.splice(index, 1); renderQueue();
@@ -812,16 +804,38 @@
             const overlay = document.getElementById('full-player-overlay'); isFullPlayerOpen = !isFullPlayerOpen;
             if (isFullPlayerOpen) overlay.classList.remove('translate-y-full'); else { overlay.classList.add('translate-y-full'); setFullPlayerMode('art'); }
         }
+        
         function setFullPlayerMode(mode) {
-            fullPlayerMode = mode; const videoWrapper = document.getElementById('video-wrapper'), artBtn = document.getElementById('fp-mode-art'), vidBtn = document.getElementById('fp-mode-video');
+            fullPlayerMode = mode; 
+            const videoWrapper = document.getElementById('video-wrapper');
+            const queueContainer = document.getElementById('fp-queue-container');
+            const infoContainer = document.getElementById('fp-info-container');
+            const artContainer = document.getElementById('fp-art-container');
+            
+            // Buttons
+            ['art', 'video', 'queue'].forEach(m => {
+                const btn = document.getElementById(`fp-mode-${m}`);
+                if(m === mode) { btn.classList.add('bg-white/10', 'text-white'); btn.classList.remove('text-gray-400'); }
+                else { btn.classList.remove('bg-white/10', 'text-white'); btn.classList.add('text-gray-400'); }
+            });
+
+            // Reset States
+            videoWrapper.classList.remove('video-wrapper-full');
+            if(!isVideoVisible) { videoWrapper.classList.add('video-hidden'); videoWrapper.classList.remove('video-visible'); }
+            queueContainer.classList.add('hidden');
+            infoContainer.classList.remove('hidden');
+            artContainer.classList.remove('hidden');
+
             if (mode === 'video') {
                 videoWrapper.classList.add('video-wrapper-full'); videoWrapper.classList.remove('video-hidden'); videoWrapper.classList.add('video-visible'); isVideoVisible = true;
-                vidBtn.classList.remove('text-gray-400'); vidBtn.classList.add('bg-white/10', 'text-white'); artBtn.classList.add('text-gray-400'); artBtn.classList.remove('bg-white/10', 'text-white');
-            } else {
-                videoWrapper.classList.remove('video-wrapper-full'); if(!isVideoVisible) { videoWrapper.classList.add('video-hidden'); videoWrapper.classList.remove('video-visible'); }
-                artBtn.classList.remove('text-gray-400'); artBtn.classList.add('bg-white/10', 'text-white'); vidBtn.classList.add('text-gray-400'); vidBtn.classList.remove('bg-white/10', 'text-white');
+            } else if (mode === 'queue') {
+                queueContainer.classList.remove('hidden');
+                infoContainer.classList.add('hidden');
+                artContainer.classList.add('hidden');
+                renderFullPlayerQueue();
             }
         }
+        
         function toggleDesktopSidebar() {
             const sidebar = document.getElementById('sidebar'), settings = StorageManager.getSettings();
             sidebar.classList.toggle('sidebar-collapsed'); settings.sidebarCollapsed = sidebar.classList.contains('sidebar-collapsed');
@@ -834,6 +848,8 @@
             if(savedSettings.sidebarCollapsed) document.getElementById('sidebar').classList.add('sidebar-collapsed');
             document.getElementById('player-size-slider').value = savedSettings.videoSize || 320;
             document.getElementById('genius-api-input').value = savedSettings.geniusApiKey || '';
+            document.getElementById('incognito-toggle').checked = savedSettings.incognito || false;
+            updateIncognitoUI();
             updateLyricsButton();
 
             document.getElementById('search-input').addEventListener('keydown', (e) => {
@@ -878,18 +894,24 @@
             // Settings Listeners
             document.getElementById('player-size-slider').oninput = (e) => { setVideoSize(e.target.value); const settings = StorageManager.getSettings(); settings.videoSize = e.target.value; StorageManager.saveSettings(settings); };
             document.getElementById('genius-api-input').oninput = (e) => { 
-                const settings = StorageManager.getSettings(); 
-                settings.geniusApiKey = e.target.value.trim(); 
-                StorageManager.saveSettings(settings);
-                updateLyricsButton();
+                const settings = StorageManager.getSettings(); settings.geniusApiKey = e.target.value.trim(); StorageManager.saveSettings(settings); updateLyricsButton();
+            };
+            document.getElementById('incognito-toggle').onchange = (e) => {
+                const settings = StorageManager.getSettings(); settings.incognito = e.target.checked; StorageManager.saveSettings(settings); updateIncognitoUI();
+            };
+            document.getElementById('volume-slider').oninput = (e) => {
+                const val = e.target.value; player.setVolume(val); const settings = StorageManager.getSettings(); settings.volume = val; StorageManager.saveSettings(settings);
+                // Simple icon toggle
+                document.getElementById('vol-icon').innerHTML = val == 0 ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />' : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />';
             };
 
             document.getElementById('full-player-btn').onclick = toggleFullPlayer; document.getElementById('close-full-player-btn').onclick = toggleFullPlayer;
             document.getElementById('player-art').onclick = toggleFullPlayer; document.getElementById('player-info-area').onclick = toggleFullPlayer;
-            document.getElementById('fp-mode-art').onclick = () => setFullPlayerMode('art'); document.getElementById('fp-mode-video').onclick = () => setFullPlayerMode('video');
+            document.getElementById('fp-mode-art').onclick = () => setFullPlayerMode('art'); 
+            document.getElementById('fp-mode-video').onclick = () => setFullPlayerMode('video');
+            document.getElementById('fp-mode-queue').onclick = () => setFullPlayerMode('queue');
             document.getElementById('desktop-sidebar-toggle').onclick = toggleDesktopSidebar;
             
-            // Lyrics Listeners (Unified Floating Modal)
             const lyricsHandler = toggleLyrics;
             document.getElementById('fp-lyrics-btn').onclick = lyricsHandler;
             document.getElementById('footer-lyrics-btn').onclick = lyricsHandler;
