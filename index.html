@@ -3,24 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Lyra</title>
-    <link rel="icon" type="image/png" href="https://icons.iconarchive.com/icons/graphicloads/polygon/256/sound-2-icon.png">
+    <title>YtMusic</title>
+    <link rel="icon" type="image/png" href="https://img.icons8.com/?size=100&id=YNioBT5SxQw3&format=png&color=000000">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; overflow: hidden; background-color: #030303; }
         
+        /* Scrollbar */
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #404040; border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #555; }
         
-        .queue-item.active { background-color: #212121; border-left: 3px solid #ef4444; padding-left: 5px; }
-        .queue-item.active .queue-title { color: #ef4444; }
+        /* Active Queue Item styling */
+        .queue-item.active { background-color: #1a1a1a; border-left: 3px solid #ef4444; }
+        .queue-item.active .title-text { color: #ef4444; font-weight: 600; }
         
+        /* Video States */
         .video-hidden { opacity: 0; pointer-events: none; z-index: -10; }
         .video-visible { opacity: 1; pointer-events: auto; z-index: 50; }
-        
         .video-wrapper-full {
             top: 50% !important; left: 50% !important; transform: translate(-50%, -50%) !important;
             width: 100% !important; max-width: 1000px !important; height: auto !important;
@@ -28,17 +30,13 @@
             bottom: auto !important; right: auto !important; z-index: 60 !important;
         }
 
-        .heart-btn { transition: all 0.2s ease; }
+        /* Animations & Components */
         .heart-btn.loved { color: #ef4444; fill: #ef4444; }
         @keyframes heartbeat { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
         .heart-animate { animation: heartbeat 0.3s ease; }
         
-        .nav-item { transition: all 0.2s ease; }
         .nav-item.active { background: #212121; color: white; font-weight: 600; }
-        
-        .card-hover { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         .card-hover:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3); }
-
         .sidebar-collapsed { width: 4.5rem !important; }
         .sidebar-collapsed .nav-text { display: none; }
         .sidebar-collapsed .nav-item { justify-content: center; padding-left: 0; padding-right: 0; }
@@ -49,9 +47,7 @@
             cursor: pointer; margin-top: -4px; box-shadow: 0 1px 3px rgba(0,0,0,0.5);
         }
         input[type=range]:hover::-webkit-slider-thumb { background: #ef4444; transform: scale(1.2); }
-        input[type=range]::-webkit-slider-runnable-track {
-            width: 100%; height: 4px; cursor: pointer; background: #404040; border-radius: 2px;
-        }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: #404040; border-radius: 2px; }
         
         .toggle-checkbox:checked { right: 0; border-color: #ef4444; }
         .toggle-checkbox:checked + .toggle-label { background-color: #ef4444; }
@@ -61,16 +57,12 @@
             background-size: 200% 100%; animation: loading 1.5s infinite;
         }
         @keyframes loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-
         .lyrics-text { text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
         
-        /* Mobile optimizations */
-        @media (max-width: 640px) {
-            .mobile-safe-bottom { padding-bottom: calc(4rem + env(safe-area-inset-bottom)); }
-        }
+        @media (max-width: 640px) { .mobile-safe-bottom { padding-bottom: calc(5rem + env(safe-area-inset-bottom)); } }
     </style>
 </head>
-<body class="text-white h-screen flex flex-col overflow-hidden">
+<body class="text-white h-screen flex flex-col overflow-hidden bg-[#030303]">
     
     <!-- Video Player Wrapper -->
     <div id="video-wrapper" class="fixed bottom-24 right-4 shadow-2xl rounded-lg overflow-hidden w-64 aspect-video bg-black border border-[#333] video-hidden transition-all duration-300">
@@ -82,7 +74,7 @@
 
     <!-- Settings Modal -->
     <div id="settings-modal" class="fixed inset-0 bg-black/80 z-[60] hidden flex items-center justify-center backdrop-blur-sm">
-        <div class="bg-[#212121] p-6 rounded-xl w-80 sm:w-96 shadow-2xl border border-[#333] mx-4 animate-fade-in">
+        <div class="bg-[#212121] p-6 rounded-xl w-80 sm:w-96 shadow-2xl border border-[#333] mx-4">
             <div class="flex justify-between items-center mb-6">
                 <h3 class="text-xl font-bold">Settings</h3>
                 <button id="close-settings-btn" class="text-gray-400 hover:text-white">
@@ -91,29 +83,15 @@
             </div>
             <div class="space-y-6">
                 <div class="flex items-center justify-between">
-                    <div>
-                        <span class="text-sm font-medium text-white block">Incognito Mode</span>
-                        <span class="text-xs text-gray-400">Don't save history</span>
-                    </div>
+                    <div><span class="text-sm font-medium text-white block">Incognito Mode</span><span class="text-xs text-gray-400">Don't save history</span></div>
                     <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
                         <input type="checkbox" name="toggle" id="incognito-toggle" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
                         <label for="incognito-toggle" class="toggle-label block overflow-hidden h-5 rounded-full bg-gray-600 cursor-pointer"></label>
                     </div>
                 </div>
-                <div>
-                    <div class="flex justify-between text-sm mb-2">
-                        <span class="text-gray-300">Mini Player Size</span>
-                        <span id="size-value" class="text-gray-400">Medium</span>
-                    </div>
-                    <input type="range" id="player-size-slider" min="200" max="600" value="320" class="w-full">
-                </div>
-                <div>
-                    <label class="block text-sm text-gray-300 mb-2">Genius API Key (for Lyrics)</label>
-                    <input type="text" id="genius-api-input" class="w-full bg-[#1a1a1a] border border-[#333] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-red-500 transition" placeholder="Paste your key here...">
-                </div>
-                <div class="pt-4 border-t border-[#333]">
-                    <p class="text-xs text-gray-500 text-center">YtMusic Clone v1.7</p>
-                </div>
+                <div><div class="flex justify-between text-sm mb-2"><span class="text-gray-300">Mini Player Size</span></div><input type="range" id="player-size-slider" min="200" max="600" value="320" class="w-full"></div>
+                <div><label class="block text-sm text-gray-300 mb-2">Genius API Key (Lyrics)</label><input type="text" id="genius-api-input" class="w-full bg-[#1a1a1a] border border-[#333] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-red-500 transition" placeholder="Paste key here..."></div>
+                <div class="pt-4 border-t border-[#333]"><p class="text-xs text-gray-500 text-center">YtMusic Clone v1.8</p></div>
             </div>
         </div>
     </div>
@@ -134,47 +112,36 @@
 
     <!-- Full Player Overlay -->
     <div id="full-player-overlay" class="fixed inset-0 bg-[#000] z-50 transform translate-y-full transition-transform duration-300 flex flex-col">
-        <!-- Header -->
         <div class="flex items-center justify-between p-4 sm:p-6 flex-shrink-0 z-20">
-            <button id="close-full-player-btn" class="text-white hover:bg-white/10 p-2 rounded-full">
-                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-            </button>
+            <button id="close-full-player-btn" class="text-white hover:bg-white/10 p-2 rounded-full"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></button>
             <div class="flex bg-[#212121] rounded-lg p-1">
                 <button id="fp-mode-art" class="px-3 sm:px-4 py-1.5 rounded-md text-sm font-medium bg-white/10 text-white transition">Art</button>
                 <button id="fp-mode-video" class="px-3 sm:px-4 py-1.5 rounded-md text-sm font-medium text-gray-400 hover:text-white transition">Video</button>
                 <button id="fp-mode-queue" class="px-3 sm:px-4 py-1.5 rounded-md text-sm font-medium text-gray-400 hover:text-white transition">Queue</button>
             </div>
-            <button id="fp-settings-btn" class="text-white hover:bg-white/10 p-2 rounded-full">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
-            </button>
+            <button id="fp-settings-btn" class="text-white hover:bg-white/10 p-2 rounded-full"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg></button>
         </div>
         
-        <!-- Content Area -->
         <div class="flex-1 flex flex-col items-center justify-center p-4 relative min-h-0 overflow-hidden">
-            <!-- Art Container -->
             <div id="fp-art-container" class="w-full max-w-sm sm:max-w-md aspect-square shadow-2xl rounded-xl overflow-hidden relative transition-all duration-300">
                 <img id="fp-art-img" src="" class="w-full h-full object-cover">
             </div>
-
-            <!-- Video Placeholder -->
             <div id="fp-video-placeholder" class="absolute inset-0 pointer-events-none"></div>
-
-            <!-- Full Player Queue Container -->
-            <div id="fp-queue-container" class="absolute inset-0 px-4 py-2 hidden overflow-hidden flex flex-col items-center w-full max-w-2xl mx-auto">
+            
+            <!-- Full Player Queue -->
+            <div id="fp-queue-container" class="absolute inset-0 px-4 py-2 hidden overflow-hidden flex flex-col items-center w-full max-w-2xl mx-auto z-30">
                  <h3 class="text-xl font-bold mb-4 flex-shrink-0">Up Next</h3>
-                 <div class="flex-1 w-full overflow-y-auto custom-scrollbar bg-[#111] rounded-xl p-2 border border-[#333]">
+                 <div class="flex-1 w-full overflow-y-auto custom-scrollbar bg-[#111]/80 backdrop-blur rounded-xl p-2 border border-[#333]">
                      <div id="fp-queue-list" class="space-y-1"></div>
                  </div>
             </div>
 
-            <!-- Info -->
             <div id="fp-info-container" class="mt-6 sm:mt-8 text-center max-w-2xl px-4 w-full">
                 <h2 id="fp-title" class="text-2xl sm:text-3xl font-bold text-white mb-2 truncate"></h2>
                 <p id="fp-artist" class="text-lg sm:text-xl text-gray-400 truncate"></p>
             </div>
         </div>
 
-        <!-- Controls -->
         <div class="p-6 sm:p-12 pb-8 sm:pb-16 bg-gradient-to-t from-black/90 to-transparent flex-shrink-0">
             <div class="flex items-center space-x-3 text-sm text-gray-400 mb-6">
                 <span id="fp-current-time">0:00</span>
@@ -183,66 +150,42 @@
                 </div>
                 <span id="fp-total-duration">0:00</span>
             </div>
-            
             <div class="flex items-center justify-center space-x-8 sm:space-x-12 mb-8">
                 <button id="fp-prev-btn" class="text-white hover:text-gray-300 p-2"><svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button>
-                <button id="fp-play-btn" class="bg-white text-black rounded-full p-4 hover:scale-105 transition transform shadow-lg shadow-white/10">
-                    <svg id="fp-play-icon" class="w-8 h-8 pl-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                </button>
+                <button id="fp-play-btn" class="bg-white text-black rounded-full p-4 hover:scale-105 transition transform shadow-lg shadow-white/10"><svg id="fp-play-icon" class="w-8 h-8 pl-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
                 <button id="fp-next-btn" class="text-white hover:text-gray-300 p-2"><svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M16 6h2v12h-2zM7 18l8.5-6L7 6z"/></svg></button>
             </div>
-
             <div class="flex justify-between items-center px-2 sm:px-4">
                  <div class="flex items-center w-32 space-x-2">
                     <svg class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
                     <input type="range" id="fp-volume-slider" min="0" max="100" value="100" class="w-full">
                 </div>
-
                 <div class="flex items-center space-x-6">
-                    <button id="fp-lyrics-btn" class="text-gray-400 hover:text-white transition hidden flex-col items-center" title="Lyrics">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                    </button>
-                    <button id="fp-love-btn" class="text-gray-400 hover:text-red-500 heart-btn transition">
-                         <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-                    </button>
+                    <button id="fp-lyrics-btn" class="text-gray-400 hover:text-white transition hidden flex-col items-center" title="Lyrics"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg></button>
+                    <button id="fp-love-btn" class="text-gray-400 hover:text-red-500 heart-btn transition"><svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></button>
                 </div>
             </div>
         </div>
     </div>
 
     <div class="flex flex-1 overflow-hidden pb-16 sm:pb-20">
-        <!-- Sidebar Overlay (Mobile) -->
         <div id="sidebar-overlay" class="fixed inset-0 bg-black/60 z-20 hidden"></div>
-        
         <aside id="sidebar" class="fixed sm:relative w-60 bg-[#0f0f0f] flex flex-col p-4 border-r border-[#212121] h-full z-30 transform -translate-x-full sm:translate-x-0 transition-all duration-300">
             <div class="flex items-center justify-between mb-8 px-2">
                 <div class="flex items-center space-x-2 overflow-hidden whitespace-nowrap">
-                    <button id="desktop-sidebar-toggle" class="hidden sm:block text-gray-400 hover:text-white mr-1">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-                    </button>
-                    <img src="https://icons.iconarchive.com/icons/graphicloads/polygon/256/sound-2-icon.png" class="w-8 h-8 flex-shrink-0">
-                    <span class="text-xl font-bold tracking-tighter nav-text">Lyra</span>
+                    <button id="desktop-sidebar-toggle" class="hidden sm:block text-gray-400 hover:text-white mr-1"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg></button>
+                    <img src="https://img.icons8.com/?size=100&id=YNioBT5SxQw3&format=png&color=000000" class="w-8 h-8 flex-shrink-0">
+                    <span class="text-xl font-bold tracking-tighter nav-text">Music</span>
                 </div>
-                <button id="close-sidebar-btn" class="sm:hidden text-gray-400 hover:text-white">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
+                <button id="close-sidebar-btn" class="sm:hidden text-gray-400 hover:text-white"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
             </div>
             <nav class="space-y-1 flex-1">
-                <a href="#" id="nav-home" class="nav-item flex items-center space-x-4 p-3 rounded-lg text-gray-400 hover:bg-[#212121] active">
-                    <svg class="w-6 h-6 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><span class="nav-text">Home</span>
-                </a>
-                <a href="#" id="nav-explore" class="nav-item flex items-center space-x-4 p-3 rounded-lg text-gray-400 hover:bg-[#212121]">
-                    <svg class="w-6 h-6 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12 10.9c-.61 0-1.1.49-1.1 1.1s.49 1.1 1.1 1.1c.61 0 1.1-.49 1.1-1.1s-.49-1.1-1.1-1.1zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm2.19 12.19L6 18l3.81-8.19L18 6l-3.81 8.19z"/></svg><span class="nav-text">Explore</span>
-                </a>
-                <a href="#" id="nav-favorites" class="nav-item flex items-center space-x-4 p-3 rounded-lg text-gray-400 hover:bg-[#212121]">
-                    <svg class="w-6 h-6 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg><span class="nav-text">Favorites</span>
-                </a>
+                <a href="#" id="nav-home" class="nav-item flex items-center space-x-4 p-3 rounded-lg text-gray-400 hover:bg-[#212121] active"><svg class="w-6 h-6 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><span class="nav-text">Home</span></a>
+                <a href="#" id="nav-explore" class="nav-item flex items-center space-x-4 p-3 rounded-lg text-gray-400 hover:bg-[#212121]"><svg class="w-6 h-6 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12 10.9c-.61 0-1.1.49-1.1 1.1s.49 1.1 1.1 1.1c.61 0 1.1-.49 1.1-1.1s-.49-1.1-1.1-1.1zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm2.19 12.19L6 18l3.81-8.19L18 6l-3.81 8.19z"/></svg><span class="nav-text">Explore</span></a>
+                <a href="#" id="nav-favorites" class="nav-item flex items-center space-x-4 p-3 rounded-lg text-gray-400 hover:bg-[#212121]"><svg class="w-6 h-6 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg><span class="nav-text">Favorites</span></a>
             </nav>
             <div class="border-t border-[#212121] pt-4 mt-2">
-                <button id="nav-settings" class="nav-item w-full flex items-center space-x-4 p-3 rounded-lg text-gray-400 hover:bg-[#212121] text-left">
-                    <svg class="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                    <span class="nav-text">Settings</span>
-                </button>
+                <button id="nav-settings" class="nav-item w-full flex items-center space-x-4 p-3 rounded-lg text-gray-400 hover:bg-[#212121] text-left"><svg class="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg><span class="nav-text">Settings</span></button>
             </div>
         </aside>
 
@@ -250,41 +193,30 @@
             <div class="absolute inset-0 bg-gradient-to-b from-purple-900/20 via-[#030303] to-[#030303] pointer-events-none z-0"></div>
             <header class="relative z-10 h-16 flex items-center px-4 sticky top-0 bg-[#030303]/95 backdrop-blur border-b border-[#212121]">
                 <div class="flex items-center w-full space-x-3">
-                    <button id="menu-btn" class="sm:hidden text-white hover:bg-[#212121] p-2 rounded-lg transition">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-                    </button>
+                    <button id="menu-btn" class="sm:hidden text-white hover:bg-[#212121] p-2 rounded-lg transition"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg></button>
                     <div class="relative flex-1 max-w-2xl">
                         <input type="text" id="search-input" placeholder="Search songs, artists..." class="w-full bg-[#212121] text-white rounded-full py-2.5 pl-11 pr-4 focus:outline-none focus:ring-2 focus:ring-red-500/50 placeholder-gray-500 transition">
                         <svg class="w-5 h-5 text-gray-500 absolute left-4 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                     </div>
-                    <!-- User Avatar / Incognito Indicator -->
                     <div id="user-avatar" class="w-9 h-9 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-sm font-bold flex-shrink-0 transition-colors">U</div>
                 </div>
             </header>
-
             <section class="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-8 relative z-10 mobile-safe-bottom" id="content-section"></section>
         </main>
     </div>
 
     <footer id="player-bar" class="fixed bottom-0 left-0 w-full bg-[#121212]/95 backdrop-blur-xl border-t border-white/5 z-40 h-16 sm:h-20 transition-all duration-300">
-        <div class="block sm:hidden mobile-progress-container" id="mobile-progress-container">
-            <div id="mobile-progress-bar" class="mobile-progress-bar" style="width: 0%"></div>
-        </div>
+        <div class="block sm:hidden mobile-progress-container" id="mobile-progress-container"><div id="mobile-progress-bar" class="mobile-progress-bar" style="width: 0%"></div></div>
         <div class="flex items-center justify-between h-full px-2 sm:px-4">
-            <!-- Mobile/Mini Left: Info -->
             <div class="flex items-center flex-1 min-w-0 mr-2">
                 <button id="mobile-prev-btn" class="sm:hidden text-gray-300 p-2 mr-1"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button>
-                <img id="player-art" src="https://placehold.co/48x48/333/666?text=Lyra" class="w-10 h-10 sm:w-12 sm:h-12 rounded bg-gray-800 object-cover flex-shrink-0 cursor-pointer" title="Expand">
+                <img id="player-art" src="https://placehold.co/48x48/333/666?text=Music" class="w-10 h-10 sm:w-12 sm:h-12 rounded bg-gray-800 object-cover flex-shrink-0 cursor-pointer" title="Expand">
                 <div class="ml-3 overflow-hidden flex-1 cursor-pointer" id="player-info-area">
                     <p id="player-title" class="text-sm sm:text-base font-medium truncate text-white">Ready to play</p>
                     <p id="player-artist" class="text-xs sm:text-sm text-gray-400 truncate">Select a song</p>
                 </div>
-                <button id="love-btn" class="heart-btn hidden sm:block ml-2 text-gray-400 hover:text-red-500 p-2">
-                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-                </button>
+                <button id="love-btn" class="heart-btn hidden sm:block ml-2 text-gray-400 hover:text-red-500 p-2"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></button>
             </div>
-            
-            <!-- Desktop Middle: Controls -->
             <div class="hidden sm:flex flex-col items-center flex-1 max-w-xl">
                 <div class="flex items-center space-x-6 mb-1">
                     <button id="prev-btn" class="text-gray-400 hover:text-white disabled:opacity-30"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button>
@@ -293,43 +225,22 @@
                 </div>
                 <div class="w-full flex items-center space-x-2 text-xs text-gray-400">
                     <span id="current-time">0:00</span>
-                    <div id="desktop-progress-container" class="relative flex-1 h-1 bg-gray-600 rounded cursor-pointer group">
-                        <div id="desktop-progress-bar" class="absolute h-full bg-red-500 rounded w-0"></div>
-                        <div class="absolute h-3 w-3 bg-white rounded-full -top-1 opacity-0 group-hover:opacity-100 transition-opacity" style="left: 0%" id="desktop-progress-thumb"></div>
-                    </div>
+                    <div id="desktop-progress-container" class="relative flex-1 h-1 bg-gray-600 rounded cursor-pointer group"><div id="desktop-progress-bar" class="absolute h-full bg-red-500 rounded w-0"></div><div class="absolute h-3 w-3 bg-white rounded-full -top-1 opacity-0 group-hover:opacity-100 transition-opacity" style="left: 0%" id="desktop-progress-thumb"></div></div>
                     <span id="total-duration">0:00</span>
                 </div>
             </div>
-
-            <!-- Right Side Controls -->
             <div class="flex items-center justify-end space-x-2 sm:space-x-4 flex-1 sm:flex-none">
                 <button id="mobile-play-btn" class="sm:hidden p-2 text-white"><svg id="play-icon-mobile" class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
                 <button id="mobile-next-btn" class="sm:hidden p-2 text-gray-300"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M16 6h2v12h-2zM7 18l8.5-6L7 6z"/></svg></button>
-                <button id="mobile-love-btn" class="heart-btn sm:hidden text-gray-400 hover:text-red-500">
-                    <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-                </button>
-                
-                <button id="footer-lyrics-btn" class="text-gray-400 hover:text-white hidden transition p-1" title="Lyrics">
-                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                </button>
-
-                <!-- Desktop Volume -->
+                <button id="mobile-love-btn" class="heart-btn sm:hidden text-gray-400 hover:text-red-500"><svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></button>
+                <button id="footer-lyrics-btn" class="text-gray-400 hover:text-white hidden transition p-1" title="Lyrics"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg></button>
                 <div class="hidden sm:flex items-center w-24 group/vol">
-                    <button id="mute-btn" class="text-gray-400 hover:text-white pr-2">
-                        <svg id="vol-icon" class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
-                    </button>
+                    <button id="mute-btn" class="text-gray-400 hover:text-white pr-2"><svg id="vol-icon" class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg></button>
                     <input type="range" id="volume-slider" min="0" max="100" value="100" class="w-full opacity-0 group-hover/vol:opacity-100 transition-opacity">
                 </div>
-
-                <a id="open-yt-btn" href="#" target="_blank" class="hidden sm:block text-gray-400 hover:text-white" title="Open in YouTube">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
-                </a>
-                <button id="toggle-video-btn" class="text-gray-400 hover:text-red-500 transition" title="Toggle Video">
-                    <span class="text-xs font-bold border border-current px-1.5 py-0.5 rounded">VIDEO</span>
-                </button>
-                <button id="full-player-btn" class="text-gray-400 hover:text-white hidden sm:block" title="Full Player">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
-                </button>
+                <a id="open-yt-btn" href="#" target="_blank" class="hidden sm:block text-gray-400 hover:text-white" title="Open in YouTube"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg></a>
+                <button id="toggle-video-btn" class="text-gray-400 hover:text-red-500 transition" title="Toggle Video"><span class="text-xs font-bold border border-current px-1.5 py-0.5 rounded">VIDEO</span></button>
+                <button id="full-player-btn" class="text-gray-400 hover:text-white hidden sm:block" title="Full Player"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg></button>
                 <button id="queue-btn" class="text-gray-400 hover:text-white"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path></svg></button>
             </div>
         </div>
@@ -337,27 +248,11 @@
 
     <div id="queue-panel" class="fixed top-0 right-0 h-full w-full sm:w-96 bg-[#030303] border-l border-[#333] z-30 transform translate-x-full transition-transform duration-300 overflow-hidden shadow-2xl flex flex-col">
         <div class="px-4 py-4 flex items-center justify-between border-b border-[#212121] bg-[#030303] flex-shrink-0">
-            <div>
-                <h3 class="font-bold text-xl">Up Next</h3>
-                <p class="text-xs text-gray-400 mt-0.5" id="queue-count">0 songs in queue</p>
-            </div>
-            <div class="flex items-center space-x-2">
-                <button id="clear-queue-btn" class="text-gray-400 hover:text-red-500 text-xs font-medium px-3 py-1.5 rounded-lg hover:bg-[#212121] transition" title="Clear Queue">Clear</button>
-                <button id="close-queue-btn" class="text-gray-400 hover:text-white p-1">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
-            </div>
+            <div><h3 class="font-bold text-xl">Up Next</h3><p class="text-xs text-gray-400 mt-0.5" id="queue-count">0 songs in queue</p></div>
+            <div class="flex items-center space-x-2"><button id="clear-queue-btn" class="text-gray-400 hover:text-red-500 text-xs font-medium px-3 py-1.5 rounded-lg hover:bg-[#212121] transition">Clear</button><button id="close-queue-btn" class="text-gray-400 hover:text-white p-1"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button></div>
         </div>
-        <div class="flex-1 overflow-y-auto custom-scrollbar">
-            <div id="queue-list" class="p-2">
-                <p class="text-gray-500 text-center mt-10">Queue is empty</p>
-            </div>
-        </div>
-        <div class="px-4 py-3 border-t border-[#212121] bg-[#030303] flex-shrink-0">
-            <button id="shuffle-queue-btn" class="w-full bg-[#212121] hover:bg-[#2a2a2a] text-white font-medium py-2.5 rounded-lg transition flex items-center justify-center space-x-2">
-                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/></svg><span>Shuffle Queue</span>
-            </button>
-        </div>
+        <div class="flex-1 overflow-y-auto custom-scrollbar"><div id="queue-list" class="p-2"><p class="text-gray-500 text-center mt-10">Queue is empty</p></div></div>
+        <div class="px-4 py-3 border-t border-[#212121] bg-[#030303] flex-shrink-0"><button id="shuffle-queue-btn" class="w-full bg-[#212121] hover:bg-[#2a2a2a] text-white font-medium py-2.5 rounded-lg transition flex items-center justify-center space-x-2"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/></svg><span>Shuffle Queue</span></button></div>
     </div>
 
     <script>
@@ -370,8 +265,7 @@
         let player, isPlayerReady = false, isPlaying = false, currentQueue = [], currentIndex = -1;
         let updateInterval, isVideoVisible = false, currentView = 'home', lastResults = [], pendingPlayIndex = -1;
         let viewMode = 'grid', isFullPlayerOpen = false, fullPlayerMode = 'art'; 
-        let currentLyricsText = null;
-        let isMuted = false, volume = 100;
+        let currentLyricsText = null, isMuted = false, volume = 100;
         
         const SVG_PLAY = '<path d="M8 5v14l11-7z"/>';
         const SVG_PAUSE = '<path d="M6 19h4V5H6zm8-14v14h4V5z"/>';
@@ -389,35 +283,29 @@
             getSettings() { return this.get(STORAGE_KEYS.SETTINGS) || { videoSize: 320, sidebarCollapsed: false, geniusApiKey: '', incognito: false, volume: 100 }; },
             saveSettings(settings) { this.set(STORAGE_KEYS.SETTINGS, settings); },
             getBlacklist() { return this.get(STORAGE_KEYS.BLACKLIST) || []; },
-            addToBlacklist(videoId) {
-                const list = this.getBlacklist();
-                if (!list.includes(videoId)) { list.push(videoId); this.set(STORAGE_KEYS.BLACKLIST, list); }
-            },
+            addToBlacklist(videoId) { const list = this.getBlacklist(); if (!list.includes(videoId)) { list.push(videoId); this.set(STORAGE_KEYS.BLACKLIST, list); } },
+            
             addSearch(query) {
                 if(this.getSettings().incognito) return;
                 const history = this.getHistory();
                 const existing = history.searches.find(s => s.query.toLowerCase() === query.toLowerCase());
-                if (existing) { existing.count++; existing.timestamp = Date.now(); } 
-                else { history.searches.push({ query, timestamp: Date.now(), count: 1 }); }
-                history.searches = history.searches.slice(-50);
-                this.saveHistory(history);
+                if (existing) { existing.count++; existing.timestamp = Date.now(); } else { history.searches.push({ query, timestamp: Date.now(), count: 1 }); }
+                history.searches = history.searches.slice(-50); this.saveHistory(history);
             },
             addPlay(video) {
                 if(this.getSettings().incognito) return;
                 const history = this.getHistory();
-                // Remove existing if present to move to top
-                const existing = history.plays.findIndex(p => p.videoId === video.videoId);
-                if (existing > -1) { history.plays.splice(existing, 1); }
-                
+                // Filter out existing play of this song to move it to top
+                history.plays = history.plays.filter(p => p.videoId !== video.videoId);
                 history.plays.unshift({
                     videoId: video.videoId, title: video.title, channel: video.channel,
-                    playCount: (existing > -1 ? history.plays[existing]?.playCount || 0 : 0) + 1, lastPlayed: Date.now()
+                    thumbnail: video.thumbnail || this.getThumbnailUrl(video.videoId),
+                    playCount: 1, lastPlayed: Date.now()
                 });
-                history.plays = history.plays.slice(-100);
+                if(history.plays.length > 50) history.plays.pop();
                 this.saveHistory(history);
             },
             removePlay(videoId) {
-                // Remove from history only
                 const history = this.getHistory();
                 history.plays = history.plays.filter(p => p.videoId !== videoId);
                 this.saveHistory(history);
@@ -426,16 +314,14 @@
                 if(this.getSettings().incognito) return; 
                 const history = this.getHistory();
                 history.queue_history.push({ videoId: video.videoId, title: video.title, channel: video.channel, addedAt: Date.now(), playedFrom: source });
-                history.queue_history = history.queue_history.slice(-200);
-                this.saveHistory(history);
+                history.queue_history = history.queue_history.slice(-200); this.saveHistory(history);
             },
             toggleFavorite(video) {
                 let favorites = this.getFavorites();
                 const index = favorites.findIndex(f => f.videoId === video.videoId);
                 if (index > -1) favorites.splice(index, 1);
                 else favorites.push({ videoId: video.videoId, title: video.title, channel: video.channel, addedAt: Date.now() });
-                this.saveFavorites(favorites);
-                return index === -1;
+                this.saveFavorites(favorites); return index === -1;
             },
             isFavorite(videoId) { return this.getFavorites().some(f => f.videoId === videoId); },
             getViewMode() { return this.get(STORAGE_KEYS.VIEW_MODE) || 'grid'; },
@@ -448,18 +334,10 @@
                 const favorites = StorageManager.getFavorites();
                 const blacklist = StorageManager.getBlacklist();
                 const allVideos = new Map();
-
                 const filterBlacklist = (v) => !blacklist.includes(v.videoId);
-
                 history.plays.filter(filterBlacklist).forEach(p => allVideos.set(p.videoId, { ...p, thumbnail: StorageManager.getThumbnailUrl(p.videoId), source: 'played', score: 0 }));
-                favorites.filter(filterBlacklist).forEach(f => {
-                    if (!allVideos.has(f.videoId)) allVideos.set(f.videoId, { ...f, thumbnail: StorageManager.getThumbnailUrl(f.videoId), playCount: 0, lastPlayed: f.addedAt, source: 'favorite', score: 0 });
-                    else allVideos.get(f.videoId).source = 'favorite';
-                });
-                history.queue_history.filter(filterBlacklist).forEach(q => {
-                    if (allVideos.has(q.videoId) || !q.title) return;
-                    allVideos.set(q.videoId, { ...q, thumbnail: StorageManager.getThumbnailUrl(q.videoId), playCount: 0, lastPlayed: q.addedAt, source: q.playedFrom || 'radio', score: 0 });
-                });
+                favorites.filter(filterBlacklist).forEach(f => { if (!allVideos.has(f.videoId)) allVideos.set(f.videoId, { ...f, thumbnail: StorageManager.getThumbnailUrl(f.videoId), playCount: 0, lastPlayed: f.addedAt, source: 'favorite', score: 0 }); });
+                history.queue_history.filter(filterBlacklist).forEach(q => { if (allVideos.has(q.videoId) || !q.title) return; allVideos.set(q.videoId, { ...q, thumbnail: StorageManager.getThumbnailUrl(q.videoId), playCount: 0, lastPlayed: q.addedAt, source: q.playedFrom || 'radio', score: 0 }); });
                 if (allVideos.size === 0) return [];
                 const scored = this.scoreVideos(allVideos, history, favorites);
                 return this.diversify(scored).slice(0, 50);
@@ -470,8 +348,7 @@
                 allVideos.forEach((video, videoId) => {
                     const isFav = favorites.some(f => f.videoId === videoId);
                     const daysSince = (now - (video.lastPlayed || video.addedAt || now)) / (86400000);
-                    let score = (video.playCount || 0) / maxPlayCount * 0.25;
-                    score += Math.exp(-daysSince / 7) * 0.25;
+                    let score = (video.playCount || 0) / maxPlayCount * 0.25; score += Math.exp(-daysSince / 7) * 0.25;
                     if ((video.playCount || 0) === 0 && video.source === 'radio') score += 0.4;
                     if (isFav) score *= 1.5;
                     video.score = score + (Math.random() - 0.5) * 0.05;
@@ -483,14 +360,8 @@
 
         async function fetchWithRetry(url, maxRetries = 3) {
             for (let i = 0; i < maxRetries; i++) {
-                try {
-                    const response = await fetch(url);
-                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                    return await response.json();
-                } catch (error) {
-                    if (i < maxRetries - 1) await new Promise(resolve => setTimeout(resolve, 500));
-                    else throw error;
-                }
+                try { const response = await fetch(url); if (!response.ok) throw new Error(`HTTP error!`); return await response.json(); } 
+                catch (error) { if (i < maxRetries - 1) await new Promise(resolve => setTimeout(resolve, 500)); else throw error; }
             }
         }
 
@@ -500,36 +371,22 @@
             let cleanTitle = title.replace(/\([^)]*\)|\[[^\]]*\]/g, '').replace(/\b(ft\.|feat\.|official video|lyric video)\b.*/i, '').trim();
             const query = cleanTitle.split(/\s+/).slice(0, 5).join(' ');
             const url = `https://my-genius-scraper.arnoy799.workers.dev/?q=${encodeURIComponent(query)}&key=${settings.geniusApiKey}`;
-            try {
-                const res = await fetch(url);
-                if(!res.ok) return "Lyrics not found.";
-                const text = await res.text();
-                return text || "Lyrics not found.";
-            } catch(e) { console.error("Lyrics Error", e); return "Error fetching lyrics."; }
+            try { const res = await fetch(url); if(!res.ok) return "Lyrics not found."; const text = await res.text(); return text || "Lyrics not found."; } catch(e) { return "Error fetching lyrics."; }
         }
 
-        function formatTime(sec) {
-            const m = Math.floor(sec / 60);
-            const s = Math.floor(sec % 60);
-            return `${m}:${s < 10 ? '0'+s : s}`;
-        }
+        function formatTime(sec) { const m = Math.floor(sec / 60), s = Math.floor(sec % 60); return `${m}:${s < 10 ? '0'+s : s}`; }
         function updateIcons(playing) {
             const path = playing ? SVG_PAUSE : SVG_PLAY;
-            document.getElementById('play-icon-desktop').innerHTML = path;
-            document.getElementById('play-icon-mobile').innerHTML = path;
-            document.getElementById('fp-play-icon').innerHTML = path;
+            document.getElementById('play-icon-desktop').innerHTML = path; document.getElementById('play-icon-mobile').innerHTML = path; document.getElementById('fp-play-icon').innerHTML = path;
             if ('mediaSession' in navigator) navigator.mediaSession.playbackState = playing ? "playing" : "paused";
         }
         function updateNavButtons() {
             const hasQueue = currentQueue.length > 0;
-            ['prev-btn', 'next-btn', 'mobile-prev-btn', 'mobile-next-btn', 'fp-prev-btn', 'fp-next-btn'].forEach(id => {
-                const btn = document.getElementById(id); if(btn) { btn.disabled = !hasQueue; btn.style.opacity = hasQueue ? '1' : '0.3'; }
-            });
+            ['prev-btn', 'next-btn', 'mobile-prev-btn', 'mobile-next-btn', 'fp-prev-btn', 'fp-next-btn'].forEach(id => { const btn = document.getElementById(id); if(btn) { btn.disabled = !hasQueue; btn.style.opacity = hasQueue ? '1' : '0.3'; } });
         }
         function updateLoveButton() {
             if (currentIndex === -1 || !currentQueue[currentIndex]) return;
-            const videoId = currentQueue[currentIndex].videoId;
-            const isLoved = StorageManager.isFavorite(videoId);
+            const videoId = currentQueue[currentIndex].videoId; const isLoved = StorageManager.isFavorite(videoId);
             ['love-btn', 'mobile-love-btn', 'fp-love-btn'].forEach(id => { const btn = document.getElementById(id); if (btn) btn.classList.toggle('loved', isLoved); });
         }
         function updateOpenInYtButton(videoId) {
@@ -539,13 +396,7 @@
         function updateLyricsButton() {
             const settings = StorageManager.getSettings();
             const hasKey = !!settings.geniusApiKey;
-            ['fp-lyrics-btn', 'footer-lyrics-btn'].forEach(id => {
-                const btn = document.getElementById(id);
-                if(btn) {
-                    if(hasKey) { btn.classList.remove('hidden'); btn.classList.add(id === 'fp-lyrics-btn' ? 'flex' : 'block'); } 
-                    else { btn.classList.add('hidden'); btn.classList.remove('flex', 'block'); }
-                }
-            });
+            ['fp-lyrics-btn', 'footer-lyrics-btn'].forEach(id => { const btn = document.getElementById(id); if(btn) { if(hasKey) { btn.classList.remove('hidden'); btn.classList.add(id === 'fp-lyrics-btn' ? 'flex' : 'block'); } else { btn.classList.add('hidden'); btn.classList.remove('flex', 'block'); } } });
         }
         function updateViewModeButtons() {
             const gridBtn = document.getElementById('view-grid-btn'), listBtn = document.getElementById('view-list-btn');
@@ -564,18 +415,13 @@
         }
         function updateIncognitoUI(isIncognito) {
             const avatar = document.getElementById('user-avatar');
-            if(isIncognito) {
-                avatar.classList.remove('from-purple-500', 'to-pink-500'); avatar.classList.add('bg-gray-600');
-                avatar.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path></svg>';
-            } else {
-                avatar.classList.add('from-purple-500', 'to-pink-500'); avatar.classList.remove('bg-gray-600'); avatar.innerHTML = 'U';
-            }
+            if(isIncognito) { avatar.classList.remove('from-purple-500', 'to-pink-500'); avatar.classList.add('bg-gray-600'); avatar.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path></svg>'; } 
+            else { avatar.classList.add('from-purple-500', 'to-pink-500'); avatar.classList.remove('bg-gray-600'); avatar.innerHTML = 'U'; }
         }
         function setVolume(val) {
             volume = val;
             if(player && isPlayerReady) player.setVolume(volume);
-            document.getElementById('volume-slider').value = volume;
-            document.getElementById('fp-volume-slider').value = volume;
+            document.getElementById('volume-slider').value = volume; document.getElementById('fp-volume-slider').value = volume;
             const settings = StorageManager.getSettings(); settings.volume = volume; StorageManager.saveSettings(settings);
             if(volume > 0 && isMuted) { isMuted = false; if(player) player.unMute(); document.getElementById('vol-icon').innerHTML = SVG_VOL_HIGH; }
             else if(volume == 0 && !isMuted) { isMuted = true; if(player) player.mute(); document.getElementById('vol-icon').innerHTML = SVG_VOL_MUTE; }
@@ -618,6 +464,7 @@
             currentLyricsText = null; document.getElementById('floating-lyrics-text').innerText = "Loading...";
             player.loadVideoById(track.videoId); updateOpenInYtButton(track.videoId);
             StorageManager.addPlay(track); updateLoveButton(); renderQueue(); updateNavButtons(); updateMediaSession(track);
+            if(currentView === 'home') renderHomeFeed(); // Refresh Home to show new History
         }
 
         async function toggleLyrics() {
@@ -689,10 +536,7 @@
         }
 
         function renderGenericGrid(containerId, videos, removeType = null) {
-            const grid = document.getElementById(containerId);
-            if (!grid) return;
-            grid.innerHTML = '';
-            
+            const grid = document.getElementById(containerId); if (!grid) return; grid.innerHTML = '';
             if (viewMode === 'grid') {
                 grid.className = "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4";
                 videos.forEach(vid => {
@@ -700,20 +544,7 @@
                     const div = document.createElement('div');
                     div.className = "group relative p-4 rounded-xl hover:bg-[#282828] transition-all duration-300 ease-out cursor-pointer";
                     div.onclick = () => playSearchItem(vid);
-                    div.innerHTML = `
-                        <div class="relative aspect-square rounded-lg overflow-hidden mb-3 shadow-lg">
-                            <img src="${vid.thumbnail}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy">
-                            <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-[2px]">
-                                <div class="w-12 h-12 bg-white text-black rounded-full flex items-center justify-center transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300 shadow-xl hover:scale-110">
-                                    <svg class="w-6 h-6 ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                                </div>
-                            </div>
-                            ${vid.duration ? `<div class="absolute bottom-2 right-2 bg-black/80 backdrop-blur-md px-1.5 py-0.5 rounded text-[10px] font-bold text-white shadow-sm">${vid.duration}</div>` : ''}
-                        </div>
-                        <h4 class="font-bold text-white text-sm truncate mb-1 group-hover:text-white transition-colors">${vid.title}</h4>
-                        <p class="text-xs text-gray-400 font-medium truncate group-hover:text-gray-300 transition-colors">${vid.channel}</p>
-                        ${removeType ? `<button class="absolute top-2 right-2 p-1.5 bg-black/60 hover:bg-red-500/80 rounded-full opacity-0 group-hover:opacity-100 transition-all z-20" onclick="event.stopPropagation(); removeVideo('${vid.videoId}', '${removeType}')"><svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>` : ''}
-                    `;
+                    div.innerHTML = `<div class="relative aspect-square rounded-lg overflow-hidden mb-3 shadow-lg"><img src="${vid.thumbnail}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy"><div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-[2px]"><div class="w-12 h-12 bg-white text-black rounded-full flex items-center justify-center transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300 shadow-xl hover:scale-110"><svg class="w-6 h-6 ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div></div>${vid.duration ? `<div class="absolute bottom-2 right-2 bg-black/80 backdrop-blur-md px-1.5 py-0.5 rounded text-[10px] font-bold text-white shadow-sm">${vid.duration}</div>` : ''}</div><h4 class="font-bold text-white text-sm truncate mb-1 group-hover:text-white transition-colors">${vid.title}</h4><p class="text-xs text-gray-400 font-medium truncate group-hover:text-gray-300 transition-colors">${vid.channel}</p>${removeType ? `<button class="absolute top-2 right-2 p-1.5 bg-black/60 hover:bg-red-500/80 rounded-full opacity-0 group-hover:opacity-100 transition-all z-20" onclick="event.stopPropagation(); removeVideo('${vid.videoId}', '${removeType}')"><svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>` : ''}`;
                     grid.appendChild(div);
                 });
             } else {
@@ -722,37 +553,15 @@
                     const div = document.createElement('div');
                     div.className = "flex items-center space-x-4 p-3 rounded-xl hover:bg-[#1a1a1a] cursor-pointer group relative";
                     div.onclick = () => playSearchItem(vid);
-                    div.innerHTML = `
-                        <div class="relative flex-shrink-0 w-20 h-20 sm:w-24 sm:h-24">
-                            <img src="${vid.thumbnail}" class="w-full h-full rounded-lg object-cover">
-                            <div class="absolute inset-0 bg-black/40 hidden group-hover:flex items-center justify-center rounded-lg">
-                                <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                            </div>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <h4 class="font-semibold text-base truncate text-white mb-1">${vid.title}</h4>
-                            <p class="text-sm text-gray-400 truncate">${vid.channel}</p>
-                        </div>
-                        ${vid.duration ? `<div class="text-xs text-gray-500 font-medium">${vid.duration}</div>` : ''}
-                        ${removeType ? `<button class="p-2 hover:bg-red-500/20 rounded-full opacity-0 group-hover:opacity-100 transition-all ml-2" onclick="event.stopPropagation(); removeVideo('${vid.videoId}', '${removeType}')"><svg class="w-5 h-5 text-gray-400 hover:text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>` : ''}
-                    `;
+                    div.innerHTML = `<div class="relative flex-shrink-0 w-20 h-20 sm:w-24 sm:h-24"><img src="${vid.thumbnail}" class="w-full h-full rounded-lg object-cover"><div class="absolute inset-0 bg-black/40 hidden group-hover:flex items-center justify-center rounded-lg"><svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div></div><div class="flex-1 min-w-0"><h4 class="font-semibold text-base truncate text-white mb-1">${vid.title}</h4><p class="text-sm text-gray-400 truncate">${vid.channel}</p></div>${vid.duration ? `<div class="text-xs text-gray-500 font-medium">${vid.duration}</div>` : ''}${removeType ? `<button class="p-2 hover:bg-red-500/20 rounded-full opacity-0 group-hover:opacity-100 transition-all ml-2" onclick="event.stopPropagation(); removeVideo('${vid.videoId}', '${removeType}')"><svg class="w-5 h-5 text-gray-400 hover:text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>` : ''}`;
                     grid.appendChild(div);
                 });
             }
         }
 
         function removeVideo(videoId, type) {
-            if (type === 'history') {
-                if(confirm("Remove this song from your history?")) {
-                    StorageManager.removePlay(videoId);
-                    renderHomeFeed();
-                }
-            } else if (type === 'blacklist') {
-                if(confirm("Don't recommend this song again?")) {
-                    StorageManager.addToBlacklist(videoId);
-                    renderHomeFeed();
-                }
-            }
+            if (type === 'history') { if(confirm("Remove this song from your history?")) { StorageManager.removePlay(videoId); renderHomeFeed(); } } 
+            else if (type === 'blacklist') { if(confirm("Don't recommend this song again?")) { StorageManager.addToBlacklist(videoId); renderHomeFeed(); } }
         }
 
         function renderSearchResults() { renderGenericGrid('results-grid', lastResults); }
@@ -762,46 +571,14 @@
             const history = StorageManager.getHistory();
             const blacklist = StorageManager.getBlacklist();
             
-            // Unique history items for Listen Again
             const seenHistory = new Set();
-            const listenAgain = history.plays
-                .filter(p => !blacklist.includes(p.videoId))
-                .filter(p => {
-                    if (seenHistory.has(p.videoId)) return false;
-                    seenHistory.add(p.videoId);
-                    return true;
-                })
-                .slice(0, 18)
-                .map(p => ({...p, thumbnail: StorageManager.getThumbnailUrl(p.videoId)}));
-
+            const listenAgain = history.plays.filter(p => !blacklist.includes(p.videoId)).filter(p => { if (seenHistory.has(p.videoId)) return false; seenHistory.add(p.videoId); return true; }).slice(0, 18).map(p => ({...p, thumbnail: StorageManager.getThumbnailUrl(p.videoId)}));
             const forYou = FeedGenerator.generate();
 
             section.innerHTML = `
-                <div class="flex items-center justify-between mb-8">
-                    <h2 class="text-3xl font-bold tracking-tight">Home</h2>
-                    <div class="flex bg-[#212121] rounded-lg p-1">
-                        <button id="view-grid-btn" onclick="setViewMode('grid')" class="p-2 rounded-md transition"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M4 11h5V5H4v6zm0 7h5v-6H4v6zm6 0h5v-6h-5v6zm6 0h5v-6h-5v6zm-6-7h5V5h-5v6zm6-6v6h5V5h-5z"/></svg></button>
-                        <button id="view-list-btn" onclick="setViewMode('list')" class="p-2 rounded-md transition"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg></button>
-                    </div>
-                </div>
-
-                ${listenAgain.length > 0 ? `
-                <div class="mb-10">
-                    <div class="flex items-center space-x-2 mb-4">
-                        <svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        <h3 class="text-xl font-bold">Listen Again</h3>
-                    </div>
-                    <div id="listen-again-grid"></div>
-                </div>` : ''}
-
-                <div>
-                    <div class="flex items-center space-x-2 mb-4">
-                         <svg class="w-6 h-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
-                        <h3 class="text-xl font-bold">For You</h3>
-                    </div>
-                    <div id="for-you-grid"></div>
-                </div>
-            `;
+                <div class="flex items-center justify-between mb-8"><h2 class="text-3xl font-bold tracking-tight">Home</h2><div class="flex bg-[#212121] rounded-lg p-1"><button id="view-grid-btn" onclick="setViewMode('grid')" class="p-2 rounded-md transition"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M4 11h5V5H4v6zm0 7h5v-6H4v6zm6 0h5v-6h-5v6zm6 0h5v-6h-5v6zm-6-7h5V5h-5v6zm6-6v6h5V5h-5z"/></svg></button><button id="view-list-btn" onclick="setViewMode('list')" class="p-2 rounded-md transition"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg></button></div></div>
+                ${listenAgain.length > 0 ? `<div class="mb-10"><div class="flex items-center space-x-2 mb-4"><svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg><h3 class="text-xl font-bold">Listen Again</h3></div><div id="listen-again-grid"></div></div>` : ''}
+                <div><div class="flex items-center space-x-2 mb-4"><svg class="w-6 h-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg><h3 class="text-xl font-bold">For You</h3></div><div id="for-you-grid"></div></div>`;
             
             updateViewModeButtons();
             if(listenAgain.length > 0) renderGenericGrid('listen-again-grid', listenAgain, 'history');
@@ -811,46 +588,25 @@
         function renderFavorites() {
             const section = document.getElementById('content-section');
             const favorites = StorageManager.getFavorites();
-            section.innerHTML = `
-                <div class="flex items-center justify-between mb-6"><div><h2 class="text-2xl font-bold">Favorites</h2><p class="text-sm text-gray-400 mt-1">${favorites.length} songs</p></div><div class="flex bg-[#212121] rounded-lg p-1"><button id="view-grid-btn" onclick="setViewMode('grid')" class="p-2 rounded-md"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M4 11h5V5H4v6zm0 7h5v-6H4v6zm6 0h5v-6h-5v6zm6 0h5v-6h-5v6zm-6-7h5V5h-5v6zm6-6v6h5V5h-5z"/></svg></button><button id="view-list-btn" onclick="setViewMode('list')" class="p-2 rounded-md"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg></button></div></div>
-                <div id="favorites-grid"></div>
-            `;
+            section.innerHTML = `<div class="flex items-center justify-between mb-6"><div><h2 class="text-2xl font-bold">Favorites</h2><p class="text-sm text-gray-400 mt-1">${favorites.length} songs</p></div><div class="flex bg-[#212121] rounded-lg p-1"><button id="view-grid-btn" onclick="setViewMode('grid')" class="p-2 rounded-md"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M4 11h5V5H4v6zm0 7h5v-6H4v6zm6 0h5v-6h-5v6zm6 0h5v-6h-5v6zm-6-7h5V5h-5v6zm6-6v6h5V5h-5z"/></svg></button><button id="view-list-btn" onclick="setViewMode('list')" class="p-2 rounded-md"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg></button></div></div><div id="favorites-grid"></div>`;
             const mappedFavs = favorites.reverse().map(f => ({...f, thumbnail: StorageManager.getThumbnailUrl(f.videoId)}));
-            updateViewModeButtons();
-            renderGenericGrid('favorites-grid', mappedFavs);
+            updateViewModeButtons(); renderGenericGrid('favorites-grid', mappedFavs);
         }
 
         function renderQueue() {
-            // Render sidebar queue
             const list = document.getElementById('queue-list');
             document.getElementById('queue-count').textContent = `${currentQueue.length} song${currentQueue.length !== 1 ? 's' : ''} in queue`;
             
             const renderItem = (vid, i) => {
                 const isActive = i === currentIndex;
                 const thumb = vid.thumbnail || (vid.thumbnails ? vid.thumbnails[0].url : '');
-                return `
-                    <div class="queue-item group flex items-center space-x-3 p-3 rounded-lg cursor-pointer transition-all ${isActive ? 'active bg-[#212121]' : 'text-gray-300 hover:bg-[#1a1a1a]'}" onclick="loadTrack(${i})">
-                        <div class="w-6 text-center text-xs font-bold text-gray-500">${isActive ? '<span class="text-red-500">▶</span>' : i+1}</div>
-                        <img src="${thumb}" class="w-10 h-10 rounded bg-[#333] object-cover">
-                        <div class="flex-1 min-w-0">
-                            <p class="text-sm font-semibold truncate queue-title ${isActive ? 'text-red-500' : ''}">${vid.title}</p>
-                            <p class="text-xs text-gray-400 truncate">${vid.channel}</p>
-                        </div>
-                        <button class="opacity-0 group-hover:opacity-100 p-2 hover:text-red-500" onclick="event.stopPropagation(); removeFromQueue(${i})">x</button>
-                    </div>`;
+                return `<div class="queue-item group flex items-center space-x-3 p-3 rounded-lg cursor-pointer transition-all ${isActive ? 'active' : 'text-gray-300 hover:bg-[#1a1a1a]'}" onclick="loadTrack(${i})"><div class="w-6 text-center text-xs font-bold text-gray-500">${isActive ? '<span class="text-red-500">▶</span>' : i+1}</div><img src="${thumb}" class="w-10 h-10 rounded bg-[#333] object-cover"><div class="flex-1 min-w-0"><p class="text-sm font-semibold truncate title-text">${vid.title}</p><p class="text-xs text-gray-400 truncate">${vid.channel}</p></div><button class="opacity-0 group-hover:opacity-100 p-2 hover:text-red-500" onclick="event.stopPropagation(); removeFromQueue(${i})">x</button></div>`;
             };
 
             list.innerHTML = currentQueue.map((vid, i) => renderItem(vid, i)).join('');
+            const fpList = document.getElementById('fp-queue-list'); if(fpList) fpList.innerHTML = currentQueue.map((vid, i) => renderItem(vid, i)).join('');
             
-            // Render Full Player Queue
-            const fpList = document.getElementById('fp-queue-list');
-            if(fpList) {
-                fpList.innerHTML = currentQueue.map((vid, i) => renderItem(vid, i)).join('');
-            }
-            
-            // Scroll sidebar queue to current item
-            const activeItem = list.children[currentIndex];
-            if(activeItem) activeItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            if(list.children[currentIndex]) list.children[currentIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
         function removeFromQueue(index) {
             if (index === currentIndex) nextTrack(); else if (index < currentIndex) currentIndex--;
@@ -871,36 +627,18 @@
         
         function setFullPlayerMode(mode) {
             fullPlayerMode = mode; 
-            const videoWrapper = document.getElementById('video-wrapper');
-            const artContainer = document.getElementById('fp-art-container');
-            const queueContainer = document.getElementById('fp-queue-container');
-            const infoContainer = document.getElementById('fp-info-container');
-            const btns = {
-                art: document.getElementById('fp-mode-art'),
-                video: document.getElementById('fp-mode-video'),
-                queue: document.getElementById('fp-mode-queue')
-            };
+            const videoWrapper = document.getElementById('video-wrapper'), artContainer = document.getElementById('fp-art-container'), queueContainer = document.getElementById('fp-queue-container'), infoContainer = document.getElementById('fp-info-container');
+            const btns = { art: document.getElementById('fp-mode-art'), video: document.getElementById('fp-mode-video'), queue: document.getElementById('fp-mode-queue') };
 
-            // Reset UI states
             videoWrapper.classList.remove('video-wrapper-full', 'video-visible');
             if(!isVideoVisible) videoWrapper.classList.add('video-hidden');
-            artContainer.classList.remove('hidden');
-            queueContainer.classList.add('hidden');
-            infoContainer.classList.remove('hidden');
+            artContainer.classList.remove('hidden'); queueContainer.classList.add('hidden'); infoContainer.classList.remove('hidden');
             
             Object.values(btns).forEach(b => { b.classList.remove('bg-white/10', 'text-white'); b.classList.add('text-gray-400'); });
             btns[mode].classList.add('bg-white/10', 'text-white'); btns[mode].classList.remove('text-gray-400');
 
-            if (mode === 'video') {
-                videoWrapper.classList.add('video-wrapper-full', 'video-visible');
-                videoWrapper.classList.remove('video-hidden');
-                artContainer.classList.add('hidden');
-            } else if (mode === 'queue') {
-                artContainer.classList.add('hidden');
-                infoContainer.classList.add('hidden');
-                queueContainer.classList.remove('hidden');
-                renderQueue(); // Refresh queue view
-            }
+            if (mode === 'video') { videoWrapper.classList.add('video-wrapper-full', 'video-visible'); videoWrapper.classList.remove('video-hidden'); artContainer.classList.add('hidden'); } 
+            else if (mode === 'queue') { artContainer.classList.add('hidden'); infoContainer.classList.add('hidden'); queueContainer.classList.remove('hidden'); renderQueue(); }
         }
         
         function toggleDesktopSidebar() {
@@ -958,22 +696,14 @@
             document.getElementById('love-btn').onclick = loveHandler; document.getElementById('mobile-love-btn').onclick = loveHandler; document.getElementById('fp-love-btn').onclick = loveHandler;
             document.getElementById('nav-settings').onclick = toggleSettings; document.getElementById('fp-settings-btn').onclick = toggleSettings; document.getElementById('close-settings-btn').onclick = toggleSettings;
             
-            // Settings Listeners
             document.getElementById('player-size-slider').oninput = (e) => { setVideoSize(e.target.value); const settings = StorageManager.getSettings(); settings.videoSize = e.target.value; StorageManager.saveSettings(settings); };
             document.getElementById('genius-api-input').oninput = (e) => { 
-                const settings = StorageManager.getSettings(); 
-                settings.geniusApiKey = e.target.value.trim(); 
-                StorageManager.saveSettings(settings);
-                updateLyricsButton();
+                const settings = StorageManager.getSettings(); settings.geniusApiKey = e.target.value.trim(); StorageManager.saveSettings(settings); updateLyricsButton();
             };
             document.getElementById('incognito-toggle').onchange = (e) => {
-                const settings = StorageManager.getSettings();
-                settings.incognito = e.target.checked;
-                StorageManager.saveSettings(settings);
-                updateIncognitoUI(settings.incognito);
+                const settings = StorageManager.getSettings(); settings.incognito = e.target.checked; StorageManager.saveSettings(settings); updateIncognitoUI(settings.incognito);
             };
 
-            // Volume Listeners
             document.getElementById('mute-btn').onclick = toggleMute;
             document.getElementById('volume-slider').oninput = (e) => setVolume(e.target.value);
             document.getElementById('fp-volume-slider').oninput = (e) => setVolume(e.target.value);
@@ -985,7 +715,6 @@
             document.getElementById('fp-mode-queue').onclick = () => setFullPlayerMode('queue');
             document.getElementById('desktop-sidebar-toggle').onclick = toggleDesktopSidebar;
             
-            // Lyrics Listeners
             const lyricsHandler = toggleLyrics;
             document.getElementById('fp-lyrics-btn').onclick = lyricsHandler;
             document.getElementById('footer-lyrics-btn').onclick = lyricsHandler;
