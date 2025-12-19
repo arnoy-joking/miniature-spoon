@@ -51,11 +51,9 @@
             width: 100%; height: 4px; cursor: pointer; background: #404040; border-radius: 2px;
         }
         
-        /* Volume Slider Specifics */
         .vol-range::-webkit-slider-thumb { height: 12px; width: 12px; margin-top: -4px; background: white; }
         .vol-range::-webkit-slider-runnable-track { height: 4px; background: #555; }
 
-        /* Toggle Switch for Incognito */
         .toggle-checkbox:checked { right: 0; border-color: #ef4444; }
         .toggle-checkbox:checked + .toggle-label { background-color: #ef4444; }
         
@@ -88,7 +86,6 @@
                 </button>
             </div>
             <div class="space-y-6">
-                <!-- Incognito Mode -->
                 <div class="flex items-center justify-between">
                     <div>
                         <span class="text-gray-200 block">Incognito Mode</span>
@@ -113,13 +110,13 @@
                     <p class="text-[10px] text-gray-500 mt-1">Required to show lyrics.</p>
                 </div>
                 <div class="pt-4 border-t border-[#333]">
-                    <p class="text-xs text-gray-500 text-center">Lyra v2.0</p>
+                    <p class="text-xs text-gray-500 text-center">Lyra v2.1</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Floating Lyrics Modal (Independent) -->
+    <!-- Floating Lyrics Modal -->
     <div id="lyrics-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[70] hidden flex items-center justify-center">
         <div class="bg-[#121212] w-full max-w-lg h-[70vh] rounded-2xl shadow-2xl flex flex-col mx-4 border border-[#333] relative">
             <div class="p-4 border-b border-[#333] flex justify-between items-center bg-[#1e1e1e] rounded-t-2xl">
@@ -159,7 +156,7 @@
             <!-- Video Placeholder -->
             <div id="fp-video-placeholder" class="absolute inset-0 pointer-events-none"></div>
 
-            <!-- Full Player Queue Container -->
+            <!-- Full Player Queue -->
             <div id="fp-queue-container" class="hidden absolute inset-0 bg-[#030303] z-40 flex flex-col w-full max-w-2xl mx-auto px-4 pb-4">
                 <h3 class="text-xl font-bold mb-4 sticky top-0 bg-[#030303] py-2 z-10">Up Next</h3>
                 <div id="fp-queue-list" class="flex-1 overflow-y-auto custom-scrollbar space-y-2"></div>
@@ -494,6 +491,16 @@
             const s = Math.floor(sec % 60);
             return `${m}:${s < 10 ? '0'+s : s}`;
         }
+        function formatViewCount(viewStr) {
+            if (!viewStr) return '';
+            const num = parseInt(viewStr.replace(/[^0-9]/g, ''));
+            if (isNaN(num)) return '';
+            if (num >= 1000000000) return (num / 1000000000).toFixed(1).replace(/\.0$/, '') + 'B';
+            if (num >= 1000000) return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+            if (num >= 1000) return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
+            return num.toString();
+        }
+
         function updateIcons(playing) {
             const path = playing ? SVG_PAUSE : SVG_PLAY;
             document.getElementById('play-icon-desktop').innerHTML = path;
@@ -672,6 +679,13 @@
                 grid.className = "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4";
                 videos.forEach(vid => {
                     if (vid.duration && (vid.duration.includes('m') || vid.duration.includes('h'))) return;
+                    
+                    let metaHTML = '';
+                    if (vid.views) {
+                        const views = formatViewCount(vid.views);
+                        metaHTML = `<div class="flex items-center text-[11px] text-gray-500 mt-0.5 space-x-1"><span>${views} views</span><span class="text-gray-600">•</span><span>${vid.published || ''}</span></div>`;
+                    }
+
                     const div = document.createElement('div');
                     div.className = "group relative p-4 rounded-xl hover:bg-[#282828] transition-all duration-300 ease-out cursor-pointer";
                     div.onclick = () => playSearchItem(vid);
@@ -687,6 +701,7 @@
                         </div>
                         <h4 class="font-bold text-white text-sm truncate mb-1 group-hover:text-white transition-colors">${vid.title}</h4>
                         <p class="text-xs text-gray-400 font-medium truncate group-hover:text-gray-300 transition-colors">${vid.channel}</p>
+                        ${metaHTML}
                         ${isRemovable ? `<button class="absolute top-2 right-2 p-1.5 bg-black/60 hover:bg-red-500/80 rounded-full opacity-0 group-hover:opacity-100 transition-all z-20" onclick="event.stopPropagation(); removeVideo('${vid.videoId}')"><svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>` : ''}
                     `;
                     grid.appendChild(div);
@@ -697,6 +712,13 @@
                     const div = document.createElement('div');
                     div.className = "flex items-center space-x-4 p-3 rounded-xl hover:bg-[#1a1a1a] cursor-pointer group relative";
                     div.onclick = () => playSearchItem(vid);
+                    
+                    let metaHTML = '';
+                    if (vid.views) {
+                        const views = formatViewCount(vid.views);
+                        metaHTML = `<span class="mx-1">•</span><span>${views} views</span><span class="mx-1">•</span><span>${vid.published || ''}</span>`;
+                    }
+
                     div.innerHTML = `
                         <div class="relative flex-shrink-0 w-20 h-20 sm:w-24 sm:h-24">
                             <img src="${vid.thumbnail}" class="w-full h-full rounded-lg object-cover">
@@ -706,7 +728,10 @@
                         </div>
                         <div class="flex-1 min-w-0">
                             <h4 class="font-semibold text-base truncate text-white mb-1">${vid.title}</h4>
-                            <p class="text-sm text-gray-400 truncate">${vid.channel}</p>
+                            <div class="flex items-center text-xs text-gray-400 mt-0.5">
+                                <p class="truncate">${vid.channel}</p>
+                                ${metaHTML}
+                            </div>
                         </div>
                         ${vid.duration ? `<div class="text-xs text-gray-500 font-medium">${vid.duration}</div>` : ''}
                         ${isRemovable ? `<button class="p-2 hover:bg-red-500/20 rounded-full opacity-0 group-hover:opacity-100 transition-all ml-2" onclick="event.stopPropagation(); removeVideo('${vid.videoId}')"><svg class="w-5 h-5 text-gray-400 hover:text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>` : ''}
