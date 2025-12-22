@@ -110,7 +110,7 @@
                     <p class="text-[10px] text-gray-500 mt-1">Required to show lyrics.</p>
                 </div>
                 <div class="pt-4 border-t border-[#333]">
-                    <p class="text-xs text-gray-500 text-center">Lyra v2.1</p>
+                    <p class="text-xs text-gray-500 text-center">Lyra v2.2</p>
                 </div>
             </div>
         </div>
@@ -228,6 +228,9 @@
                 </a>
                 <a href="#" id="nav-explore" class="nav-item flex items-center space-x-4 p-3 rounded-lg text-gray-400 hover:bg-[#212121]">
                     <svg class="w-6 h-6 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12 10.9c-.61 0-1.1.49-1.1 1.1s.49 1.1 1.1 1.1c.61 0 1.1-.49 1.1-1.1s-.49-1.1-1.1-1.1zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm2.19 12.19L6 18l3.81-8.19L18 6l-3.81 8.19z"/></svg><span class="nav-text">Explore</span>
+                </a>
+                <a href="#" id="nav-top-songs" class="nav-item flex items-center space-x-4 p-3 rounded-lg text-gray-400 hover:bg-[#212121]">
+                    <svg class="w-6 h-6 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/></svg><span class="nav-text">Top Songs</span>
                 </a>
                 <a href="#" id="nav-favorites" class="nav-item flex items-center space-x-4 p-3 rounded-lg text-gray-400 hover:bg-[#212121]">
                     <svg class="w-6 h-6 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg><span class="nav-text">Favorites</span>
@@ -352,11 +355,11 @@
     </div>
 
     <script>
-        const SEARCH_APIS = ['https://literate-octo-succotash-six.vercel.app/search'];
+        const SEARCH_APIS = ['https://raspy-sound-0966.arnoy799.workers.dev/', 'https://wispy-wave-f6c0.arnoy799.workers.dev/'];
         const RADIO_APIS = ['https://long-pond-4887.arnoy799.workers.dev/', 'https://jolly-hall-c603.arnoy799.workers.dev/'];
         function getRandomAPI(apiArray) { return apiArray[Math.floor(Math.random() * apiArray.length)]; }
         
-        const STORAGE_KEYS = { HISTORY: 'music_history', FAVORITES: 'music_favorites', VIEW_MODE: 'music_view_mode', SETTINGS: 'music_settings', BLACKLIST: 'music_blacklist' };
+        const STORAGE_KEYS = { HISTORY: 'music_history', FAVORITES: 'music_favorites', VIEW_MODE: 'music_view_mode', SETTINGS: 'music_settings', BLACKLIST: 'music_blacklist', TOP_SONGS_CACHE: 'music_top_songs_cache' };
         
         let player, isPlayerReady = false, isPlaying = false, currentQueue = [], currentIndex = -1;
         let updateInterval, isVideoVisible = false, currentView = 'home', lastResults = [], pendingPlayIndex = -1;
@@ -486,6 +489,37 @@
             } catch(e) { console.error("Lyrics Error", e); return "Error fetching lyrics."; }
         }
 
+        async function fetchTopSongs() {
+            const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+            const cached = StorageManager.get(STORAGE_KEYS.TOP_SONGS_CACHE);
+            
+            if (cached && (Date.now() - cached.timestamp < CACHE_DURATION)) {
+                return cached.data;
+            }
+
+            try {
+                const data = await fetchWithRetry('https://icy-pine-f4fb.arnoy799.workers.dev/');
+                const mappedData = data.videos.map(v => ({
+                    videoId: v.id,
+                    title: v.title,
+                    channel: v.author,
+                    thumbnail: v.thumbnail,
+                    duration: v.duration,
+                    views: v.views,
+                    published: v.published
+                }));
+                
+                StorageManager.set(STORAGE_KEYS.TOP_SONGS_CACHE, {
+                    timestamp: Date.now(),
+                    data: mappedData
+                });
+                return mappedData;
+            } catch (e) {
+                console.error("Top Songs Error:", e);
+                return [];
+            }
+        }
+
         function formatTime(sec) {
             const m = Math.floor(sec / 60);
             const s = Math.floor(sec % 60);
@@ -493,6 +527,10 @@
         }
         function formatViewCount(viewStr) {
             if (!viewStr) return '';
+            // Check if already formatted (e.g., "917M views" or "917M")
+            if (/[KMBkmb]/.test(viewStr)) {
+                return viewStr.split(' ')[0]; // Returns "917M" from "917M views"
+            }
             const num = parseInt(viewStr.replace(/[^0-9]/g, ''));
             if (isNaN(num)) return '';
             if (num >= 1000000000) return (num / 1000000000).toFixed(1).replace(/\.0$/, '') + 'B';
@@ -670,6 +708,28 @@
             } catch (e) { document.getElementById('content-section').innerHTML = `<p class="text-red-500">Error fetching results.</p>`; }
         }
 
+        async function renderTopSongs() {
+            document.getElementById('content-section').innerHTML = `<h2 class="text-2xl font-bold mb-4">Loading Top Songs...</h2><div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">${new Array(12).fill('<div class="p-3 rounded-xl"><div class="aspect-square rounded-lg skeleton mb-3"></div><div class="h-4 w-3/4 rounded skeleton mb-2"></div><div class="h-3 w-1/2 rounded skeleton"></div></div>').join('')}</div>`;
+            const songs = await fetchTopSongs();
+            lastResults = songs; // Reuse generic rendering logic
+            
+            document.getElementById('content-section').innerHTML = `
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h2 class="text-2xl font-bold">Top 100 Global</h2>
+                        <p class="text-xs text-gray-400 mt-1">Updated daily</p>
+                    </div>
+                    <div class="flex bg-[#212121] rounded-lg p-1">
+                        <button id="view-grid-btn" onclick="setViewMode('grid')" class="p-2 rounded-md"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M4 11h5V5H4v6zm0 7h5v-6H4v6zm6 0h5v-6h-5v6zm6 0h5v-6h-5v6zm-6-7h5V5h-5v6zm6-6v6h5V5h-5z"/></svg></button>
+                        <button id="view-list-btn" onclick="setViewMode('list')" class="p-2 rounded-md"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg></button>
+                    </div>
+                </div>
+                <div id="results-grid"></div>
+            `;
+            renderSearchResults(); // Renders lastResults into #results-grid
+            updateViewModeButtons();
+        }
+
         function renderGenericGrid(containerId, videos, isRemovable = false) {
             const grid = document.getElementById(containerId);
             if (!grid) return;
@@ -820,7 +880,7 @@
         }
         function setViewMode(mode) {
             viewMode = mode; StorageManager.setViewMode(mode);
-            if (currentView === 'home') renderHomeFeed(); else if (currentView === 'favorites') renderFavorites(); else if (currentView === 'search') renderSearchResults();
+            if (currentView === 'home') renderHomeFeed(); else if (currentView === 'favorites') renderFavorites(); else if (currentView === 'search') renderSearchResults(); else if (currentView === 'top_songs') renderTopSongs();
         }
         function toggleQueue() { document.getElementById('queue-panel').classList.toggle('translate-x-full'); }
         function toggleSettings() { document.getElementById('settings-modal').classList.toggle('hidden'); }
@@ -883,11 +943,13 @@
                 }
             });
 
-            ['home', 'explore', 'favorites'].forEach(view => {
+            ['home', 'explore', 'favorites', 'top-songs'].forEach(view => {
                 document.getElementById('nav-' + view).onclick = (e) => {
-                    e.preventDefault(); currentView = view;
+                    e.preventDefault(); currentView = view.replace('-', '_');
                     document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active')); document.getElementById('nav-' + view).classList.add('active');
-                    if(view === 'home') renderHomeFeed(); else if(view === 'favorites') renderFavorites();
+                    if(view === 'home') renderHomeFeed(); 
+                    else if(view === 'favorites') renderFavorites();
+                    else if(view === 'top-songs') renderTopSongs();
                     else if(view === 'explore') document.getElementById('content-section').innerHTML = '<h2 class="text-2xl font-bold">Explore</h2><p class="text-gray-400">Search for music to get started.</p>';
                     if(window.innerWidth < 640) { document.getElementById('sidebar').classList.add('-translate-x-full'); document.getElementById('sidebar-overlay').classList.add('hidden'); }
                 }
@@ -947,4 +1009,3 @@
     </script>
 </body>
 </html>
-
