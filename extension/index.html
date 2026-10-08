@@ -176,6 +176,7 @@ body[data-rail="collapsed"] .app { grid-template-columns: var(--rail-collapsed) 
 .brand__word i { font-style: normal; background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .brand__tag { font-size: 9px; letter-spacing: .18em; text-transform: uppercase; color: var(--text-4); margin-top: 1px; }
 .rail__actions { display: flex; justify-content: flex-end; margin: -46px 0 10px; }
+.rail__foot { display: flex; align-items: center; gap: 6px; margin-top: 12px; }
 
 .eyebrow { font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: var(--text-4); padding: 14px 12px 8px; }
 .nav { display: flex; flex-direction: column; gap: 3px; min-height: 0; }
@@ -205,7 +206,15 @@ body[data-rail="collapsed"] .brand__word, body[data-rail="collapsed"] .brand__ta
 body[data-rail="collapsed"] .eyebrow, body[data-rail="collapsed"] .rail__card, body[data-rail="collapsed"] .nav-item__badge { display: none; }
 body[data-rail="collapsed"] .nav-item { justify-content: center; padding: 12px 0; }
 body[data-rail="collapsed"] .brand { justify-content: center; padding-left: 0; padding-right: 0; }
-body[data-rail="collapsed"] .rail__actions { display: none; }
+/* The expand control stays. It was display:none here, which is why a collapsed rail had no
+   way back. It now sits centred under the mark and points right, so the same button reads
+   as "open this". */
+body[data-rail="collapsed"] .rail__actions { display: flex; justify-content: center; margin: 0 0 6px; }
+body[data-rail="collapsed"] .rail__actions svg { transform: rotate(180deg); }
+/* Collapsed footer: stacked, and the storage badge goes (its text cannot fit 50px). */
+body[data-rail="collapsed"] .rail__foot { flex-direction: column; margin-top: auto; gap: 4px; }
+body[data-rail="collapsed"] .rail__foot .status { display: none; }
+body[data-rail="collapsed"] .rail__foot .icon-btn { margin: 0 auto; }
 
 /* ---------- 6. Main column ---------------------------------------------- */
 .main { grid-row: 1 / 2; min-width: 0; display: flex; flex-direction: column; position: relative; }
@@ -607,6 +616,15 @@ body[data-surface="popup"] .overlay { --ov-pad: 14px; }
   .player__right #btn-pip { display: none; }   /* queue + lyrics stay: they are the app */
 }
 @media (max-width: 980px) {
+  /* The rail is a drawer here. A collapsed desktop rail's icon-only labels would make the
+     drawer an unlabelled menu, so the drawer always opens with full labels. */
+  body[data-rail="collapsed"] .brand__word, body[data-rail="collapsed"] .brand__tag,
+  body[data-rail="collapsed"] .nav-item span, body[data-rail="collapsed"] .eyebrow,
+  body[data-rail="collapsed"] .rail__card { display: revert; }
+  body[data-rail="collapsed"] .nav-item { justify-content: flex-start; padding: 10px 12px; }
+  body[data-rail="collapsed"] .brand { justify-content: flex-start; padding: 6px 8px 14px; }
+  body[data-rail="collapsed"] .rail__foot { flex-direction: row; }
+  body[data-rail="collapsed"] .rail__foot .status { display: inline-flex; }
   .app { grid-template-columns: minmax(0, 1fr) !important; }
   .rail { position: fixed; inset: 0 auto 0 0; width: 268px; z-index: 42; transform: translateX(-102%); transition: transform .45s var(--ease); }
   body[data-drawer="rail"] .rail { transform: none; box-shadow: var(--shadow-3); }
@@ -788,7 +806,7 @@ body[data-surface="popup"] .overlay { --ov-pad: 14px; }
   // The host page may override anything here:
   //   window.LYRA_CONFIG = { proxyUrls: ['https://…workers.dev'] }
   var CFG = Object.assign({
-    version: '4.4.0',
+    version: '4.4.1',
     webAppUrl: 'https://lyra-music.vercel.app/extension',
     installUrl: '',                        // Chrome Web Store link (optional)
     proxyUrls: [],                         // your lyra-proxy worker, tried first
@@ -1461,7 +1479,7 @@ body[data-surface="popup"] .overlay { --ov-pad: 14px; }
     return '<div class="brand"><span class="brand__mark">' + svg(I.logo) + '</span>' +
       '<div><div class="brand__word">Ly<i>ra</i></div><div class="brand__tag">' + (IS_EXTENSION ? 'extension' : 'web app') + '</div></div>' +
       '</div>' +
-      '<div class="rail__actions"><button class="icon-btn" data-act="rail-collapse" title="Collapse sidebar">' + svg(I.chevron) + '</button></div>' +
+      '<div class="rail__actions"><button class="icon-btn" data-act="rail-collapse" id="rail-toggle" aria-label="Collapse sidebar" title="Collapse sidebar">' + svg(I.chevron) + '</button></div>' +
       '<div class="eyebrow">Listen</div>' +
       '<nav class="nav">' + items.map(function (it) {
         return '<a href="#" class="nav-item" data-act="nav" data-nav="' + it[0] + '">' + svg(it[1]) + '<span>' + it[2] + '</span>' +
@@ -1469,7 +1487,7 @@ body[data-surface="popup"] .overlay { --ov-pad: 14px; }
       }).join('') + '</nav>' +
       '<div class="eyebrow">Now</div>' +
       '<div class="rail__card" id="rail-card">' + cardHTML() + '</div>' +
-      '<div style="margin-top:12px;display:flex;align-items:center;gap:6px">' +
+      '<div class="rail__foot">' +
       '<button class="icon-btn" data-act="settings" title="Settings">' + svg(I.gear) + '</button>' +
       '<button class="icon-btn" data-act="incognito" id="incog-btn" title="Incognito session">' + svg(I.incog) + '</button>' +
       '<span class="status" style="font-size:10px;padding:5px 8px;margin-left:auto" id="storage-badge"></span>' +
@@ -2529,10 +2547,10 @@ body[data-surface="popup"] .overlay { --ov-pad: 14px; }
       }
       case 'pip-close': { $('#media-slot').setAttribute('data-open', '0'); $('#media-slot').style.display = 'none'; $('#btn-pip').classList.remove('is-on'); break; }
       case 'mute': state.muted = !state.muted; video.muted = state.muted; paintVol(); break;
-      case 'rail-collapse': { var on2 = Store.settings().rail !== 'collapsed'; Store.saveSettings({ rail: on2 ? 'collapsed' : 'expanded' }); document.body.dataset.rail = on2 ? 'collapsed' : 'expanded'; break; }
+      case 'rail-collapse': toggleRail(); break;
       case 'rail-drawer': {
         if (window.innerWidth <= 980) { document.body.setAttribute('data-drawer', 'rail'); $('#scrim').classList.add('is-open'); }
-        else { var c2 = Store.settings().rail !== 'collapsed'; Store.saveSettings({ rail: c2 ? 'collapsed' : 'expanded' }); document.body.dataset.rail = c2 ? 'collapsed' : 'expanded'; }
+        else toggleRail();
         break;
       }
       case 'incognito': { var s2 = Store.settings(); Store.saveSettings({ incognito: !s2.incognito }); applySettings(); toast(!s2.incognito ? 'Incognito on — nothing is saved' : 'Incognito off', I.incog); break; }
@@ -2579,6 +2597,25 @@ body[data-surface="popup"] .overlay { --ov-pad: 14px; }
     });
     var q = $('#q');
     q.addEventListener('keydown', function (e) { if (e.key === 'Enter' && q.value.trim()) { openSearch(q.value.trim()); closeCmdk(); } });
+    // ⌘K palette: nothing was wired, so its rows were inert and the commands never ran.
+    // Click a row, or move with the arrows and press Enter. Escape is handled globally.
+    var cq = $('#cmdk-q'), cl = $('#cmdk-list');
+    if (cl) cl.addEventListener('click', function (e) {
+      var li = e.target && e.target.closest ? e.target.closest('li[data-i]') : null;
+      if (li) pickCmdk(parseInt(li.getAttribute('data-i'), 10));
+    });
+    if (cq) cq.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        var n = cmdkItems.length; if (!n) return;
+        cmdkSel = (cmdkSel + (e.key === 'ArrowDown' ? 1 : -1) + n) % n;
+        paintCmdk();
+        var on = $('#cmdk-list li[aria-selected="true"]'); if (on && on.scrollIntoView) on.scrollIntoView({ block: 'nearest' });
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        pickCmdk(cmdkSel);
+      }
+    });
     var deb = null;
     q.addEventListener('input', function () {
       clearTimeout(deb);
@@ -2724,6 +2761,7 @@ body[data-surface="popup"] .overlay { --ov-pad: 14px; }
     markThemeSwatches();
     applyAccent();
     document.body.dataset.rail = s.rail === 'collapsed' ? 'collapsed' : 'expanded';
+    syncRailToggle();
     $('#incog-btn').classList.toggle('is-on', !!s.incognito);
     $$('#sheet-settings [data-set]').forEach(function (el) {
       var k = el.getAttribute('data-set');
@@ -2737,6 +2775,17 @@ body[data-surface="popup"] .overlay { --ov-pad: 14px; }
     state.volume = s.volume == null ? 80 : s.volume;
     paintVol();
     $$('[data-act="view"]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-view') === state.viewMode)); });
+  }
+  function syncRailToggle() {
+    var on = document.body.dataset.rail === 'collapsed';
+    var b = $('#rail-toggle');
+    if (b) { b.title = on ? 'Expand sidebar' : 'Collapse sidebar'; b.setAttribute('aria-label', b.title); b.setAttribute('aria-expanded', String(!on)); }
+  }
+  function toggleRail() {
+    var collapsed = Store.settings().rail !== 'collapsed';
+    Store.saveSettings({ rail: collapsed ? 'collapsed' : 'expanded' });
+    document.body.dataset.rail = collapsed ? 'collapsed' : 'expanded';
+    syncRailToggle();
   }
   function markThemeSwatches() {
     var active = Store.settings().theme || 'signature';
@@ -2764,6 +2813,7 @@ body[data-surface="popup"] .overlay { --ov-pad: 14px; }
     { label: 'Theme — choose a colour', icon: I.settings, run: function () { $('#sheet-settings').classList.add('is-open'); $('#theme-note').scrollIntoView({ block: 'center' }); } },
     { label: 'Start radio from this track', hint: 'R', icon: I.radio, run: function () { onAction('radio-rebuild', $('#drawer')); } },
     { label: 'Settings', icon: I.gear, run: function () { $('#sheet-settings').classList.add('is-open'); } },
+    { label: 'Show / hide sidebar', icon: I.chevron, run: function () { if (window.innerWidth <= 980) { document.body.setAttribute('data-drawer', 'rail'); $('#scrim').classList.add('is-open'); } else toggleRail(); } },
     { label: 'Incognito session', icon: I.incog, run: function () { onAction('incognito', $('#incog-btn')); } },
     { label: 'Re-check YouTube connection', icon: I.bolt, run: probe }
   ];
