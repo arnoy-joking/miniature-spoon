@@ -650,6 +650,29 @@ body[data-surface="popup"] .overlay { --ov-pad: 14px; }
   .overlay__bottom .left, .overlay__bottom .right { justify-content: center; }
 }
 @media (max-width: 620px) {
+  /* Phones. Three rows instead of one crowded line: track and the queue/lyrics buttons,
+     then the transport, then the seek bar. Nothing is hidden except the subtitle and the
+     status word, so every control still exists and nothing is off-screen. */
+  :root { --bar: 124px; }   /* three rows need the height; the seek bar must stay on screen */
+  .topbar { gap: 8px; padding: 10px 12px; }
+  .crumb { flex: none; }
+  #crumb-sub { display: none; }
+  #transport-label { display: none; }
+  .searchbox { min-width: 0; flex: 1 1 0; max-width: none; margin-left: 0; }
+  .searchbox input { padding-left: 36px; }
+  .player {
+    grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto;
+    row-gap: 6px; column-gap: 10px; padding: 8px 12px 10px;
+  }
+  .player__cur { grid-column: 1; grid-row: 1; }
+  .player__right { grid-column: 2; grid-row: 1; gap: 2px; }
+  .player__center {
+    grid-column: 1 / -1; grid-row: 2; display: flex; flex-wrap: wrap;
+    justify-content: center; align-items: center; gap: 4px 12px;
+  }
+  .player__center .timeline { flex: 0 0 100%; max-width: none; order: 9; }
+  .player__center .ctrl--main { order: 0; }
+  .player__right .icon-btn { width: 32px; height: 32px; }
   .albums { grid-template-columns: repeat(auto-fill, minmax(126px, 1fr)); gap: 8px; }
   .card { padding: 8px; }
   .view { padding: 14px 12px 24px; }
@@ -707,7 +730,7 @@ body[data-surface="popup"] .overlay { --ov-pad: 14px; }
 .sw--pick input { position: absolute; inset: -8px; width: 150%; height: 150%; border: 0; padding: 0; opacity: 0; cursor: pointer; background: none; }
 .theme-note { font-size: 11.5px; color: var(--text-3); margin-left: 2px; }
 
-/* ---------- 20. Artwork & tile density ---------------------------------- */
+/* ---------- 20. Artwork density ----------------------------------------- */
 /* Two switches in Settings. They are root attributes rather than per-row classes so the
    cost is one write on <html>, and artwork is removed at render time (no <img>, so no
    request) with CSS as the second line of defence for anything already painted. */
@@ -724,15 +747,6 @@ body[data-surface="popup"] .overlay { --ov-pad: 14px; }
    title slides into that column, so the track has to be retuned with it. */
 :root[data-thumbs="off"] .q-item { grid-template-columns: 22px minmax(0, 1fr) auto; }
 :root[data-thumbs="off"] .q-item > img { display: none; }
-
-:root[data-titles="off"] .card__t,
-:root[data-titles="off"] .row__t,
-:root[data-titles="off"] .q-item__t { display: none; }
-/* With the title gone the second line becomes the label, so it takes the title's colour;
-   otherwise a cover-only grid reads as a wall of squares with fine print under it. */
-:root[data-titles="off"] .row__s,
-:root[data-titles="off"] .q-item__s,
-:root[data-titles="off"] .card__s { color: var(--text-2); font-size: 12.5px; }
 
   </style>
   <style>
@@ -806,7 +820,7 @@ body[data-surface="popup"] .overlay { --ov-pad: 14px; }
   // The host page may override anything here:
   //   window.LYRA_CONFIG = { proxyUrls: ['https://…workers.dev'] }
   var CFG = Object.assign({
-    version: '4.4.1',
+    version: '4.4.3',
     webAppUrl: 'https://lyra-music.vercel.app/extension',
     installUrl: '',                        // Chrome Web Store link (optional)
     proxyUrls: [],                         // your lyra-proxy worker, tried first
@@ -925,7 +939,7 @@ body[data-surface="popup"] .overlay { --ov-pad: 14px; }
       settings: function () {
         return Object.assign({
           theme: 'auto', accent: '#ff4655',
-          showTitles: true, showThumbs: true,
+          showThumbs: true, tabTitle: true,
           volume: 80, incognito: false, rail: 'expanded', extendQueue: true, restoreQueue: true,
           quality: 'auto', streamViaProxy: false, proxy: '', pipW: 280, moods: []
         }, api.get(KEYS.SET, {}) || {});
@@ -1011,6 +1025,14 @@ body[data-surface="popup"] .overlay { --ov-pad: 14px; }
     return list;
   }
 
+  // A page on another origin that sends application/json makes the browser ask YouTube
+  // for a CORS preflight first. Header-rewriting rules answer the real response, not
+  // that OPTIONS request, so the page fails before any rule can help. text/plain is a
+  // simple request, so there is no preflight; YouTube reads the same JSON body.
+  function bodyType(tr) {
+    return (!IS_EXTENSION && tr.key === 'direct') ? { 'Content-Type': 'text/plain;charset=UTF-8' } : { 'Content-Type': 'application/json' };
+  }
+
   // POST to InnerTube through whichever transport answers with usable JSON.
   function innerTube(endpoint, payload) {
     var body = JSON.stringify(Object.assign({
@@ -1022,7 +1044,7 @@ body[data-surface="popup"] .overlay { --ov-pad: 14px; }
       if (idx >= chain.length) return Promise.reject(err || new Error('unreachable'));
       var tr = chain[idx++];
       var req = tr.make(body);
-      return timedFetch(req.url, { method: 'POST', headers: Object.assign({ 'Content-Type': 'application/json' }, req.headers || {}), body: req.body }, 9500)
+      return timedFetch(req.url, { method: 'POST', headers: Object.assign(bodyType(tr), req.headers || {}), body: req.body }, 9500)
         .then(function (res) {
           if (!res.ok) throw new Error('HTTP ' + res.status);
           return res.text();
@@ -1037,7 +1059,7 @@ body[data-surface="popup"] .overlay { --ov-pad: 14px; }
           if (!T.ok || T.key !== tr.key) { T.key = tr.key; T.label = tr.label; T.ok = true; paintTransport(); }
           return data;
         })
-        .catch(function (e) { return step(e); });
+        .catch(function (e) { state.lastErr = (tr.label || 'transport') + ': ' + String((e && e.message) || e); return step(e); });
     }
     return step(null);
   }
@@ -1141,7 +1163,7 @@ body[data-surface="popup"] .overlay { --ov-pad: 14px; }
       if (idx >= chain.length) return Promise.reject(err || new Error('unreachable'));
       var tr = chain[idx++];
       var req = tr.make(body);
-      return timedFetch(req.url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: req.body }, 9500)
+      return timedFetch(req.url, { method: 'POST', headers: bodyType(tr), body: req.body }, 9500)
         .then(function (res) { if (!res.ok) throw new Error('HTTP ' + res.status); return res.text(); })
         .then(function (text) {
           var data = JSON.parse(text);
@@ -1606,7 +1628,7 @@ body[data-surface="popup"] .overlay { --ov-pad: 14px; }
       '  <div class="field"><div><div class="field__t">Incognito session</div><div class="field__d">No history, no favorites writes, nothing touches storage.</div></div><button class="switch" role="switch" data-set="incognito" id="set-incog" aria-checked="false"></button></div>' +
       '  <div class="field"><div><div class="field__t">Remember my queue</div><div class="field__d">Reopen the popup (or the site) and the queue and position are back.</div></div><button class="switch" role="switch" data-set="restoreQueue" aria-checked="true"></button></div>' +
       '  <div class="field"><div><div class="field__t">Artwork on cards</div><div class="field__d">Off and thumbnails are never fetched at all — no i.ytimg.com on a metered connection.</div></div><button class="switch" role="switch" data-set="showThumbs" aria-checked="true"></button></div>' +
-      '  <div class="field"><div><div class="field__t">Title on tiles</div><div class="field__d">Cover-only grid. The player bar and Now Playing keep the title.</div></div><button class="switch" role="switch" data-set="showTitles" aria-checked="true"></button></div>' +
+      '  <div class="field"><div><div class="field__t">Song in the tab title</div><div class="field__d">Show “Song · Artist — Lyra” in the browser tab. Off shows just “Lyra”.</div></div><button class="switch" role="switch" data-set="tabTitle" aria-checked="true"></button></div>' +
       '  <div class="field"><div><div class="field__t">Extend queue with radio</div><div class="field__d">After a track, Lyra keeps queueing related songs.</div></div><button class="switch" role="switch" data-set="extendQueue" aria-checked="true"></button></div>' +
       '  <div class="field"><div><div class="field__t">Colour</div><div class="field__d">Adaptive reads the current cover and recolours the whole app — accents, glows, the wash behind everything. Pick a swatch to pin one, or choose your own.</div></div>' +
       '  <div class="theme-row">' + THEMES.map(function (t) {
@@ -1743,7 +1765,8 @@ body[data-surface="popup"] .overlay { --ov-pad: 14px; }
     return '<div class="banner reveal">' + svg(I.bolt) + '<span><b>Preview data.</b> ' +
       (IS_EXTENSION
         ? 'YouTube refused the request. Reload the unpacked extension so the header rules are active, or check you are on Chrome 121+.'
-        : 'YouTube is not reachable from ' + esc(host(location.href)) + '. Install the Lyra extension in this browser, or deploy <code>lyra-proxy.js</code> and paste the URL in Settings.') +
+        : 'YouTube is not reachable from ' + esc(host(location.href)) + '. Install the Lyra extension in this browser, or deploy <code>lyra-proxy.js</code> and paste the URL in Settings.' +
+          (state.lastErr ? ' <span style="opacity:.7">Last error — ' + esc(state.lastErr) + '</span>' : '')) +
       '</span><button class="btn" data-act="settings">Fix it</button></div>';
   }
   // Rows used to fade in one at a time through an IntersectionObserver. With 40-100
@@ -2088,7 +2111,7 @@ body[data-surface="popup"] .overlay { --ov-pad: 14px; }
       var yt = $('#ov-yt'); if (yt && !t.demo) yt.href = 'https://www.youtube.com/watch?v=' + encodeURIComponent(t.videoId);
       $('#btn-lyr').classList.toggle('is-on', !!state.captionUrl);
     }
-    document.title = t ? t.title + ' · ' + t.channel + ' — Lyra' : 'Lyra';
+    paintDocTitle(t);
     if ('mediaSession' in navigator) {
       try {
         navigator.mediaSession.metadata = new MediaMetadata({
@@ -2651,7 +2674,8 @@ body[data-surface="popup"] .overlay { --ov-pad: 14px; }
           // Artwork and tile titles are decided at render time so that "off" also means
           // "never requested" — which CSS alone cannot do. One re-render keeps the toggle
           // instant for the visible list and pays nothing on the rest.
-          if (key === 'showThumbs' || key === 'showTitles') {
+          if (key === 'tabTitle') { paintDocTitle(cur()); }
+          if (key === 'showThumbs') {
             applySettings();
             paintSearchOrView();            // current list, no refetch, scroll kept
             paintQueue(true); paintBar();   // drawer + bar art live outside the view
@@ -2745,7 +2769,6 @@ body[data-surface="popup"] .overlay { --ov-pad: 14px; }
     var s = Store.settings();
     document.documentElement.dataset.theme = s.theme || 'signature';
     document.documentElement.dataset.thumbs = s.showThumbs === false ? 'off' : 'on';
-    document.documentElement.dataset.titles = s.showTitles === false ? 'off' : 'on';
     // The list renderers decide per row, but the bar and the Now Playing overlay carry
     // fallback artwork in the shell markup — and at boot nothing has played yet, so
     // paintBar() has not run. Hide them here or "no artwork" still shows two images.
@@ -2775,6 +2798,12 @@ body[data-surface="popup"] .overlay { --ov-pad: 14px; }
     state.volume = s.volume == null ? 80 : s.volume;
     paintVol();
     $$('[data-act="view"]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-view') === state.viewMode)); });
+  }
+  // The browser tab / window title. Off leaves just "Lyra", so nothing about what is
+  // playing is visible to someone glancing at the taskbar.
+  function paintDocTitle(t) {
+    var on = Store.settings().tabTitle !== false;
+    document.title = (t && on) ? t.title + ' · ' + t.channel + ' — Lyra' : 'Lyra';
   }
   function syncRailToggle() {
     var on = document.body.dataset.rail === 'collapsed';
