@@ -120,7 +120,11 @@ button { background: none; border: 0; cursor: pointer; }
 a { color: inherit; text-decoration: none; }
 img { display: block; max-width: 100%; }
 ul, ol { list-style: none; padding: 0; }
-svg { display: block; flex: none; }
+/* svg() emits only a viewBox, and every icon so far got its size from a contextual rule.
+   Miss one and a replaced element with a viewBox defaults to 100% of its line: the demo
+   banner's bolt rendered ~1000px wide and squeezed its own sentence to five characters a
+   line. A default size here means an unstyled icon is small-and-wrong, never huge-and-wrong. */
+svg { display: block; flex: none; width: 1em; height: 1em; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
 ::selection { background: var(--tint-veil); }
 .num { font-variant-numeric: tabular-nums; }
@@ -542,6 +546,10 @@ input[type=range]::-moz-range-thumb { width: 14px; height: 14px; border: 0; bord
   border: 1px solid var(--tint-mid); background: linear-gradient(90deg, var(--tint-faint), rgba(176, 108, 255, .07));
   font-size: 12.5px; color: var(--text-2);
 }
+.banner > svg { width: 17px; height: 17px; }
+/* min-width:0 + overflow-wrap: this banner carries a whole hostname and a filename, and a
+   long unbreakable token is exactly what forces a flex line to its min-content width. */
+.banner > span { min-width: 0; flex: 1 1 auto; overflow-wrap: anywhere; }
 .banner b { color: var(--text); font-weight: 600; }
 .banner .btn { margin-left: auto; padding: 6px 12px; font-size: 12px; }
 
@@ -681,6 +689,33 @@ body[data-surface="popup"] .overlay { --ov-pad: 14px; }
 .sw--pick input { position: absolute; inset: -8px; width: 150%; height: 150%; border: 0; padding: 0; opacity: 0; cursor: pointer; background: none; }
 .theme-note { font-size: 11.5px; color: var(--text-3); margin-left: 2px; }
 
+/* ---------- 20. Artwork & tile density ---------------------------------- */
+/* Two switches in Settings. They are root attributes rather than per-row classes so the
+   cost is one write on <html>, and artwork is removed at render time (no <img>, so no
+   request) with CSS as the second line of defence for anything already painted. */
+:root[data-thumbs="off"] .card__art,
+:root[data-thumbs="off"] .row__art,
+:root[data-thumbs="off"] .hero__art,
+:root[data-thumbs="off"] .player__art,
+:root[data-thumbs="off"] .disc {
+  background:
+    radial-gradient(120% 90% at 20% 0%, var(--tint-soft), transparent 60%),
+    linear-gradient(160deg, var(--surface-2), var(--ink-3));
+}
+/* The queue row is a grid whose 42px column *is* the thumbnail. Drop the image and the
+   title slides into that column, so the track has to be retuned with it. */
+:root[data-thumbs="off"] .q-item { grid-template-columns: 22px minmax(0, 1fr) auto; }
+:root[data-thumbs="off"] .q-item > img { display: none; }
+
+:root[data-titles="off"] .card__t,
+:root[data-titles="off"] .row__t,
+:root[data-titles="off"] .q-item__t { display: none; }
+/* With the title gone the second line becomes the label, so it takes the title's colour;
+   otherwise a cover-only grid reads as a wall of squares with fine print under it. */
+:root[data-titles="off"] .row__s,
+:root[data-titles="off"] .q-item__s,
+:root[data-titles="off"] .card__s { color: var(--text-2); font-size: 12.5px; }
+
   </style>
   <style>
     html { background: #06060a; }
@@ -753,7 +788,7 @@ body[data-surface="popup"] .overlay { --ov-pad: 14px; }
   // The host page may override anything here:
   //   window.LYRA_CONFIG = { proxyUrls: ['https://…workers.dev'] }
   var CFG = Object.assign({
-    version: '4.0.0',
+    version: '4.4.0',
     webAppUrl: 'https://lyra-music.vercel.app/extension',
     installUrl: '',                        // Chrome Web Store link (optional)
     proxyUrls: [],                         // your lyra-proxy worker, tried first
@@ -872,6 +907,7 @@ body[data-surface="popup"] .overlay { --ov-pad: 14px; }
       settings: function () {
         return Object.assign({
           theme: 'auto', accent: '#ff4655',
+          showTitles: true, showThumbs: true,
           volume: 80, incognito: false, rail: 'expanded', extendQueue: true, restoreQueue: true,
           quality: 'auto', streamViaProxy: false, proxy: '', pipW: 280, moods: []
         }, api.get(KEYS.SET, {}) || {});
@@ -1236,6 +1272,9 @@ body[data-surface="popup"] .overlay { --ov-pad: 14px; }
   function sampleAccent(t) {
     var st = Store.settings();
     if (st.theme !== 'auto') return Promise.resolve(null);
+    // Artwork off = no image requests, so the adaptive hue comes from the deterministic
+    // hash the demo covers use, not from a JPEG we promised not to download.
+    if (st.showThumbs === false) { var fh = hueOfCover(t); state.__hue = fh.h; state.__sat = fh.s; applyAccent(); return Promise.resolve(fh.h); }
     var url = (t && !t.demo && t.videoId) ? (t.thumbnail || 'https://i.ytimg.com/vi/' + encodeURIComponent(t.videoId) + '/mqdefault.jpg') : '';
     if (!url) { var f = hueOfCover(t); state.__hue = f.h; state.__sat = f.s; applyAccent(); return Promise.resolve(f.h); }
     if (AccentCache.has(url)) {
@@ -1309,7 +1348,16 @@ body[data-surface="popup"] .overlay { --ov-pad: 14px; }
       + '<circle cx="266" cy="262" r="26" fill="rgba(6,6,10,.35)"/><path d="M258 250l20 12-20 12z" fill="rgba(255,255,255,.92)"/></svg>';
     return 'data:image/svg+xml;utf8,' + encodeURIComponent(s);
   }
+  function thumbsOff() { return Store.settings().showThumbs === false; }
+  // Artwork markup in one place, because "no art" must mean "no element".
+  function artImg(t, attrs) {
+    var src = thumbFor(t);
+    return src ? '<img alt="" ' + (attrs || '') + ' src="' + esc(src) + '">' : '';
+  }
   function thumbFor(t) {
+    // Empty string, not a placeholder: the renderers emit no <img> at all when artwork is
+    // off, so the switch actually saves the request instead of hiding a downloaded JPEG.
+    if (thumbsOff()) return '';
     if (!t) return coverArt('none', '');
     if (t.demo || !t.videoId || String(t.videoId).indexOf('demo') === 0) return coverArt(t.videoId + t.title, t.title);
     return t.thumbnail || ('https://i.ytimg.com/vi/' + encodeURIComponent(t.videoId) + '/mqdefault.jpg');
@@ -1539,6 +1587,8 @@ body[data-surface="popup"] .overlay { --ov-pad: 14px; }
       '  <div class="sheet__head"><h3>Settings</h3><button class="icon-btn" data-act="sheet-close" title="Close">' + svg(I.close) + '</button></div>' +
       '  <div class="field"><div><div class="field__t">Incognito session</div><div class="field__d">No history, no favorites writes, nothing touches storage.</div></div><button class="switch" role="switch" data-set="incognito" id="set-incog" aria-checked="false"></button></div>' +
       '  <div class="field"><div><div class="field__t">Remember my queue</div><div class="field__d">Reopen the popup (or the site) and the queue and position are back.</div></div><button class="switch" role="switch" data-set="restoreQueue" aria-checked="true"></button></div>' +
+      '  <div class="field"><div><div class="field__t">Artwork on cards</div><div class="field__d">Off and thumbnails are never fetched at all — no i.ytimg.com on a metered connection.</div></div><button class="switch" role="switch" data-set="showThumbs" aria-checked="true"></button></div>' +
+      '  <div class="field"><div><div class="field__t">Title on tiles</div><div class="field__d">Cover-only grid. The player bar and Now Playing keep the title.</div></div><button class="switch" role="switch" data-set="showTitles" aria-checked="true"></button></div>' +
       '  <div class="field"><div><div class="field__t">Extend queue with radio</div><div class="field__d">After a track, Lyra keeps queueing related songs.</div></div><button class="switch" role="switch" data-set="extendQueue" aria-checked="true"></button></div>' +
       '  <div class="field"><div><div class="field__t">Colour</div><div class="field__d">Adaptive reads the current cover and recolours the whole app — accents, glows, the wash behind everything. Pick a swatch to pin one, or choose your own.</div></div>' +
       '  <div class="theme-row">' + THEMES.map(function (t) {
@@ -1599,7 +1649,7 @@ body[data-surface="popup"] .overlay { --ov-pad: 14px; }
     var stats = [t.views ? fmtViews(t.views) : '', t.published].filter(Boolean).join(' · ');
     var action = opts.seed ? 'seed' : 'play';
     return '<div class="card' + (on ? ' is-playing' : '') + '" role="button" tabindex="0" data-act="' + action + '"' + (opts.seed ? ' data-seed="' + esc(opts.seed) + '"' : '') + ' data-rid="' + rid + '">' +
-      '<div class="card__art"><img alt="" loading="lazy" data-cover src="' + esc(thumbFor(t)) + '">' +
+      '<div class="card__art">' + artImg(t, 'loading="lazy" data-cover') +
       (t.duration ? '<span class="card__badge num">' + esc(t.duration) + '</span>' : '') +
       '<span class="card__play"><i>' + svg(I.play) + '</i></span></div>' +
       '<div class="card__tools">' +
@@ -1619,7 +1669,7 @@ body[data-surface="popup"] .overlay { --ov-pad: 14px; }
     var action = opts.seed ? 'seed' : 'play';
     return '<div class="row' + (on ? ' is-playing' : '') + '" role="button" tabindex="0" data-act="' + action + '"' + (opts.seed ? ' data-seed="' + esc(opts.seed) + '"' : '') + ' data-rid="' + rid + '">' +
       '<div class="row__idx num">' + (on ? eq() : (opts.num != null ? opts.num : i + 1)) + '</div>' +
-      '<div class="row__art"><img alt="" loading="lazy" data-cover src="' + esc(thumbFor(t)) + '"></div>' +
+      '<div class="row__art">' + artImg(t, 'loading="lazy" data-cover') + '</div>' +
       '<div class="row__meta"><div class="row__t">' + esc(t.title) + '</div><div class="row__s">' + esc(t.channel) + '</div></div>' +
       '<div class="row__stat num">' + esc(stats) + '</div>' +
       '<div class="row__act">' + (t.duration ? '<span class="row__stat num" style="margin-right:4px">' + esc(t.duration) + '</span>' : '') +
@@ -1702,7 +1752,7 @@ body[data-surface="popup"] .overlay { --ov-pad: 14px; }
         (state.history.length || state.favorites.length
           ? (forYou.length ? '<button class="btn btn--ghost" data-act="play-shuffle">' + svg(I.shuffle) + 'Shuffle my taste</button>' : '')
           : (IS_EXTENSION ? '<button class="btn btn--ghost" data-act="open-tab">' + svg(I.ext) + 'Open full tab</button>' : '<button class="btn btn--ghost" data-act="install-ext">' + svg(I.spark) + 'Get the extension</button>')) +
-        '</div></div><div class="hero__art"><img alt="" data-cover src="' + esc(thumbFor(cur() || { videoId: 'hero', title: 'Lyra' })) + '"></div></section>';
+        '</div></div><div class="hero__art">' + artImg(cur() || { videoId: 'hero', title: 'Lyra' }, 'data-cover') + '</div></section>';
       var body = '';
       var hasAnything = recents.length || favs.length || forYou.length;
       if (hasAnything) {
@@ -1998,11 +2048,14 @@ body[data-surface="popup"] .overlay { --ov-pad: 14px; }
       barT.title = longTitle;
     }
     set('#bar-s', t ? t.channel : 'Search, then press play');
-    var art = $('#bar-art'); if (art) art.src = thumbFor(t || { videoId: 'idle', title: 'Lyra' });
+    var art = $('#bar-art');
+    if (art) { var barArt = thumbFor(t || { videoId: 'idle', title: 'Lyra' }); if (barArt) art.src = barArt; art.hidden = !barArt; }
     set('#ov-t', t ? t.title : '—');
     set('#ov-by', t ? t.channel : '—');
-    var oa = $('#ov-art'); if (oa) oa.src = thumbFor(t || { videoId: 'art', title: '' });
-    var ob = $('#ov-bg'); if (ob) ob.src = thumbFor(t || { videoId: 'bg', title: '' });
+    var oa = $('#ov-art'), ob = $('#ov-bg');
+    var ovArt = thumbFor(t || { videoId: 'art', title: '' });
+    if (oa) { if (ovArt) oa.src = ovArt; oa.hidden = !ovArt; }
+    if (ob) { if (ovArt) ob.src = ovArt; ob.hidden = !ovArt; }
     set('#ov-stat1', t ? (t.views ? fmtViews(t.views) + ' views' : (t.demo ? 'preview' : '—')) : '—');
     set('#ov-stat2', t ? (t.published || t.duration || '') : '—');
     set('#ov-qual', t ? (t.__qual || (t.demo ? 'preview' : 'streaming')) : '—');
@@ -2022,7 +2075,7 @@ body[data-surface="popup"] .overlay { --ov-pad: 14px; }
       try {
         navigator.mediaSession.metadata = new MediaMetadata({
           title: t ? t.title : 'Lyra', artist: t ? t.channel : '', album: 'Lyra',
-          artwork: [{ src: thumbFor(t || { videoId: 'x', title: 'Lyra' }), sizes: '512x512', type: 'image/jpeg' }]
+          artwork: (function () { var a = thumbFor(t || { videoId: 'x', title: 'Lyra' }); return a ? [{ src: a, sizes: '512x512', type: 'image/jpeg' }] : []; })()
         });
       } catch (e) {}
     }
@@ -2100,7 +2153,7 @@ body[data-surface="popup"] .overlay { --ov-pad: 14px; }
         var on = i === state.index;
         return '<div class="q-item' + (on ? ' is-playing' : '') + '" data-act="jump" data-i="' + i + '">' +
           '<div class="row__idx num">' + (on ? eq() : i + 1) + '</div>' +
-          '<img alt="" data-cover src="' + esc(thumbFor(t)) + '">' +
+          artImg(t, 'data-cover') +
           '<div style="min-width:0"><div class="q-item__t">' + esc(t.title) + '</div><div class="q-item__s">' + esc(t.channel) + '</div>' +
           '<div class="q-src">' + esc(sourceTag(t)) + '</div></div>' +
           '<button class="mini-btn" data-act="q-remove" data-i="' + i + '" title="Remove">' + svg(I.close) + '</button></div>';
@@ -2558,6 +2611,15 @@ body[data-surface="popup"] .overlay { --ov-pad: 14px; }
           el.setAttribute('aria-checked', String(on));
           var patch = {}; patch[key] = on; Store.saveSettings(patch);
           if (key === 'incognito') applySettings();
+          // Artwork and tile titles are decided at render time so that "off" also means
+          // "never requested" — which CSS alone cannot do. One re-render keeps the toggle
+          // instant for the visible list and pays nothing on the rest.
+          if (key === 'showThumbs' || key === 'showTitles') {
+            applySettings();
+            paintSearchOrView();            // current list, no refetch, scroll kept
+            paintQueue(true); paintBar();   // drawer + bar art live outside the view
+            if (key === 'showThumbs' && cur()) sampleAccent(cur());
+          }
           toast(key + ' ' + (on ? 'on' : 'off'), I.gear);
         });
       } else if (el.tagName === 'SELECT') {
@@ -2645,6 +2707,17 @@ body[data-surface="popup"] .overlay { --ov-pad: 14px; }
   function applySettings() {
     var s = Store.settings();
     document.documentElement.dataset.theme = s.theme || 'signature';
+    document.documentElement.dataset.thumbs = s.showThumbs === false ? 'off' : 'on';
+    document.documentElement.dataset.titles = s.showTitles === false ? 'off' : 'on';
+    // The list renderers decide per row, but the bar and the Now Playing overlay carry
+    // fallback artwork in the shell markup — and at boot nothing has played yet, so
+    // paintBar() has not run. Hide them here or "no artwork" still shows two images.
+    if (s.showThumbs === false || s.showThumbs === true) {
+      ['bar-art', 'ov-art', 'ov-bg'].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) el.hidden = s.showThumbs === false;
+      });
+    }
     // Adaptive must already be true on first paint: if the queue is restored, the dock
     // shows a track and its cover should own the accent straight away.
     applyPip();
