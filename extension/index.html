@@ -1,0 +1,2839 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Lyra — a music player for your browser</title>
+  <meta name="description" content="Lyra: search YouTube music, build instant radio, read synced lyrics and keep a queue — as a web app, and as a browser extension." />
+  <link rel="canonical" href="https://lyra-music.vercel.app/extension" />
+  <meta name="theme-color" content="#06060a" />
+  <meta name="color-scheme" content="dark" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Lyra" />
+  <meta property="og:title" content="Lyra — a music player for your browser" />
+  <meta property="og:description" content="Search, radio, synced lyrics, queue. Hosted page + extension, one codebase." />
+  <meta property="og:url" content="https://lyra-music.vercel.app/extension" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23ff4655'/%3E%3Cpath d='M25 46V18l20-4v26' stroke='%23fff' stroke-width='5' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='21' cy='46' r='6' fill='%23fff'/%3E%3Ccircle cx='41' cy='42' r='6' fill='%23fff'/%3E%3C/svg%3E" />
+  <link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAYAAAA9zQYyAAAOR0lEQVR4nO2dy3IdtxGGf7D4JpJLlPIe2WSdckWqSlV2uSycu+XcfJJynFiWF4ntpFL22noj+zCS8yonC3LIuQCYbnQD6JnTXUmJ/Nno7sP5CAMYzCCcvvt9RC0INGn771ydyDFjTtI6qX7Sz76aK0Q0acwCLWVvjkvvZMyw7sepKaFdqgfltn8yg1cEnsOcj1mg5WK+Fbl2r2eQN4QZiAHdAuYnVyd98BzmfMwCrSTmGPI3x+VFqQgzMAe6NsxDb+wwZ3w3DPNcG+B+fR2yeZRgBsZA14KZMqRwmJeNtg7z2N56NOq1ryNDEqU8GICuAXNsYucwZ3x3CvPcHt7C/eY6aMMMABcOM8HPYdaPOe61tfIEyaQwpnOW2xzmZSOL4NWMqdVbj/QLaYA7c5jp5jBPTdJbz/SLmMgJAMBhdpjlMR+OoBZcD96kcK6nQBYWlXRymGm+W4358NHN/QnKSkhCp08K57rD7DDXirnWW2faX5Ac57rD7DDXjjn01syY65PCue4wO8wtYgZMe2pi+/ykcK47zA5zi5hjjTlZvEg6znWH2WFuETOmpYYfES0+KUwFpvo5zMtGewOvRkyFPMtJYczZ15np5jDXyfOANvRYX+VwmOnmMNfN82B96JFf5XCY6eYwt8nz4FF2O/L6KoekKIdZIWaBtpWYFfKkVzl8Cygzl8PcLE9q6IHUKofDzMzlMHfIE2WUduvbYc74OszN83x7nfRdTgr9GUBGrh3B/O5BPyZF4+aZwrx46LruQ7IxJ4eZ5lsz5vMDIxAxZonGzZPpmQer95BszMlhpvlqxnzvwGhIjKmhcfMQYAYCLieivzeDkMswzL87MJIzzDbMJwyABSCcvjd6t52/0WilvSGYa8H70SyubZgH4e4h2/sxtMO80r4jzLXgXbNtwAyEoZce99DUteecvkxEb+sw39jvD4xgDe3FwSrMk5/KHpJNmsOcjzmyPxwYATqabZjv7GZS6K+0Tfgqw7wVeClmD+YTAgLtzUk5fT3RecL8xwMj6casBsz/i4Ac9c0ztv463ZzOSFQWM+FnDeY9wzs3wzADa3cKczozET9mwq83zH86MILuzIzDDOQmhTm9IBEvZsKvNcznDO/ctGH+9ppxPemMXfoBPbf/vv9nRiM3izAj4ER7SDbltBeYWY02bB8dlncCS8wmzACo74eOOTnMtk0D3JiVwjwsx1WEGaCucpQmIsdM+LWE+S+H7Y6ZOfBK/n6NwwxQVjlKE5FjJvx6r2ZYtb8fpt9LVxlqtB18xzdJGsAMrK1ylCYix0z4Ocw39rfD/dfaqwy1LGB5t68RzABm+6GTtjOY3z8wGja0Dw/iCxq1M4EZIXU0cmminE7xO6cJ4IeHpbZlmGM3SBrDDACX+PoIPLlKeznMcovBO7dWMGv/GlLLcB1gBoYe+uvjjfj4auq1R5hrc/3XAz/PFmHOrVx0ghmYTwq/Od78+/ixw0yxDw7twLMC89rKRUeYgeikMADHAeyriUwNSvbbEswfHDJ5VrSUbQlmymSvM8wIizcnzRJ9c7z5/7nDnM2zoknbW4BZkqchzMAE6EyiAWxKMkZykW+2vcOsElOSJ6rXhRm4A5qYaK3HZiYv9s22X4G55QWVtO8dU5InqteHGQAuWYkGfdxbP04s+TnM5e17x5TkieptYAZSdwo5QY8juK+uWMnZvtn2DrNKTEnuqN4OZoTSk2RT2vEIXB/X/Tgxc9YK5mzuQt9eML9JPPLEMaMwA5KHZHPaUXlIkm3vMK9qbwi73iS5o3p7mIHSh2Q5mnRIkq3JYU5qpPdbMM04zEDJQ7IS7ThbIckBnjKHOa6t9cJnADOQ2z6qDXNMTwGeMof53t4wNgXV+H1E4/aFGSG1fbQFzDFtDvij2K33DjBzrBbM88mcwxzVaA/J9ip0WDEZw/xIaRxew7QgKxk+OMwAKKscPQud6LdfXCfuVAZMe/TWxv2cr0uetxNqOZ1qhmEGtA4NagXzWvvxGngqZg3o57leZ/7o5j9wmFU1+aFBVmCmxvxv5MYPxV4n2rFqcpiLfBkx4yfJ7hVmbTsXmGMBDcKM0OokWYd53Y8dk6Dl9GKzCzMQO0lWIai8vcMs1ri+JLMNMzAG+lxgVh9L5jSHuchXEPOiRtDy9g6zWOP6Um0DMAPSSaFqUQ6zWOP6SswgzAiSSaFqUcZhZuVxmIt8lWKWTQpVi3KYxZpGe6oZhhkomRSqFtUB5moX1GEu8lWOyZsUqhblMIs1jfZU2wDMAGdSqFqUwyzWNNpLzOjn1H1IltR+gzAnczvMRfkrfs71SaFqUQ6zWNNoLzHjnzM/KVQtygjMKkOPDcMs+fzmP2fITApVi3KYxVqt9lQz/zlvvolPClWLcpjFWq32UjPzOcPdP/STZM8Z5lgQh1lXK24fJv9U3A+9J5iJMc1c5Jyu8Asx8znDQqu0H9phFmtV2geloZeiVtx+CTNQZT+0cZglF7R3nQ7z9JuIn/J+aIdZrFVpfx4wA6r7oXcMc8rMXOScrgAzKQ9DK26fhxlBbT+0wyzWqrQ/L5gBlf3QDrNYq9I+AXPPoUdxexrMgHg/9AZh3s1YMqefJ8yAaD+0wyzWqrQ/X5iB4v3QDrNYq9K+Esyk3Jk8jWBGoL5Od6KfIcySPBZg/sdXiSCFZhRmgH1okMPMytMT5n8qQ5zMndA4vkowA6xDg3YC8ybHkjl9BnMtkKO5ExrHVxFmgHxo0J5gFhBtGeaaIEdzJzSOrzLMAGk/tMPMz9OifUOYY2YQZoTV/dAOc9LODeZPRnmMwgxkb307zEk7N5gH++Qr0zADyVvfO4ZZyva5wjzYy0heIzAD0VvfDnPSzh3mwV6uDD86wQwsbn07zElzmKf2MjH86AgzMFnlcJhZ1gNm69YZZoS7IYfDzLJeMFvpnQf7mDP0qA8zAFw4zEzznnlpRmAGrBwa1BJmCSQ9YbbWOw/28dqqRzuYAY2TZKXtW8D8xatEEoZ5z0yzjjADwOVuYdaAeM1awbwVwDvDjNDz0KBaMH/xan8wa+9n1rYX8yW8PjADlP3QW4H5ywYQT/IXalF94z3zxPrBDPQ4NMhhXgoO87pG9G17aNCWYf73K4c5a/1hBloeGrRlmAf71yyfwzy1zjDTJ4XSovYA82AD1K1g3grgBmAGWhwatCeYB5v31MB5w5yyxjADtQ8N2iPMg30+qsNhXloHmIHcpFBaVA2YLV5kh3lpnWAGah0aVAvmFjdMOPZ5oh5tmH/+lFVWc3v+7P7rjjDHJ4UKQeUxN9Azp6xGz7yVz98ZZkD70KCaMFvrnQf7LDeWdphJmrR9dFKoGLS8vffMSf0XRocdz5+ZgRnQ2g/tMC8F75nXNWn76KSwQlB++xWYrQ43Bvt0XF8lmAOAXxrrpd97ttQ6wgxIDw069555YRVh3oJ1hhmh6kmyFM1hZvta6aXnvbMBmIFqJ8lSNCLMW4G85e/uV52hNgoz0O0h2Z3BHLPaF7kX1IZhBtRPkqVoDnORb0z7dWOojcMMqJ4kS9Ec5iLfnNYK6g3ALJsUsotymIt8KVptqDcCMxBaPSQrgHkrgPe+yL+5hTr24pdSM7jOvMZYOP3w7ZNe0HQiccz/GL658k6kh+x9kSVgG7udve57/wPem5PYRZ1BzxwzCxf5t6M/shcEuA1tAeXFnP6A/uYkdlEO86reCpx3ny4datQpbS+EmT4pZBelDHMA8OMfJIJ0tvFww8RFzmn7hhmo8pBsBZi3YCYuck7bP8yA+kOylWG21ksPvbOJi5zTzgNmQPUh2QY9s8Xe2sRFzmnnAzOg9pBsQ5h/YqSXfuepkYuc084LZgSVh2Q79My9oXaYTcIMiPdDdxxm/LQT1A6zWZgB0X7ojjAPemuoHWbTMAPF+6ENwDxYK6gdZvMwA0X7oQ3BPGg/qwy1w7wJmAEgnH70NgCc1BJxCqjxC029nqvEfJ1Z3r4hzAgIS6C3DPNY+0wAtt/O1mnfFmYAc6D3AvNc/5QAt8UtoA4zN+YI6L3CPBc2dZFzmsMc0cPKpNBhVqvJYU5oajADuL/1HZaODrNaTQ5zQlOFOSAk7xQ6zGo1OcwJTbdnHrTInUKHWa0mhzmh1YEZmN4pXF59Ex++tL3DXLem0phVYL77yWhS6DCr1eQwJ7R6PfNgF7NEIeXIKsBhVmrvMBN8J19deM+sWJPDnNDq98yDtpGTZCm6w1y3ptKY7WAG4ttHp03MXOSc7jDXrak0ZnWYw1wzfpIsRXeY69ZUGrNtzzxY6iHZBfnSRHXaO8x1ayqN2QTmWH+dfUhWb+hRpb3DXLem0pj9YAZMniRL0R3mujWVxuwzzBhra6scsqFHYVF53WGuW1NpzGYwZ0cOlIdky4YeHF+H2UhNpTFtwAzQH5KNhUsn5/g6zEZqKo1pB2bAxEmyFN1hrltTacxmMJNjciaFpL8QhzmnOcyFNcW+ivpy35yUHnrQ2pOKmgibusg5zWEurIkMM1D25qR4WIc5oznMhTWxYAbKT5JdH344zNNvHGauxoYZkE0K08MPh3n6jcPM1YpgRsDs4E1O8ht9+AnhzUsU3WGuW1NpzGYwr/+XfyVm2et0U6kd5uk3DjNHE8MMlEwK076pQQmhvcNct6bSmNuCGdA/SfZ+COIwG6mpNGYTmAWdYFyjTwoZQaOFRn0d5ro1lcbcJswI1EkhM+jsq8SbTR3mujWVxqwOM30HJyf/rXa56lgQdKHe66c7x01d5JzmMBN8Y19JY0a1y6xjYdCMHm7/d1rxq1eTw5zQqsC8uPoKMbNaelIoCJrWQ+yDZt5NrVyTw5zQVGHu+lDIZQeY53LsV7LswaU1OcwJTQRz7Noxcgt8o1rA/wE43Gm0YPrGQAAAAABJRU5ErkJggg==" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&display=swap" />
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Lyra",
+      "url": "https://lyra-music.vercel.app/extension",
+      "applicationCategory": "MultimediaApplication",
+      "operatingSystem": "Any",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+    }
+  </script>
+  <style>
+    /* ==========================================================================
+   LYRA — premium player UI
+   Design tokens · layout · components · motion
+   Works identically as an extension page (chrome-extension://) and as a
+   hosted web app. No frameworks, no build step, no inline scripts needed.
+   ========================================================================== */
+
+/* ---------- 1. Tokens ---------------------------------------------------- */
+:root {
+  --ink-0: #06060a;
+  --ink-1: #0a0a10;
+  --ink-2: #0f0f17;
+  --ink-3: #14141d;
+
+  --surface: rgba(255, 255, 255, .04);
+  --surface-2: rgba(255, 255, 255, .065);
+  --surface-3: rgba(255, 255, 255, .1);
+  --surface-solid: #14141d;
+
+  --hair: rgba(255, 255, 255, .07);
+  --hair-2: rgba(255, 255, 255, .12);
+
+  --text: #f5f5f8;
+  --text-2: #a9a9b8;
+  --text-3: #71717f;
+  --text-4: #4c4c58;
+
+  --accent: #ff4655;
+  --accent-2: #ff8a5c;
+  --accent-3: #b06cff;
+  --wash-1: #b1163a;
+  --wash-2: #4a2ba8;
+  --wash-3: #0e5b6b;
+  /* Accent tints. Everything coloured derives from --accent through these, so a theme
+     (or a sampled cover) is one write on :root and the whole app follows. */
+  --tint-faint: color-mix(in srgb, var(--accent) 12%, transparent);
+  --tint-soft: color-mix(in srgb, var(--accent) 16%, transparent);
+  --tint-line: color-mix(in srgb, var(--accent) 25%, transparent);
+  --tint-mid: color-mix(in srgb, var(--accent) 28%, transparent);
+  --tint-veil: color-mix(in srgb, var(--accent) 30%, transparent);
+  --tint-glow: color-mix(in srgb, var(--accent) 32%, transparent);
+  --tint-hi: color-mix(in srgb, var(--accent) 40%, transparent);
+  --tint-hot: color-mix(in srgb, var(--accent) 45%, transparent);
+  --ok: #3ddc97;
+  --grad: linear-gradient(115deg, var(--accent) 0%, color-mix(in srgb, var(--accent) 45%, var(--accent-2)) 40%, var(--accent-2) 100%);
+  --grad-cool: linear-gradient(135deg, color-mix(in srgb, var(--accent-3) 75%, #05050a), var(--accent-3) 60%, color-mix(in srgb, var(--accent) 60%, var(--accent-2)));
+  --glow: var(--tint-glow);
+
+  --r-xs: 8px;
+  --r-sm: 12px;
+  --r-md: 16px;
+  --r-lg: 22px;
+  --r-xl: 28px;
+  --r-pill: 999px;
+
+  --rail: 250px;
+  --rail-collapsed: 78px;
+  --bar: 86px;
+
+  --ease: cubic-bezier(.22, 1, .36, 1);
+  --ease-out: cubic-bezier(.16, 1, .3, 1);
+  --spring: cubic-bezier(.34, 1.56, .64, 1);
+
+  --font: "Inter Tight", "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, .4);
+  --shadow-2: 0 10px 30px -12px rgba(0, 0, 0, .7);
+  --shadow-3: 0 40px 80px -32px rgba(0, 0, 0, .85), 0 2px 10px rgba(0, 0, 0, .4);
+  --shadow-glow: 0 20px 70px -20px var(--glow);
+}
+
+/* ---------- 2. Reset ----------------------------------------------------- */
+*, *::before, *::after { box-sizing: border-box; }
+* { margin: 0; }
+html, body { height: 100%; }
+body {
+  font-family: var(--font);
+  background: var(--ink-0);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "ss01" 1, "cv11" 1;
+  overflow: hidden;
+  letter-spacing: -.011em;
+}
+button, input, select { font: inherit; color: inherit; }
+button { background: none; border: 0; cursor: pointer; }
+a { color: inherit; text-decoration: none; }
+img { display: block; max-width: 100%; }
+ul, ol { list-style: none; padding: 0; }
+svg { display: block; flex: none; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+::selection { background: var(--tint-veil); }
+.num { font-variant-numeric: tabular-nums; }
+
+/* thin, quiet scrollbars */
+.scroll { overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, .16) transparent; overscroll-behavior: contain; }
+.scroll::-webkit-scrollbar { width: 9px; height: 9px; }
+.scroll::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, .12); border: 3px solid transparent; background-clip: content-box; border-radius: 99px; }
+.scroll::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, .26); background-clip: content-box; }
+.scroll::-webkit-scrollbar-track { background: transparent; }
+
+/* ---------- 3. Ambient canvas ------------------------------------------- */
+/* Ambient wash: gradients only. A blur(90px) filter on a layer larger than the
+   viewport, animated, cost more GPU than the whole rest of the UI combined. */
+.ambient { position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: .42; }
+.ambient span { position: absolute; border-radius: 50%; }
+.ambient .o1 { position: absolute; width: 60vw; height: 60vw; left: -14%; top: -24%; background: radial-gradient(closest-side, color-mix(in srgb, var(--wash-1) 82%, transparent), transparent 72%); transition: background 1.6s var(--ease); }
+.ambient .o2 { position: absolute; width: 54vw; height: 54vw; right: -16%; top: -6%; background: radial-gradient(closest-side, color-mix(in srgb, var(--wash-2) 82%, transparent), transparent 70%); transition: background 1.6s var(--ease); }
+.ambient .o3 { position: absolute; width: 46vw; height: 46vw; left: 20%; bottom: -22%; background: radial-gradient(closest-side, color-mix(in srgb, var(--wash-3) 82%, transparent), transparent 72%); transition: background 1.6s var(--ease); }
+.grain { position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: .3; /* no blend mode: it disables compositing shortcuts for the whole page */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
+}
+.vignette { position: fixed; inset: 0; z-index: 1; pointer-events: none; background: radial-gradient(120% 90% at 50% 0%, transparent 40%, rgba(0, 0, 0, .55) 100%); }
+
+/* ---------- 4. App shell ------------------------------------------------- */
+.app {
+  position: relative; z-index: 2;
+  display: grid;
+  grid-template-columns: var(--rail) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) var(--bar);
+  height: 100dvh;
+  transition: grid-template-columns .42s var(--ease);
+}
+body[data-rail="collapsed"] .app { grid-template-columns: var(--rail-collapsed) minmax(0, 1fr); }
+
+/* ---------- 5. Rail / sidebar ------------------------------------------- */
+.rail {
+  grid-row: 1 / 3; min-height: 0; display: flex; flex-direction: column; gap: 6px;
+  padding: 18px 14px 14px; background: linear-gradient(180deg, rgba(255, 255, 255, .05), rgba(255, 255, 255, .015));
+  border-right: 1px solid var(--hair);
+}
+.brand { display: flex; align-items: center; gap: 11px; padding: 6px 8px 14px; }
+.brand__mark {
+  width: 34px; height: 34px; border-radius: 11px; background: var(--grad); display: grid; place-items: center;
+  box-shadow: var(--shadow-glow), inset 0 1px 0 rgba(255, 255, 255, .4); flex: none;
+}
+.brand__mark svg { width: 19px; height: 19px; color: #fff; }
+.brand__word { font-size: 18px; font-weight: 700; letter-spacing: -.03em; }
+.brand__word i { font-style: normal; background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.brand__tag { font-size: 9px; letter-spacing: .18em; text-transform: uppercase; color: var(--text-4); margin-top: 1px; }
+.rail__actions { display: flex; justify-content: flex-end; margin: -46px 0 10px; }
+
+.eyebrow { font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: var(--text-4); padding: 14px 12px 8px; }
+.nav { display: flex; flex-direction: column; gap: 3px; min-height: 0; }
+.nav-item {
+  position: relative; display: flex; align-items: center; gap: 13px; padding: 10px 12px; border-radius: var(--r-sm);
+  color: var(--text-3); font-size: 14px; font-weight: 550; transition: color .2s, background .25s, transform .25s var(--ease);
+  white-space: nowrap; overflow: hidden;
+}
+.nav-item svg { width: 19px; height: 19px; flex: none; transition: transform .35s var(--spring); }
+.nav-item:hover { color: var(--text); background: var(--surface); }
+.nav-item:hover svg { transform: scale(1.08) rotate(-3deg); }
+.nav-item.is-active { color: var(--text); background: var(--surface-2); }
+.nav-item.is-active::before {
+  content: ""; position: absolute; left: 0; top: 50%; translate: 0 -50%; width: 3px; height: 20px;
+  border-radius: 0 4px 4px 0; background: var(--grad); box-shadow: 0 0 14px var(--glow);
+}
+.nav-item__badge { margin-left: auto; font-size: 11px; color: var(--text-3); background: var(--surface-2); border: 1px solid var(--hair); padding: 1px 7px; border-radius: var(--r-pill); }
+
+.rail__card {
+  margin-top: auto; padding: 14px; border-radius: var(--r-md); border: 1px solid var(--hair);
+  background: linear-gradient(150deg, var(--tint-soft), rgba(176, 108, 255, .1) 60%, transparent);
+  position: relative; overflow: hidden;
+}
+.rail__card h4 { font-size: 13px; font-weight: 650; letter-spacing: -.01em; }
+.rail__card p { font-size: 11.5px; color: var(--text-2); margin: 5px 0 10px; line-height: 1.45; }
+body[data-rail="collapsed"] .brand__word, body[data-rail="collapsed"] .brand__tag, body[data-rail="collapsed"] .nav-item span,
+body[data-rail="collapsed"] .eyebrow, body[data-rail="collapsed"] .rail__card, body[data-rail="collapsed"] .nav-item__badge { display: none; }
+body[data-rail="collapsed"] .nav-item { justify-content: center; padding: 12px 0; }
+body[data-rail="collapsed"] .brand { justify-content: center; padding-left: 0; padding-right: 0; }
+body[data-rail="collapsed"] .rail__actions { display: none; }
+
+/* ---------- 6. Main column ---------------------------------------------- */
+.main { grid-row: 1 / 2; min-width: 0; display: flex; flex-direction: column; position: relative; }
+.topbar {
+  display: flex; align-items: center; gap: 14px; padding: 14px 22px;
+  border-bottom: 1px solid var(--hair); background: rgba(6, 6, 10, .82);
+  z-index: 12; flex: none;
+}
+.crumb { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
+.crumb h1 { font-size: 17px; font-weight: 680; letter-spacing: -.025em; white-space: nowrap; }
+.crumb small { font-size: 11.5px; color: var(--text-4); }
+
+.searchbox { position: relative; flex: 1 1 auto; max-width: 520px; margin-left: auto; }
+.searchbox input {
+  width: 100%; padding: 11px 92px 11px 40px; border-radius: var(--r-pill); border: 1px solid var(--hair);
+  background: var(--surface); color: var(--text); font-size: 13.5px; transition: border-color .25s, background .25s, box-shadow .3s;
+}
+.searchbox input::placeholder { color: var(--text-4); }
+.searchbox input:focus { outline: none; background: var(--surface-2); border-color: var(--tint-hot); box-shadow: 0 0 0 4px var(--tint-faint), var(--shadow-2); }
+.searchbox__ico { position: absolute; left: 14px; top: 50%; translate: 0 -50%; width: 16px; height: 16px; color: var(--text-4); pointer-events: none; }
+#rail-mobile { display: none; }        /* the rail is docked — a menu button would be a lie */
+.searchbox__kbd { position: absolute; right: 10px; top: 50%; translate: 0 -50%; display: flex; gap: 4px; }
+kbd { font-family: var(--font); font-size: 10px; color: var(--text-3); background: var(--surface-2); border: 1px solid var(--hair); border-bottom-width: 2px; border-radius: 6px; padding: 2px 5px; min-width: 18px; text-align: center; }
+
+.icon-btn {
+  display: grid; place-items: center; width: 36px; height: 36px; border-radius: var(--r-sm); color: var(--text-2);
+  border: 1px solid transparent; transition: background .2s, color .2s, transform .3s var(--spring), border-color .2s;
+}
+.icon-btn svg { width: 18px; height: 18px; }
+.icon-btn:hover { background: var(--surface-2); color: var(--text); border-color: var(--hair); }
+.icon-btn:active { transform: scale(.92); }
+.icon-btn.is-on { color: var(--accent); background: var(--tint-faint); border-color: var(--tint-mid); }
+.btn {
+  display: inline-flex; align-items: center; gap: 8px; padding: 9px 15px; border-radius: var(--r-pill);
+  font-size: 13px; font-weight: 600; border: 1px solid var(--hair-2); background: var(--surface-2); color: var(--text);
+  transition: transform .3s var(--spring), background .2s, box-shadow .3s, border-color .2s; white-space: nowrap;
+}
+.btn:hover { background: var(--surface-3); transform: translateY(-1px); box-shadow: var(--shadow-2); }
+.btn:active { transform: translateY(0) scale(.98); }
+.btn svg { width: 16px; height: 16px; }
+.btn--primary { background: var(--grad); border-color: transparent; color: #170307; box-shadow: var(--shadow-glow); }
+.btn--primary:hover { filter: brightness(1.06); box-shadow: 0 24px 60px -18px var(--glow); }
+.btn--ghost { background: transparent; }
+.dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 10px var(--ok); }
+.dot--bad { background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+.dot--idle { background: var(--text-4); box-shadow: none; }
+.status { display: inline-flex; align-items: center; gap: 7px; font-size: 11.5px; color: var(--text-2); padding: 6px 11px; border: 1px solid var(--hair); border-radius: var(--r-pill); background: var(--surface); }
+
+/* ---------- 7. Views ---------------------------------------------------- */
+.view { flex: 1 1 auto; min-height: 0; padding: 26px 26px 40px; }
+.view__head { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; margin-bottom: 22px; flex-wrap: wrap; }
+.view__title { font-size: clamp(24px, 3vw, 34px); font-weight: 700; letter-spacing: -.035em; line-height: 1.05; }
+.view__title em { font-style: normal; background: var(--grad-cool); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.view__sub { font-size: 13px; color: var(--text-3); margin-top: 7px; }
+.view__tools { display: flex; align-items: center; gap: 10px; }
+
+.segmented { display: inline-flex; padding: 3px; gap: 2px; border-radius: var(--r-sm); border: 1px solid var(--hair); background: var(--surface); }
+.segmented button {
+  display: grid; place-items: center; width: 34px; height: 28px; border-radius: 9px; color: var(--text-3);
+  transition: color .2s, background .3s var(--ease), transform .2s;
+}
+.segmented button svg { width: 15px; height: 15px; }
+.segmented button:hover { color: var(--text); }
+.segmented button[aria-pressed="true"] { background: var(--surface-3); color: var(--text); box-shadow: var(--shadow-1), inset 0 1px 0 rgba(255, 255, 255, .12); }
+.segmented button:active { transform: scale(.9); }
+
+.chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 22px; }
+.chip {
+  padding: 7px 14px; border-radius: var(--r-pill); border: 1px solid var(--hair); background: var(--surface);
+  font-size: 12.5px; color: var(--text-2); transition: all .25s var(--ease); white-space: nowrap;
+}
+.chip:hover { color: var(--text); border-color: var(--hair-2); background: var(--surface-2); transform: translateY(-1px); }
+.chip.is-on { color: #170307; background: var(--grad); border-color: transparent; font-weight: 600; box-shadow: 0 10px 26px -14px var(--glow); }
+
+.section { margin-bottom: 38px; }
+.section__head { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; }
+.section__head h3 { font-size: 16.5px; font-weight: 660; letter-spacing: -.02em; }
+.section__head .rule { flex: 1; height: 1px; background: linear-gradient(90deg, var(--hair), transparent); }
+.section__head .more { font-size: 12px; color: var(--text-3); transition: color .2s; }
+.section__head .more:hover { color: var(--accent); }
+.section__ico { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; background: var(--surface-2); border: 1px solid var(--hair); color: var(--accent); flex: none; }
+.section__ico svg { width: 15px; height: 15px; }
+
+/* ---------- 8. Hero ---------------------------------------------------- */
+.hero {
+  position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px; align-items: center;
+  padding: 26px; margin-bottom: 34px; border-radius: var(--r-xl); border: 1px solid var(--hair);
+  background: linear-gradient(120deg, var(--tint-soft), rgba(176, 108, 255, .1) 45%, rgba(255, 255, 255, .02));
+  overflow: hidden; box-shadow: var(--shadow-2);
+}
+.hero::after { content: ""; position: absolute; inset: -40% 30% auto; height: 220px; background: radial-gradient(60% 100% at 20% 0%, var(--tint-veil), transparent); filter: blur(40px); pointer-events: none; }
+.hero__kick { display: inline-flex; align-items: center; gap: 8px; font-size: 10.5px; letter-spacing: .17em; text-transform: uppercase; color: var(--text-2); margin-bottom: 12px; }
+.hero__title { font-size: clamp(24px, 3.4vw, 40px); font-weight: 720; letter-spacing: -.04em; line-height: 1.02; }
+.hero__desc { font-size: 13.5px; color: var(--text-2); margin: 12px 0 20px; max-width: 46ch; line-height: 1.55; }
+.hero__cta { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.hero__art { position: relative; width: 220px; aspect-ratio: 1; border-radius: var(--r-lg); overflow: hidden; box-shadow: var(--shadow-3), 0 30px 80px -30px var(--glow); /* float removed: a permanent hover in the primary view pulls attention */ }
+.hero__art img { width: 100%; height: 100%; object-fit: cover; }
+.hero__art::after { content: ""; position: absolute; inset: 0; background: linear-gradient(200deg, rgba(255, 255, 255, .22), transparent 42%); mix-blend-mode: overlay; }
+/* ---------- 9. Album grid ---------------------------------------------- */
+.albums { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)); }
+.card {
+  position: relative; padding: 12px; border-radius: var(--r-md); border: 1px solid transparent;
+  background: linear-gradient(180deg, var(--surface), rgba(255, 255, 255, .015));
+  transition: transform .5s var(--ease), border-color .3s, background .3s, box-shadow .5s var(--ease);
+  cursor: pointer;
+  content-visibility: auto; contain-intrinsic-size: auto 264px;
+}
+.card:hover { transform: translateY(-6px); border-color: var(--hair-2); background: var(--surface-2); box-shadow: var(--shadow-3); }
+.card__art { position: relative; aspect-ratio: 1; border-radius: 12px; overflow: hidden; background: var(--ink-3); box-shadow: var(--shadow-2); }
+.card__art img { width: 100%; height: 100%; object-fit: cover; transition: transform .9s var(--ease), filter .4s; }
+.card:hover .card__art img { transform: scale(1.07); filter: saturate(115%); }
+.card__badge { position: absolute; right: 7px; bottom: 7px; font-size: 10.5px; font-weight: 650; padding: 3px 7px; border-radius: 7px; background: rgba(4, 4, 8, .84); border: 1px solid rgba(255, 255, 255, .12); letter-spacing: .01em; }
+.card__play {
+  position: absolute; inset: 0; display: grid; place-items: center; opacity: 0; transition: opacity .3s;
+  background: linear-gradient(180deg, rgba(6, 6, 10, .1), rgba(6, 6, 10, .55));
+}
+.card__play i {
+  display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: var(--grad); color: #170307;
+  box-shadow: var(--shadow-glow), 0 8px 24px rgba(0, 0, 0, .5); translate: 0 12px; scale: .85;
+  transition: translate .45s var(--spring), scale .45s var(--spring);
+}
+.card__play i svg { width: 19px; height: 19px; margin-left: 2px; }
+.card:hover .card__play { opacity: 1; }
+.card:hover .card__play i { translate: 0 0; scale: 1; }
+.card__t { font-size: 13.5px; font-weight: 620; margin-top: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.card__s { font-size: 11.5px; color: var(--text-3); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.card__stats { display: flex; gap: 6px; align-items: center; font-size: 10.5px; color: var(--text-4); margin-top: 6px; }
+.card__tools { position: absolute; top: 18px; right: 18px; display: flex; gap: 6px; opacity: 0; translate: 0 -6px; transition: all .3s var(--ease); }
+.card:hover .card__tools { opacity: 1; translate: 0 0; }
+.mini-btn {
+  display: grid; place-items: center; width: 28px; height: 28px; border-radius: 9px; color: var(--text);
+  background: rgba(8, 8, 13, .9); border: 1px solid var(--hair-2); transition: all .25s var(--spring);
+}
+.mini-btn svg { width: 14px; height: 14px; }
+.mini-btn:hover { background: var(--grad); color: #170307; border-color: transparent; transform: scale(1.08); }
+.mini-btn.is-loved { color: var(--accent); opacity: 1; }
+.card.is-playing .card__t { color: var(--accent); }
+.card.is-playing::after { content: ""; position: absolute; inset: 0; border-radius: var(--r-md); border: 1px solid var(--tint-hi); box-shadow: inset 0 0 40px var(--tint-faint); pointer-events: none; }
+
+/* ---------- 10. List view ---------------------------------------------- */
+.list { display: flex; flex-direction: column; gap: 2px; }
+.row {
+  display: grid; grid-template-columns: 30px 52px minmax(0, 1fr) auto auto; align-items: center; gap: 14px;
+  padding: 9px 12px; border-radius: var(--r-sm); border: 1px solid transparent; cursor: pointer;
+  transition: background .25s, border-color .25s, transform .3s var(--ease);
+  content-visibility: auto; contain-intrinsic-size: auto 72px;
+}
+.row:hover { background: var(--surface-2); border-color: var(--hair); transform: translateX(2px); }
+.row.is-playing { background: linear-gradient(90deg, var(--tint-faint), var(--surface-2)); border-color: var(--tint-line); }
+.row__idx { font-size: 12px; color: var(--text-4); text-align: center; }
+.row:hover .row__idx { color: var(--text-2); }
+.row__art { width: 52px; height: 52px; border-radius: 10px; overflow: hidden; background: var(--ink-3); position: relative; }
+.row__art img { width: 100%; height: 100%; object-fit: cover; }
+.row__meta { min-width: 0; }
+.row__t { font-size: 13.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row.is-playing .row__t { color: var(--accent); }
+.row__s { font-size: 11.5px; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+.row__stat { font-size: 11.5px; color: var(--text-4); white-space: nowrap; }
+.row__act { display: flex; gap: 4px; opacity: 0; transition: opacity .25s; }
+.row:hover .row__act, .row.is-playing .row__act { opacity: 1; }
+.row__act .mini-btn { background: transparent; border-color: transparent; }
+.eq { display: flex; align-items: flex-end; gap: 2px; height: 12px; justify-content: center; }
+.eq b { width: 2.5px; border-radius: 2px; background: var(--accent); height: 30%; animation: eq .9s var(--ease) infinite alternate; animation-play-state: paused; }
+.card.is-playing .eq b, .row.is-playing .eq b, .q-item.is-playing .eq b { animation-play-state: running; }
+.eq b:nth-child(2) { animation-delay: .22s; } .eq b:nth-child(3) { animation-delay: .44s; } .eq b:nth-child(4) { animation-delay: .11s; }
+@keyframes eq { to { height: 100%; } }
+.row:not(.is-playing) .eq b, .card:not(.is-playing) .eq b { animation-play-state: paused; height: 24%; }
+
+/* ---------- 11. Player bar --------------------------------------------- */
+.player {
+  grid-column: 2; grid-row: 2; display: grid; grid-template-columns: minmax(0, 1fr) minmax(320px, 1.1fr) minmax(0, 1fr);
+  align-items: center; gap: 18px; padding: 0 20px; border-top: 1px solid var(--hair);
+  background: linear-gradient(180deg, rgba(14, 14, 20, .93), rgba(8, 8, 12, .98));
+  z-index: 14;
+}
+.player__line { position: absolute; top: 0; left: 0; right: 0; height: 1px; background: var(--hair); }
+.player__line i { position: absolute; left: 0; top: -1px; height: 2px; width: var(--pct, 0%); background: var(--grad); box-shadow: 0 0 12px var(--glow); transition: width .25s linear; }
+.player__cur { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.player__art { position: relative; width: 52px; height: 52px; border-radius: 12px; overflow: hidden; flex: none; cursor: pointer; box-shadow: var(--shadow-2); }
+.player__art img { width: 100%; height: 100%; object-fit: cover; transition: transform .5s var(--ease); }
+.player__art:hover img { transform: scale(1.08); }
+.player__art::after { content: ""; position: absolute; inset: 0; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .14); border-radius: 12px; }
+.player__tt { min-width: 0; }
+.player__t { font-size: 13px; font-weight: 620; white-space: nowrap; overflow: hidden; }
+.player__s { font-size: 11.5px; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+.marquee { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.player__center { display: flex; flex-direction: column; align-items: center; gap: 7px; }
+.transport { display: flex; align-items: center; gap: 8px; }
+.ctrl { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; color: var(--text-2); transition: all .28s var(--spring); }
+.ctrl svg { width: 17px; height: 17px; }
+.ctrl:hover { color: var(--text); background: var(--surface-2); transform: scale(1.06); }
+.ctrl:disabled { opacity: .3; cursor: default; transform: none; }
+.ctrl--main {
+  width: 44px; height: 44px; background: var(--text); color: #0a0a10; box-shadow: var(--shadow-2);
+}
+.ctrl--main svg { width: 20px; height: 20px; }
+.ctrl--main:hover { background: #fff; transform: scale(1.07); color: #0a0a10; }
+.ctrl--main:active { transform: scale(.94); }
+.timeline { display: flex; align-items: center; gap: 10px; width: 100%; max-width: 560px; font-size: 11px; color: var(--text-4); }
+.timeline .bar { position: relative; flex: 1; height: 4px; border-radius: 99px; background: rgba(255, 255, 255, .11); cursor: pointer; overflow: visible; }
+.timeline .bar i { position: absolute; inset: 0 auto 0 0; width: var(--pct, 0%); border-radius: 99px; background: var(--grad); transition: width .12s linear; }
+.timeline .bar u {
+  position: absolute; top: 50%; left: var(--pct, 0%); width: 11px; height: 11px; border-radius: 50%; background: #fff;
+  translate: -50% -50%; opacity: 0; scale: .6; transition: opacity .2s, scale .25s var(--spring); box-shadow: 0 2px 8px rgba(0, 0, 0, .6);
+}
+.timeline .bar:hover { height: 6px; }
+.timeline .bar:hover u, .timeline .bar:active u { opacity: 1; scale: 1; }
+.player__right { display: flex; align-items: center; justify-content: flex-end; gap: 6px; }
+.vol { display: flex; align-items: center; gap: 8px; width: 108px; }
+.vol .bar { position: relative; flex: 1; height: 4px; border-radius: 99px; background: rgba(255, 255, 255, .13); cursor: pointer; }
+.vol .bar i { position: absolute; inset: 0 auto 0 0; width: var(--pct, 100%); border-radius: 99px; background: var(--text); }
+.vol:hover .bar i { background: var(--grad); }
+.love { transition: color .25s; }
+.love.is-on { color: var(--accent); }
+.love.is-on svg { fill: currentColor; }
+.love-pop { animation: pop .45s var(--spring); }
+@keyframes pop { 0% { scale: 1; } 40% { scale: 1.35; } 100% { scale: 1; } }
+
+/* ---------- 12. Queue drawer ------------------------------------------- */
+.drawer {
+  position: fixed; top: 0; right: 0; bottom: 0; width: min(392px, 92vw); z-index: 40;
+  background: linear-gradient(180deg, rgba(16, 16, 23, .92), rgba(8, 8, 12, .96));
+  border-left: 1px solid var(--hair); box-shadow: -40px 0 90px -40px rgba(0, 0, 0, .9);
+  transform: translateX(102%); transition: transform .5s var(--ease); display: flex; flex-direction: column;
+}
+.drawer.is-open { transform: none; }
+.drawer__head { display: flex; align-items: center; gap: 10px; padding: 18px 18px 14px; border-bottom: 1px solid var(--hair); flex: none; }
+.drawer__head h3 { font-size: 15px; font-weight: 680; letter-spacing: -.02em; }
+.drawer__head p { font-size: 11px; color: var(--text-4); margin-top: 3px; }
+.drawer__body { flex: 1; min-height: 0; padding: 10px; }
+.drawer__foot { padding: 12px 14px; border-top: 1px solid var(--hair); display: flex; gap: 8px; flex: none; }
+.q-item { display: grid; grid-template-columns: 22px 42px minmax(0, 1fr) auto; align-items: center; gap: 11px; padding: 8px; border-radius: var(--r-sm); cursor: pointer; transition: background .25s; position: relative; content-visibility: auto; contain-intrinsic-size: auto 62px; }
+.q-item:hover { background: var(--surface-2); }
+.q-item.is-playing { background: linear-gradient(90deg, var(--tint-soft), transparent); }
+.q-item img { width: 42px; height: 42px; border-radius: 9px; object-fit: cover; }
+.q-item__t { font-size: 12.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.q-item__s { font-size: 11px; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+.q-src { font-size: 9px; letter-spacing: .1em; text-transform: uppercase; color: var(--text-4); margin-top: 3px; }
+.q-item.is-playing .q-src { color: var(--accent); }
+
+/* ---------- 13. Full-screen player -------------------------------------- */
+.overlay {
+  position: fixed; inset: 0; z-index: 50; display: grid; grid-template-rows: auto minmax(0, 1fr) auto;
+  background: var(--ink-0); transform: translate3d(0, 100%, 0); transition: transform .62s var(--ease);
+  opacity: 0; pointer-events: none;
+}
+.overlay.is-open { transform: none; opacity: 1; pointer-events: auto; }
+.overlay__bg { position: absolute; inset: 0; z-index: 0; }
+.overlay__bg img { width: 100%; height: 100%; object-fit: cover; filter: saturate(1.2) brightness(.34); transform: scale(1.08); opacity: .5; }
+.overlay__bg::after { content: ""; position: absolute; inset: 0; background: radial-gradient(80% 70% at 50% 30%, transparent, rgba(4, 4, 8, .82) 75%); }
+.overlay__top, .overlay__bottom { position: relative; z-index: 2; }
+.overlay__top { display: flex; align-items: center; justify-content: space-between; padding: 16px 22px; }
+.tabs { display: inline-flex; gap: 2px; padding: 3px; border-radius: var(--r-pill); border: 1px solid var(--hair); background: rgba(255, 255, 255, .04); }
+.tabs button { padding: 6px 15px; border-radius: var(--r-pill); font-size: 12.5px; font-weight: 560; color: var(--text-3); transition: all .3s var(--ease); }
+.tabs button:hover { color: var(--text); }
+.tabs button[aria-selected="true"] { background: var(--surface-3); color: var(--text); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .14); }
+.overlay__stage { position: relative; z-index: 2; display: grid; place-items: center; padding: 10px 26px; min-height: 0; }
+.pane { display: none; width: 100%; height: 100%; }
+.pane.is-on { display: grid; }
+.artwrap { display: grid; grid-template-columns: minmax(0, 380px) minmax(0, 1fr); gap: clamp(24px, 5vw, 66px); align-items: center; max-width: 1080px; margin: 0 auto; }
+.disc { position: relative; aspect-ratio: 1; border-radius: var(--r-xl); overflow: hidden; box-shadow: var(--shadow-3), 0 60px 120px -50px var(--glow); transition: transform .6s var(--ease); }
+.disc img { width: 100%; height: 100%; object-fit: cover; }
+.disc::after { content: ""; position: absolute; inset: 0; background: linear-gradient(160deg, rgba(255, 255, 255, .26), transparent 38%); mix-blend-mode: overlay; }
+.disc-ring { position: absolute; inset: -20%; border-radius: 50%; background: conic-gradient(from 0deg, var(--accent), var(--accent-3), var(--accent-2), var(--accent)); opacity: .26; z-index: -1; }
+/* motion only while audio is actually running — an idle UI that moves is noise */
+body.is-playing .disc-ring { animation: spin 22s linear infinite; }
+@keyframes spin { to { rotate: 360deg; } }
+.art-side { min-width: 0; }
+.art-side h2 { font-size: clamp(22px, 3vw, 34px); font-weight: 700; letter-spacing: -.035em; line-height: 1.08; }
+.art-side .by { font-size: 14px; color: var(--text-2); margin-top: 10px; }
+.art-side__row { display: flex; gap: 8px; align-items: center; margin-top: 18px; flex-wrap: wrap; }
+.stat { font-size: 11.5px; color: var(--text-3); border: 1px solid var(--hair); padding: 5px 10px; border-radius: var(--r-pill); background: var(--surface); }
+.overlay__video { width: min(100%, 1000px); aspect-ratio: 16/9; border-radius: var(--r-lg); overflow: hidden; background: #000; box-shadow: var(--shadow-3); margin: auto; border: 1px solid var(--hair); }
+.overlay__video video { width: 100%; height: 100%; object-fit: contain; }
+.lyrics { max-width: 720px; margin: 0 auto; height: 100%; }
+.lyrics__line {
+  font-size: clamp(17px, 2.3vw, 25px); font-weight: 620; letter-spacing: -.02em; line-height: 1.35; padding: 7px 0;
+  color: var(--text-4); transition: color .4s, opacity .4s, transform .5s var(--ease), filter .4s; opacity: .55; cursor: pointer;
+}
+.lyrics__line:hover { color: var(--text-2); }
+.lyrics__line.is-on { color: var(--text); opacity: 1; transform: translateX(6px) scale(1.03); text-shadow: 0 0 34px rgba(255, 255, 255, .16); }
+.lyrics__line.is-past { opacity: .3; }
+.lyrics__mask { mask-image: linear-gradient(180deg, transparent, #000 12%, #000 84%, transparent); -webkit-mask-image: linear-gradient(180deg, transparent, #000 12%, #000 84%, transparent); }
+.overlay__bottom { position: relative; z-index: 2; padding: 12px 26px 26px; display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 20px; }
+.overlay__bottom .mid { display: flex; align-items: center; gap: 14px; justify-content: center; }
+.overlay__bottom .left { display: flex; align-items: center; gap: 10px; }
+.overlay__bottom .right { display: flex; align-items: center; gap: 10px; justify-content: flex-end; }
+.overlay .ctrl--main { width: 58px; height: 58px; }
+.overlay .ctrl--main svg { width: 26px; height: 26px; }
+.overlay .ctrl { width: 40px; height: 40px; }
+.overlay .ctrl svg { width: 20px; height: 20px; }
+
+/* ---------- 14. Sheets / modals ---------------------------------------- */
+.sheet-wrap { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 24px; background: rgba(4, 4, 8, .6); opacity: 0; pointer-events: none; transition: opacity .3s; }
+.sheet-wrap.is-open { opacity: 1; pointer-events: auto; }
+.sheet {
+  width: min(520px, 100%); max-height: 86dvh; overflow: hidden auto; border-radius: var(--r-xl); border: 1px solid var(--hair-2);
+  background: linear-gradient(180deg, var(--ink-3), var(--ink-1)); box-shadow: var(--shadow-3);
+  transform: translateY(14px) scale(.97); transition: transform .42s var(--spring); padding: 22px;
+}
+.sheet-wrap.is-open .sheet { transform: none; }
+.sheet__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+.sheet__head h3 { font-size: 18px; font-weight: 680; letter-spacing: -.025em; }
+.field { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--hair); }
+.field:last-child { border-bottom: 0; }
+.field__t { font-size: 13.5px; font-weight: 600; }
+.field__d { font-size: 11.5px; color: var(--text-3); margin-top: 3px; line-height: 1.45; }
+.field input[type=text], .field input[type=url], .field select {
+  width: 200px; padding: 8px 11px; border-radius: 10px; border: 1px solid var(--hair); background: var(--surface); font-size: 12.5px;
+}
+.field input[type=text]:focus, .field input[type=url]:focus, .field select:focus { outline: none; border-color: var(--tint-hot); background: var(--surface-2); }
+input[type=range] { -webkit-appearance: none; appearance: none; background: transparent; width: 160px; }
+input[type=range]::-webkit-slider-runnable-track { height: 4px; border-radius: 99px; background: rgba(255, 255, 255, .16); }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; margin-top: -5px; border-radius: 50%; background: #fff; box-shadow: 0 2px 8px rgba(0, 0, 0, .5); }
+input[type=range]::-moz-range-track { height: 4px; border-radius: 99px; background: rgba(255, 255, 255, .16); }
+input[type=range]::-moz-range-thumb { width: 14px; height: 14px; border: 0; border-radius: 50%; background: #fff; }
+.switch { position: relative; width: 42px; height: 24px; border-radius: 99px; background: rgba(255, 255, 255, .14); border: 1px solid var(--hair); transition: background .3s; flex: none; }
+.switch::after { content: ""; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: transform .34s var(--spring); }
+.switch[aria-checked="true"] { background: var(--grad); border-color: transparent; }
+.switch[aria-checked="true"]::after { transform: translateX(18px); }
+.hint { font-size: 11.5px; color: var(--text-4); line-height: 1.6; }
+.hint code { font-size: 11px; background: var(--surface-2); border: 1px solid var(--hair); border-radius: 5px; padding: 1px 5px; }
+
+/* ---------- 15. Toasts / banners / cmdk -------------------------------- */
+.toasts { position: fixed; left: 50%; bottom: calc(var(--bar) + 18px); translate: -50% 0; z-index: 80; display: flex; flex-direction: column; gap: 8px; align-items: center; pointer-events: none; }
+.toast {
+  display: flex; align-items: center; gap: 10px; padding: 10px 15px; border-radius: var(--r-pill); font-size: 12.5px;
+  background: rgba(20, 20, 29, .97); border: 1px solid var(--hair-2); box-shadow: var(--shadow-3);
+  animation: toastIn .5s var(--spring) both;
+}
+.toast.is-out { animation: toastOut .3s var(--ease) both; }
+.toast svg { width: 15px; height: 15px; color: var(--accent); }
+@keyframes toastIn { from { opacity: 0; transform: translateY(14px) scale(.96); } }
+@keyframes toastOut { to { opacity: 0; transform: translateY(-8px) scale(.98); } }
+
+.banner {
+  display: flex; align-items: center; gap: 12px; padding: 11px 16px; margin: 0 0 22px; border-radius: var(--r-md);
+  border: 1px solid var(--tint-mid); background: linear-gradient(90deg, var(--tint-faint), rgba(176, 108, 255, .07));
+  font-size: 12.5px; color: var(--text-2);
+}
+.banner b { color: var(--text); font-weight: 600; }
+.banner .btn { margin-left: auto; padding: 6px 12px; font-size: 12px; }
+
+.cmdk { position: fixed; inset: 0; z-index: 90; background: rgba(4, 4, 8, .55); display: grid; justify-items: center; padding-top: 12vh; opacity: 0; pointer-events: none; transition: opacity .25s; }
+.cmdk.is-open { opacity: 1; pointer-events: auto; }
+.cmdk__box { width: min(620px, 92vw); border-radius: var(--r-lg); border: 1px solid var(--hair-2); background: linear-gradient(180deg, var(--ink-3), var(--ink-1)); box-shadow: var(--shadow-3); overflow: hidden; transform: translateY(-10px) scale(.99); transition: transform .35s var(--spring); }
+.cmdk.is-open .cmdk__box { transform: none; }
+.cmdk input { width: 100%; padding: 17px 20px; background: transparent; border: 0; border-bottom: 1px solid var(--hair); font-size: 15px; }
+.cmdk input:focus { outline: none; }
+.cmdk ul { max-height: 46vh; overflow: auto; padding: 8px; }
+.cmdk li { display: flex; align-items: center; gap: 11px; padding: 9px 12px; border-radius: 10px; font-size: 13px; cursor: pointer; color: var(--text-2); }
+.cmdk li svg { width: 15px; height: 15px; color: var(--text-4); }
+.cmdk li[aria-selected="true"] { background: var(--surface-2); color: var(--text); }
+.cmdk li small { margin-left: auto; font-size: 11px; color: var(--text-4); }
+
+/* ---------- 16. Skeleton / reveal --------------------------------------- */
+.sk { border-radius: 12px; background: linear-gradient(100deg, rgba(255, 255, 255, .04) 20%, rgba(255, 255, 255, .1) 40%, rgba(255, 255, 255, .04) 60%); background-size: 220% 100%; animation: shine 1.5s linear infinite; }
+@keyframes shine { to { background-position: -120% 0; } }
+.sk-art { aspect-ratio: 1; margin-bottom: 11px; }
+.sk-line { height: 10px; border-radius: 6px; margin-bottom: 7px; }
+
+.reveal, .reveal.in { animation: none; opacity: 1; transform: none; }
+
+/* the one button that grows a long list — quiet, centred, not a card */
+.icon-btn.has-q { position: relative; }
+.icon-btn.has-q::after { content: ""; position: absolute; top: 5px; right: 5px; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 2px rgba(6, 6, 10, .92); }
+
+.view__more { display: flex; justify-content: center; padding: 14px 0 4px; }
+.view__more .btn { font-size: 12.5px; color: var(--text-2); }
+.view__more .btn:hover { color: var(--text); border-color: var(--hair-2); }
+.empty { text-align: center; padding: 60px 20px; color: var(--text-3); }
+.empty i { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 18px; margin: 0 auto 14px; background: var(--surface-2); border: 1px solid var(--hair); color: var(--text-4); }
+.empty i svg { width: 24px; height: 24px; }
+.empty h4 { font-size: 15px; font-weight: 640; color: var(--text); margin-bottom: 6px; }
+.empty p { font-size: 12.5px; }
+
+/* ---------- 17. Contexts: popup / mobile -------------------------------- */
+body[data-surface="popup"] { width: 940px; height: 656px; }
+body[data-surface="popup"] .view { padding: 18px 20px 30px; }
+body[data-surface="popup"] .albums { grid-template-columns: repeat(auto-fill, minmax(146px, 1fr)); }
+body[data-surface="popup"] .hero { padding: 18px; margin-bottom: 22px; }
+body[data-surface="popup"] .hero__art { width: 150px; }
+body[data-surface="popup"] .section { margin-bottom: 28px; }
+/* the popup is 940x656, i.e. always in the narrow bucket — keep the parts that matter */
+body[data-surface="popup"] .timeline .num { display: none; }
+body[data-surface="popup"] .player__right #btn-pip { display: none; }
+body[data-surface="popup"] .player__right .vol { display: none; }
+body[data-surface="popup"] .overlay { --ov-pad: 14px; }
+
+.scrim { position: fixed; inset: 0; z-index: 39; background: rgba(4, 4, 8, .78); backdrop-filter: blur(3px); opacity: 0; pointer-events: none; transition: opacity .3s; }
+.scrim.is-open { opacity: 1; pointer-events: auto; }
+
+@media (max-width: 1180px) {
+  .player { grid-template-columns: minmax(0, 1fr) auto; gap: 10px; }
+  .player__right #btn-pip { display: none; }   /* queue + lyrics stay: they are the app */
+}
+@media (max-width: 980px) {
+  .app { grid-template-columns: minmax(0, 1fr) !important; }
+  .rail { position: fixed; inset: 0 auto 0 0; width: 268px; z-index: 42; transform: translateX(-102%); transition: transform .45s var(--ease); }
+  body[data-drawer="rail"] .rail { transform: none; box-shadow: var(--shadow-3); }
+  #rail-mobile { display: grid; }
+  .player { grid-column: 1; }
+  .player__center { align-items: flex-end; }
+  .timeline .num { display: none; }
+  .timeline { gap: 0; }
+  .player__right .vol { display: none; }
+  .view { padding: 18px 16px 30px; }
+  .artwrap { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+  .disc { max-width: 300px; margin: 0 auto; }
+  .searchbox__kbd { display: none; }
+  .searchbox input { padding-right: 16px; }
+}
+@media (max-width: 700px) {
+  .albums { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+  .hero__art { display: none; }
+  .row { grid-template-columns: 24px 46px minmax(0, 1fr) auto; }
+  .row__stat { display: none; }
+  .crumb small, .crumb h1 { font-size: 15px; }
+  .overlay__bottom { grid-template-columns: 1fr; gap: 12px; }
+  .overlay__bottom .left, .overlay__bottom .right { justify-content: center; }
+}
+@media (max-width: 620px) {
+  .albums { grid-template-columns: repeat(auto-fill, minmax(126px, 1fr)); gap: 8px; }
+  .card { padding: 8px; }
+  .view { padding: 14px 12px 24px; }
+  .player__art { width: 34px; height: 34px; }
+  .player__s { display: none; }
+  .hero__cta { flex-wrap: wrap; }
+  .rail { width: min(84vw, 300px); }
+  .overlay__top .tabs { display: none; }
+  .sheet { max-height: 88dvh; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
+
+/* ---------- 18. Floating video card (mini player) ----------------------- */
+#media-slot { position: fixed; right: 18px; bottom: calc(var(--bar) + 18px); z-index: 36; display: none; }
+#pip-card {
+  border-radius: var(--r-md); overflow: hidden; border: 1px solid var(--hair-2);
+  box-shadow: var(--shadow-3), 0 30px 60px -30px rgba(0, 0, 0, .9); background: #000;
+  animation: pipIn .5s var(--spring) both;
+}
+#pip-card video { width: 100%; display: block; aspect-ratio: 16 / 9; object-fit: contain; background: #000; }
+#pip-card > div { background: linear-gradient(180deg, rgba(18, 18, 26, .92), rgba(10, 10, 16, .96)); }
+@keyframes pipIn { from { opacity: 0; transform: translateY(16px) scale(.96); } }
+
+/* ---------- 19. Themes --------------------------------------------------- */
+/* Presets are just the four accent tokens. data-theme="auto" and "custom" are
+   written from JS (documentElement.style) so inline values win over the block. */
+:root[data-theme="signature"], :root { --accent: #ff4655; --accent-2: #ff8a5c; --accent-3: #b06cff; --wash-1: #b1163a; --wash-2: #4a2ba8; --wash-3: #0e5b6b; }
+:root[data-theme="violet"]  { --accent: #8b7cff; --accent-2: #c9a0ff; --accent-3: #4ad6ff; --wash-1: #4a2ba8; --wash-2: #7e22ce; --wash-3: #164e63; }
+:root[data-theme="amber"]   { --accent: #f6a94a; --accent-2: #ff7a45; --accent-3: #ffd166; --wash-1: #b45309; --wash-2: #9a3412; --wash-3: #3f2d16; }
+:root[data-theme="mint"]    { --accent: #3ddc97; --accent-2: #5eead4; --accent-3: #a3e635; --wash-1: #0f766e; --wash-2: #166534; --wash-3: #134e4a; }
+:root[data-theme="ice"]     { --accent: #5ab8f5; --accent-2: #7dd3fc; --accent-3: #a5b4fc; --wash-1: #1d4ed8; --wash-2: #0e5b6b; --wash-3: #312e81; }
+:root[data-theme="rose"]    { --accent: #f472b6; --accent-2: #fda4af; --accent-3: #e879f9; --wash-1: #9d174d; --wash-2: #831843; --wash-3: #4a044e; }
+:root[data-theme="noir"]    { --accent: #dcdce6; --accent-2: #9a9ab0; --accent-3: #62627a; --wash-1: #3f3f46; --wash-2: #27272a; --wash-3: #1c1c22; }
+:root[data-theme="noir"] .card__badge, :root[data-theme="noir"] .btn--primary { color: #0a0a10; }
+
+.theme-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.sw {
+  width: 28px; height: 28px; padding: 0; border-radius: 50%; cursor: pointer; position: relative;
+  border: 1px solid var(--hair-2); transition: transform .25s var(--spring), border-color .2s, box-shadow .25s;
+}
+.sw:hover { transform: translateY(-2px) scale(1.06); }
+.sw.is-on { border-color: var(--text); box-shadow: 0 0 0 3px var(--surface-3); }
+.sw.is-on::after { content: ""; position: absolute; inset: 0; margin: auto; width: 6px; height: 6px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 2px rgba(0, 0, 0, .4); }
+.sw[data-theme="auto"] { background: conic-gradient(from 210deg, #ff4655, #f6a94a, #3ddc97, #5ab8f5, #b06cff, #ff4655); }
+.sw[data-theme="signature"] { background: #ff4655; }
+.sw[data-theme="violet"] { background: #8b7cff; }
+.sw[data-theme="amber"] { background: #f6a94a; }
+.sw[data-theme="mint"] { background: #3ddc97; }
+.sw[data-theme="ice"] { background: #5ab8f5; }
+.sw[data-theme="rose"] { background: #f472b6; }
+.sw[data-theme="noir"] { background: #dcdce6; }
+.sw--pick { overflow: hidden; background: var(--grad); }
+.sw--pick input { position: absolute; inset: -8px; width: 150%; height: 150%; border: 0; padding: 0; opacity: 0; cursor: pointer; background: none; }
+.theme-note { font-size: 11.5px; color: var(--text-3); margin-left: 2px; }
+
+  </style>
+  <style>
+    html { background: #06060a; }
+    #boot {
+      position: fixed; inset: 0; z-index: 99; display: grid; place-items: center;
+      background: radial-gradient(70% 60% at 50% 28%, #14141f, #06060a 72%);
+      color: #a9a9b8; font: 500 13px/1.6 "Inter Tight", Inter, system-ui, sans-serif;
+    }
+    #boot .wrap { display: grid; justify-items: center; gap: 16px; }
+    #boot .mark { width: 54px; height: 54px; border-radius: 18px; display: grid; place-items: center; background: linear-gradient(115deg, #ff4655, #ff8a5c); box-shadow: 0 20px 60px -18px rgba(255, 70, 85, .55); }
+    #boot .mark svg { width: 26px; height: 26px; color: #fff; }
+    #boot .name { font-size: 20px; font-weight: 700; letter-spacing: -.03em; color: #f5f5f8; }
+    #boot .bar { width: 132px; height: 2px; border-radius: 2px; background: rgba(255, 255, 255, .1); overflow: hidden; }
+    #boot .bar i { display: block; height: 100%; width: 40%; border-radius: 2px; background: linear-gradient(90deg, #ff4655, #ff8a5c); animation: slide 1.2s cubic-bezier(.22, 1, .36, 1) infinite; }
+    @keyframes slide { from { transform: translateX(-100%); } to { transform: translateX(330%); } }
+    body[data-surface] #boot { opacity: 0; pointer-events: none; transition: opacity .35s ease; }
+  </style>
+</head>
+<body>
+  <div id="boot">
+    <div class="wrap">
+      <div class="mark"><svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="6" cy="18" r="3" fill="currentColor"/><circle cx="18" cy="16" r="3" fill="currentColor"/></svg></div>
+      <div class="name">Lyra</div>
+      <div class="bar"><i></i></div>
+      <div>Loading your player</div>
+    </div>
+  </div>
+
+  <script>
+    /* ---------------------------------------------------------------------
+       Host configuration. Everything here is optional.
+       • proxyUrls — your Cloudflare Worker (see worker/lyra-proxy.js in the
+         zip). Needed only if you do NOT have the Lyra extension installed:
+         the extension rewrites YouTube's headers so the page can talk to it
+         directly.
+       • installUrl — Chrome Web Store / edge add-ons link for the CTA buttons.
+       --------------------------------------------------------------------- */
+    window.LYRA_CONFIG = {
+      proxyUrls: [],
+      installUrl: '',
+      webAppUrl: 'https://lyra-music.vercel.app/extension'
+    };
+  </script>
+  <script>
+    /* ==========================================================================
+   LYRA — engine + UI  (v4)
+   One codebase, two runtimes:
+     • Chrome extension page (popup / full tab): declarativeNetRequest rules
+       rewrite the YouTube InnerTube calls so they just work.
+     • Hosted web app (Vercel, Netlify, any static host): the same calls are
+       walked through a transport chain — direct (works when the Lyra
+       extension is installed, because DNR injects the CORS header), then your
+       own Cloudflare worker, then public proxies, then a graceful preview mode.
+   No inline event handlers anywhere: MV3's content security policy refuses
+   `onclick="…"` attributes, which is exactly why the old grid/list buttons
+   did nothing in the popup. Everything is delegated through data-attributes.
+   ========================================================================== */
+(function () {
+  'use strict';
+
+  /* ---------------------------------------------------------------- context */
+  var hasExtId = !!(window.chrome && chrome.runtime && chrome.runtime.id);
+  var IS_EXTENSION = location.protocol === 'chrome-extension:' && hasExtId;
+  var params = new URLSearchParams(location.search);
+  var SURFACE = IS_EXTENSION ? (params.get('mode') === 'tab' ? 'tab' : 'popup') : 'web';
+  document.body.dataset.surface = SURFACE;
+  document.documentElement.dataset.ctx = IS_EXTENSION ? 'ext' : 'web';
+
+  /* ------------------------------------------------------------------ config */
+  // The host page may override anything here:
+  //   window.LYRA_CONFIG = { proxyUrls: ['https://…workers.dev'] }
+  var CFG = Object.assign({
+    version: '4.0.0',
+    webAppUrl: 'https://lyra-music.vercel.app/extension',
+    installUrl: '',                        // Chrome Web Store link (optional)
+    proxyUrls: [],                         // your lyra-proxy worker, tried first
+    publicProxies: ['https://corsproxy.io/?url='],
+    radioApis: ['https://long-pond-4887.arnoy799.workers.dev/', 'https://jolly-hall-c603.arnoy799.workers.dev/'],
+    topSongsApi: 'https://icy-pine-f4fb.arnoy799.workers.dev/',
+    ytKey: 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8',
+    clientWeb: '2.20260130.01.00',
+    clientAndroid: '21.04.223',
+    demoAfterMs: 5000
+  }, window.LYRA_CONFIG || {});
+
+  /* ------------------------------------------------------------------- icons */
+  var I = {
+    logo: '<path d="M9 18V5l12-2v13" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="6" cy="18" r="3" fill="currentColor"/><circle cx="18" cy="16" r="3" fill="currentColor"/>',
+    home: '<path d="M3 10.2 12 3l9 7.2V20a1.5 1.5 0 0 1-1.5 1.5H15v-6.2h-6V21.5H4.5A1.5 1.5 0 0 1 3 20Z" fill="currentColor"/>',
+    compass: '<path d="M12 2a10 10 0 100 20 10 10 0 000-20zm4.6 5.4-2 5.6-5.6 2 2-5.6 5.6-2z" fill="currentColor"/>',
+    chart: '<path d="M4 20V10m5 10V4m5 16v-7m5 7V8" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round"/>',
+    heart: '<path d="M12 20.7 3.9 12.9C1.4 10.5 1.5 6.7 4 4.9c2.1-1.5 5-1 6.7 1 1.7-2 4.6-2.5 6.7-1 2.5 1.8 2.6 5.6.1 8z" fill="currentColor"/>',
+    heartO: '<path d="M12 20.7 3.9 12.9C1.4 10.5 1.5 6.7 4 4.9c2.1-1.5 5-1 6.7 1 1.7-2 4.6-2.5 6.7-1 2.5 1.8 2.6 5.6.1 8z"/>',
+    spark: '<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z" fill="currentColor"/>',
+    queue: '<path d="M4 6h11M4 12h11M4 18h7m4-6 5 3-5 3z" stroke="currentColor" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    plus: '<path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
+    search: '<path d="M20 20l-4.3-4.3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="11" cy="11" r="6.4" stroke="currentColor" stroke-width="2" fill="none"/>',
+    gear: '<circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.7" fill="none"/><path d="M19.3 14.6a1.6 1.6 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.6 1.6 0 00-2.7.6 1.6 1.6 0 00-.2.8v.2a2 2 0 11-4 0v-.1a1.6 1.6 0 00-1-1.5 1.6 1.6 0 00-1.8.4l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.6 1.6 0 00.4-1.8 1.6 1.6 0 00-1.5-1H2.6a2 2 0 110-4h.1a1.6 1.6 0 001.5-1 1.6 1.6 0 00-.4-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.6 1.6 0 001.8.4h.1a1.6 1.6 0 001-1.5V2.6a2 2 0 114 0v.1a1.6 1.6 0 001 1.5 1.6 1.6 0 001.8-.4l.1-.1a2 2 0 112.8 2.8l-.1.1a1.6 1.6 0 00-.4 1.8v.1a1.6 1.6 0 001.5 1h.2a2 2 0 110 4h-.1a1.6 1.6 0 00-1.5 1z" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/>',
+    play: '<path d="M8 5.2v13.6L20 12z" fill="currentColor"/>',
+    pause: '<path d="M7 5h3.2v14H7zm6.8 0H17v14h-3.2z" fill="currentColor"/>',
+    next: '<path d="M6 5.5 15 12l-9 6.5zM17 5h2v14h-2z" fill="currentColor"/>',
+    prev: '<path d="M18 5.5 9 12l9 6.5zM5 5h2v14H5z" fill="currentColor"/>',
+    shuffle: '<path d="M17 4l3 3-3 3v-2h-2.2c-1 0-1.6.4-2.2 1.2L8.6 14c-.7.8-1.4 1.3-2.6 1.3H4v-2h2c1 0 1.5-.4 2.2-1.2l3.9-4.8c.7-.9 1.6-1.5 3.1-1.5H17V4zm0 9v2h-2.2c-.6 0-1.1.2-1.6.6l-1.4 1.5c.6.8 1.2 1.2 2.2 1.2H17v2l3-3-3-3zM7.9 5.6 4 9.5l1.4 1.4 3.9-3.9z" fill="currentColor"/>',
+    repeat: '<path d="M7 7h9V4.5L21 8l-5 3.5V9H7V7zm10 10H8v2.5L3 16l5-3.5V15h9v2z" fill="currentColor"/>',
+    close: '<path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>',
+    grid: '<path d="M4 4h7v7H4zm9 0h7v7h-7zM4 13h7v7H4zm9 0h7v7h-7z" fill="currentColor"/>',
+    list: '<path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
+    lyrics: '<path d="M4 5h11M4 10h11M4 15h7m3 3.5 6-6.5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/><circle cx="18.5" cy="17.5" r="2.2" stroke="currentColor" stroke-width="1.6" fill="none"/>',
+    video: '<path d="M3 7.5A2.5 2.5 0 015.5 5h7A2.5 2.5 0 0115 7.5v9A2.5 2.5 0 0112.5 19h-7A2.5 2.5 0 013 16.5zM15 10.5l5-3.2v9.4l-5-3.2z" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linejoin="round"/>',
+    ext: '<path d="M14 4h6v6m0-6L11 15M18 13v5.5A2.5 2.5 0 0115.5 21h-9A2.5 2.5 0 014 18.5v-9A2.5 2.5 0 016.5 7H12" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    panel: '<path d="M4 5h16M4 12h9M4 19h16" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>',
+    chevron: '<path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    down: '<path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    expand: '<path d="M4 9V4h5M20 9V4h-5M4 15v5h5m11-5v5h-5" stroke="currentColor" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    yt: '<path d="M21.6 7.6a2.8 2.8 0 00-1.9-2C18 5.2 12 5.2 12 5.2s-6 0-7.7.4a2.8 2.8 0 00-1.9 2A29 29 0 002 12c0 1.5.1 3 .4 4.4a2.8 2.8 0 001.9 2c1.7.4 7.7.4 7.7.4s6 0 7.7-.4a2.8 2.8 0 001.9-2c.3-1.4.4-2.9.4-4.4s-.1-3-.4-4.4zM10.1 15V9l5.1 3z" fill="currentColor"/>',
+    vol: '<path d="M4 9h3l4.5-3.8V19L7 15H4zm11 .5a4 4 0 010 5M17.5 7a7.5 7.5 0 010 10" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/>',
+    mute: '<path d="M4 9h3l4.5-3.8V19L7 15H4zm11 0 5 6m0-6-5 6" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/>',
+    incog: '<path d="M2.5 12S6 6 12 6s9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z" stroke="currentColor" stroke-width="1.7" fill="none"/><circle cx="12" cy="12" r="2.4" fill="currentColor"/>',
+    trash: '<path d="M5 7h14M9 7V4.8h6V7m-8 0 .8 13h8.4L18 7" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    cmd: '<path d="M8.5 4.5A3 3 0 115.5 7.5V16.5a3 3 0 113-3h7a3 3 0 113 3V7.5a3 3 0 11-3 3h-7a3 3 0 11-3-3z" stroke="currentColor" stroke-width="1.6" fill="none"/>',
+    radio: '<circle cx="12" cy="12" r="2.6" fill="currentColor"/><path d="M7.8 7.8a6 6 0 000 8.4M16.2 16.2a6 6 0 000-8.4M4.9 4.9a10 10 0 000 14.2M19.1 19.1a10 10 0 000-14.2" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round"/>',
+    bolt: '<path d="M13 2 5 13.5h5L9.5 22 19 9.5h-5.5z" fill="currentColor"/>'
+  };
+  function svg(path, cls) { return '<svg class="' + (cls || '') + '" viewBox="0 0 24 24" aria-hidden="true">' + path + '</svg>'; }
+
+  /* ------------------------------------------------------ storage (resilient) */
+  // A sandboxed iframe or "block all site data" makes *reading* localStorage
+  // throw, which used to break preference persistence. Probe once, then fall
+  // back to chrome.storage.local (extension) and finally to memory.
+  var KEYS = {
+    HISTORY: 'lyra.history', FAV: 'lyra.favorites', VIEW: 'lyra.viewMode',
+    SET: 'lyra.settings', BLACK: 'lyra.blacklist', TOP: 'lyra.topCache', QUEUE: 'lyra.queue'
+  };
+  var Store = (function () {
+    var ls = null;
+    try { localStorage.setItem('__lyra_probe', '1'); localStorage.removeItem('__lyra_probe'); ls = localStorage; } catch (e) { ls = null; }
+    var mem = Object.create(null);
+    var canChrome = IS_EXTENSION && window.chrome && chrome.storage && chrome.storage.local;
+
+    function raw(key) {
+      if (ls) { try { var v = ls.getItem(key); if (v != null) return v; } catch (e) {} }
+      return key in mem ? mem[key] : null;
+    }
+    function read(key) {
+      var v = raw(key);
+      if (v == null) return null;
+      try { return JSON.parse(v); } catch (e) { return v; }
+    }
+    function write(key, value) {
+      var str = JSON.stringify(value);
+      mem[key] = str;
+      if (ls) { try { ls.setItem(key, str); } catch (e) {} }
+      if (canChrome) { try { chrome.storage.local.set(obj('lyra:' + key, str)); } catch (e) {} }
+    }
+    function obj(k, v) { var o = {}; o[k] = v; return o; }
+
+    var api = {
+      hasLocalStorage: !!ls,
+      get: function (k, fb) { var v = read(k); return v === null || v === undefined ? (fb === undefined ? null : fb) : v; },
+      set: function (k, v) { write(k, v); },
+      remove: function (k) { write(k, null); },
+      hydrate: function () {
+        if (!canChrome) return Promise.resolve();
+        return chrome.storage.local.get(null).then(function (all) {
+          Object.keys(all || {}).forEach(function (key) {
+            if (key.indexOf('lyra:') !== 0) return;
+            var k = key.slice(5), incoming = all[key];
+            var cur = ls ? safeLs(k) : mem[k];
+            if (cur === incoming) return;
+            var ct = stamp(cur), it = stamp(incoming);
+            if (ct > it) { chrome.storage.local.set(obj(key, cur)); return; } // local is newer → push out
+            if (ls) { try { ls.setItem(k, incoming); } catch (e) { mem[k] = incoming; } } else mem[k] = incoming;
+          });
+          if (chrome.storage.onChanged) chrome.storage.onChanged.addListener(function (ch, area) {
+            if (area !== 'local') return;
+            var touched = false;
+            Object.keys(ch).forEach(function (key) {
+              if (key.indexOf('lyra:') !== 0) return;
+              touched = true;
+              var k = key.slice(5), val = ch[key].newValue;
+              if (val == null) return;
+              if (ls) { try { ls.setItem(k, val); } catch (e) {} }
+              mem[k] = val;
+            });
+            if (touched && window.Lyra) Lyra.reloadFromStorage();
+          });
+        }).catch(function () {});
+      },
+      settings: function () {
+        return Object.assign({
+          theme: 'auto', accent: '#ff4655',
+          volume: 80, incognito: false, rail: 'expanded', extendQueue: true, restoreQueue: true,
+          quality: 'auto', streamViaProxy: false, proxy: '', pipW: 280, moods: []
+        }, api.get(KEYS.SET, {}) || {});
+      },
+      saveSettings: function (patch) { var s = Object.assign(api.settings(), patch, { __t: Date.now() }); api.set(KEYS.SET, s); return s; },
+      favorites: function () { var f = api.get(KEYS.FAV, null); return Array.isArray(f) ? f : []; },
+      saveFavorites: function (f) { api.set(KEYS.FAV, f.map(function (x, i) { return Object.assign({ __t: Date.now() + i }, x); })); },
+      history: function () { var h = api.get(KEYS.HISTORY, null); return Object.assign({ searches: [], plays: [], queue: [] }, h || {}); },
+      saveHistory: function (h) { api.set(KEYS.HISTORY, Object.assign({ __t: Date.now() }, h)); },
+      blacklist: function () { var b = api.get(KEYS.BLACK, null); return Array.isArray(b) ? b : []; },
+      backend: function () { return ls ? 'localStorage' : (canChrome ? 'chrome.storage.local' : 'memory (not persisted)'); }
+    };
+    function safeLs(k) { try { return ls.getItem(k); } catch (e) { return null; } }
+    function stamp(str) { try { return (JSON.parse(str) || {}).__t || 0; } catch (e) { return 0; } }
+    return api;
+  })();
+
+  /* ---------------------------------------------------------- transport layer */
+  var T = { key: null, label: 'connecting…', ok: false };
+
+  // Ordered list of relays. `style:'worker'` speaks the lyra-proxy routes
+  // (/youtubei/x, /timedtext?url=, /media?url=); `style:'prefix'` is the
+  // classic "?url=<encoded>" public-proxy shape.
+  function proxyCandidates() {
+    var out = [];
+    var custom = String(Store.settings().proxy || '').trim();
+    if (custom) out.push({ base: custom, style: CFG.proxyStyle || 'worker' });
+    (CFG.proxyUrls || []).forEach(function (u) { if (u) out.push({ base: u, style: CFG.proxyStyle || 'worker' }); });
+    (CFG.publicProxies || []).forEach(function (u) { if (u) out.push({ base: u, style: 'prefix' }); });
+    return out;
+  }
+  function relayUrl(route, target) {
+    if (!target || IS_EXTENSION) return null;
+    var p = proxyCandidates()[0];
+    if (!p) return null;
+    return p.style === 'worker'
+      ? p.base.replace(/\/+$/, '') + '/' + route + '?url=' + encodeURIComponent(target)
+      : p.base + encodeURIComponent(target);
+  }
+  function host(u) { try { return new URL(u, location.href).host; } catch (e) { return String(u).replace(/^https?:\/\//, '').split('/')[0]; } }
+
+  function timedFetch(url, opts, ms) {
+    var ac = typeof AbortController === 'function' ? new AbortController() : null;
+    var timer = setTimeout(function () { if (ac) ac.abort(); }, ms || 9000);
+    var o = Object.assign({ cache: 'no-store', credentials: 'omit' }, opts || {});
+    if (ac) o.signal = ac.signal;
+    return fetch(url, o).then(function (r) { clearTimeout(timer); return r; }, function (e) { clearTimeout(timer); throw e; });
+  }
+
+  // Build the ordered list of ways to reach one InnerTube endpoint.
+  // Every request Lyra itself makes carries ?lyra=1, and every header rule in
+  // rules.json requires it. YouTube's own web player, and any embed on any other
+  // site, never matches a rule — so the Android-client UA swap and the Origin
+  // stripping cannot leak into videos you are watching somewhere else.
+  function markLyra(url) {
+    return url + (url.indexOf('?') < 0 ? '?' : '&') + 'lyra=1';
+  }
+  function transportsFor(endpoint) {
+    var direct = markLyra('https://www.youtube.com/youtubei/v1/' + endpoint + '?key=' + CFG.ytKey);
+    var list = [];
+    if (IS_EXTENSION) {
+      list.push({ key: 'direct', label: 'extension · direct', make: function (body) { return { url: direct, body: body }; } });
+    } else {
+      // Works when the Lyra extension is installed: its DNR rules answer with
+      // Access-Control-Allow-Origin and the Android UA for us.
+      list.push({ key: 'direct', label: 'extension-assisted', make: function (body) { return { url: direct, body: body }; } });
+      proxyCandidates().forEach(function (p) {
+        var isWorker = p.style === 'worker';
+        list.push({
+          key: (isWorker ? 'worker:' : 'proxy:') + p.base,
+          label: 'proxy · ' + host(p.base),
+          make: function (body) {
+            return isWorker
+              ? { url: p.base.replace(/\/+$/, '') + '/youtubei/' + endpoint, body: body }
+              : { url: p.base + encodeURIComponent(direct), body: body };
+          }
+        });
+      });
+    }
+    // Move the last known-good transport to the front.
+    var i = T.key ? list.findIndex(function (x) { return x.key === T.key; }) : -1;
+    if (i > 0) list.unshift(list.splice(i, 1)[0]);
+    return list;
+  }
+
+  // POST to InnerTube through whichever transport answers with usable JSON.
+  function innerTube(endpoint, payload) {
+    var body = JSON.stringify(Object.assign({
+      context: { client: { clientName: 'WEB', clientVersion: CFG.clientWeb, hl: 'en', gl: 'US' } }
+    }, payload || {}));
+    var chain = transportsFor(endpoint);
+    var idx = 0;
+    function step(err) {
+      if (idx >= chain.length) return Promise.reject(err || new Error('unreachable'));
+      var tr = chain[idx++];
+      var req = tr.make(body);
+      return timedFetch(req.url, { method: 'POST', headers: Object.assign({ 'Content-Type': 'application/json' }, req.headers || {}), body: req.body }, 9500)
+        .then(function (res) {
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          return res.text();
+        })
+        .then(function (text) {
+          var data = text ? JSON.parse(text) : null;
+          if (!data || typeof data !== 'object') throw new Error('bad payload');
+          if (data.error) throw new Error((data.error && data.error.message) || 'youtube error');
+          if (data.playabilityStatus && /LIVE_STREAM|LOGIN_REQUIRED|ERROR/.test(data.playabilityStatus.status || '')) {
+            if (endpoint === 'player') throw new Error('playback restricted');
+          }
+          if (!T.ok || T.key !== tr.key) { T.key = tr.key; T.label = tr.label; T.ok = true; paintTransport(); }
+          return data;
+        })
+        .catch(function (e) { return step(e); });
+    }
+    return step(null);
+  }
+
+  function cloudGet(url) {
+    return timedFetch(url, { method: 'GET' }, 13000).then(function (r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    });
+  }
+
+  /* ----------------------------------------------------------------- API layer */
+  function txt(node) {
+    if (!node) return '';
+    if (typeof node === 'string') return node;
+    if (node.simpleText) return node.simpleText;
+    if (node.runs) return node.runs.map(function (r) { return r.text; }).join('');
+    if (node.content) return node.content;
+    return '';
+  }
+  var Api = {
+    search: function (q) {
+      return innerTube('search', { query: q }).then(function (data) {
+        var list = (((data.contents || {}).twoColumnSearchResultsRenderer || {}).primaryContents || {}).sectionListRenderer;
+        var items = list ? (list.contents || []).reduce(function (acc, s) { return acc.concat((s.itemSectionRenderer || {}).contents || []); }, []) : [];
+        return items.map(function (it) {
+          var v = it.videoRenderer; if (!v) return null;
+          var th = (v.thumbnail || {}).thumbnails || [];
+          return {
+            videoId: v.videoId, title: txt(v.title), channel: txt(v.ownerText),
+            thumbnail: th.length ? th[th.length - 1].url : '', duration: txt(v.lengthText),
+            views: txt(v.shortViewCountText) || txt(v.viewCountText), published: txt(v.publishedTimeText)
+          };
+        }).filter(Boolean).filter(function (v) { return state.blacklist.indexOf(v.videoId) < 0; });
+      });
+    },
+    radio: function (seedId) {
+      return innerTube('next', { videoId: seedId, playlistId: 'RD' + seedId }).then(function (data) {
+        var wrap = ((data.contents || {}).twoColumnWatchNextResults || {}).playlist;
+        var items = wrap && wrap.playlist ? (wrap.playlist.contents || []) : [];
+        return items.map(function (it) {
+          var v = it.playlistPanelVideoRenderer; if (!v) return null;
+          var th = (v.thumbnail || {}).thumbnails || [];
+          return { videoId: v.videoId, title: txt(v.title) || 'Untitled', channel: ((v.longBylineText || {}).runs || [{}])[0].text || 'Unknown', thumbnail: th.length ? th[0].url : '', duration: txt(v.lengthText) };
+        }).filter(Boolean).filter(function (v) { return v.videoId !== seedId && state.blacklist.indexOf(v.videoId) < 0; }).slice(0, 50);
+      });
+    },
+    radioFallback: function (seedId) {
+      var base = CFG.radioApis[Math.floor(Math.random() * CFG.radioApis.length)];
+      return cloudGet(base + '?videoId=' + encodeURIComponent(seedId)).then(function (d) {
+        return (d.videos || []).map(function (v) {
+          return { videoId: v.videoId || v.id, title: v.title, channel: v.author || v.channel || 'Unknown', thumbnail: v.thumbnail || '', duration: v.duration || '' };
+        }).filter(function (v) { return v.videoId; });
+      });
+    },
+    topSongs: function () {
+      var cached = Store.get(KEYS.TOP, null);
+      if (cached && Date.now() - cached.ts < 36e5 && cached.data && cached.data.length) return Promise.resolve(cached.data);
+      return cloudGet(CFG.topSongsApi).then(function (d) {
+        var mapped = (d.videos || []).map(function (v) {
+          return { videoId: v.id, title: v.title, channel: v.author, thumbnail: v.thumbnail, duration: v.duration, views: v.views, published: v.published };
+        });
+        if (mapped.length) Store.set(KEYS.TOP, { ts: Date.now(), data: mapped });
+        if (!mapped.length) throw new Error('empty chart');
+        return mapped;
+      });
+    },
+    // Player call uses the ANDROID client: unmuted, licence-free mp4 streams + captions.
+    stream: function (videoId) {
+      var body = JSON.stringify({
+        context: { client: { clientName: 'ANDROID', clientVersion: CFG.clientAndroid, androidSdkVersion: 35, hl: 'en', gl: 'US' } },
+        videoId: videoId, contentCheckOk: true, racyCheckOk: true
+      });
+      return innerTubeRaw('player', body).then(function (data) {
+        var sd = data.streamingData || {};
+        var all = [].concat(sd.formats || [], sd.adaptiveFormats || []);
+        var audioOnly = Store.settings().quality === 'audio';
+        var want = audioOnly ? /audio\// : /video\/mp4/;
+        var pool = all.filter(function (f) { return f.url && want.test(f.mimeType || ''); });
+        if (!pool.length) pool = all.filter(function (f) { return f.url && (audioOnly ? /audio\// : /video\//).test(f.mimeType || ''); });
+        var pick = pool.slice().sort(function (a, b) { return (b.bitrate || 0) - (a.bitrate || 0); })[0] || null;
+        var tracks = ((((data.captions || {}).playerCaptionsTracklistRenderer || {})).captionTracks) || [];
+        var captionUrl = null;
+        if (tracks.length) {
+          var en = tracks.filter(function (t) { return /^en/i.test(t.languageCode || t.language || ''); })[0] || tracks[0];
+          captionUrl = en.baseUrl;
+        }
+        return {
+          streamUrl: pick ? absUrl(pick.url) : null,
+          captionUrl: captionUrl,
+          quality: pick && pick.qualityLabel ? pick.qualityLabel : (audioOnly ? 'audio' : ''),
+          duration: (((data.videoDetails || {}).lengthSeconds) | 0) || 0
+        };
+      });
+    }
+  };
+  function innerTubeRaw(endpoint, body) {
+    var chain = transportsFor(endpoint);
+    var idx = 0;
+    function step(err) {
+      if (idx >= chain.length) return Promise.reject(err || new Error('unreachable'));
+      var tr = chain[idx++];
+      var req = tr.make(body);
+      return timedFetch(req.url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: req.body }, 9500)
+        .then(function (res) { if (!res.ok) throw new Error('HTTP ' + res.status); return res.text(); })
+        .then(function (text) {
+          var data = JSON.parse(text);
+          if (!T.ok || T.key !== tr.key) { T.key = tr.key; T.label = tr.label; T.ok = true; paintTransport(); }
+          return data;
+        }).catch(function (e) { return step(e); });
+    }
+    return step(null);
+  }
+  function absUrl(u) { return !u ? u : (u.indexOf('http') === 0 ? u : 'https://www.youtube.com' + u); }
+  // In web mode the browser (not the proxy) fetches the media, so googlevideo
+  // can answer 403. When a worker proxy is configured we can relay it instead.
+  function mediaUrl(u) {
+    if (!u || IS_EXTENSION || !Store.settings().streamViaProxy) return u;
+    return relayUrl('media', u) || u;
+  }
+
+  /* ---------------------------------------------------------------- demo data */
+  var DEMO = [
+    ['Redtone Skyline', 'Aurelia Vance', '3:42', '184M views', 'lofi'],
+    ['Neon Sermon', 'Kaido', '4:08', '92M views', 'synthwave'],
+    ['Paper Lanterns', 'Mira Sol', '3:19', '312M views', 'dream pop'],
+    ['Velvet Static', 'The Hollow Youth', '2:58', '47M views', 'alt'],
+    ['Midnight Ferry', 'Jun Nakamura', '5:12', '23M views', 'jazz'],
+    ['Cassette Sunrise', 'Lune & Ferro', '3:55', '156M views', 'chillwave'],
+    ['Gold Teeth', 'Rae Marlowe', '3:11', '78M views', 'soul'],
+    ['Saltwater Hymn', 'Atlas Bloom', '4:36', '12M views', 'indie'],
+    ['Glass Arcade', 'Kento', '3:28', '64M views', 'electro'],
+    ['Tangerine Drift', 'Noa Reyes', '4:01', '210M views', 'city pop'],
+    ['Cold Cathedral', 'Vesper', '5:44', '8.9M views', 'post-rock'],
+    ['Slow Motion Weather', 'Halcyon Kid', '3:07', '33M views', 'bedroom']
+  ];
+  function hash(s) { var h = 0; s = String(s); for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return Math.abs(h); }
+  var PAL = [['#ff4655', '#5b1cff'], ['#0ea5b7', '#3730a3'], ['#f97316', '#9f1239'], ['#8b5cf6', '#0891b2'], ['#e11d48', '#b45309'], ['#10b981', '#1e3a8a'], ['#f43f5e', '#6d28d9']];
+  /* ---------------------------------------------------------------- palette --
+     Themes are four custom properties on :root. Because every accent surface in
+     styles.css is color-mix()'d from --accent, one write recolours the whole app —
+     including the adaptive mode below, which takes the hue off the cover art. */
+  var THEMES = [
+    { id: 'auto', label: 'Adaptive', note: 'from the artwork' },
+    { id: 'signature', label: 'Signature', dot: '#ff4655' },
+    { id: 'violet', label: 'Violet', dot: '#8b7cff' },
+    { id: 'amber', label: 'Amber', dot: '#f6a94a' },
+    { id: 'mint', label: 'Mint', dot: '#3ddc97' },
+    { id: 'ice', label: 'Ice', dot: '#5ab8f5' },
+    { id: 'rose', label: 'Rose', dot: '#f472b6' },
+    { id: 'noir', label: 'Noir', dot: '#dcdce6' }
+  ];
+  var palette = {
+    hexToRgb: function (hex) {
+      var m = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(String(hex || '').trim());
+      if (!m) return null;
+      var h = m[1];
+      if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+      var n = parseInt(h, 16);
+      return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+    },
+    rgbToHsl: function (r, g, b) {
+      r /= 255; g /= 255; b /= 255;
+      var max = Math.max(r, g, b), min = Math.min(r, g, b), d = max - min, h = 0;
+      var l = (max + min) / 2;
+      // HSL saturation, not HSV: d / (max + min) under-reads badly for light colours
+      // and would hand back a washed-out accent from a bright cover.
+      var s = d === 0 ? 0 : d / (1 - Math.abs(2 * l - 1));
+      if (d) {
+        if (max === r) h = ((g - b) / d + (g < b ? 6 : 0));
+        else if (max === g) h = (b - r) / d + 2;
+        else h = (r - g) / d + 4;
+        h *= 60;
+      }
+      if (l > .95 || l < .05) s = Math.min(s, .35);
+      return { h: h, s: s * 100, l: l * 100 };
+    },
+    css: function (h, sat, light) {
+      if (typeof h !== 'number' || !isFinite(h)) h = 355;
+      if (typeof sat !== 'number' || !isFinite(sat)) sat = 72;
+      if (typeof light !== 'number' || !isFinite(light)) light = 62;
+      return 'hsl(' + (Math.round(((h % 360) + 360) % 360)) + ' ' + Math.round(sat) + '% ' + Math.round(light) + '%)';
+    },
+    /* A raw cover colour is usually too dark or too pale to be a UI accent, so the
+       sampled hue is pushed into a band that stays legible on ink-0 and under white text. */
+    derive: function (h, sat) {
+      var S = Math.max(52, Math.min(86, sat || 72));
+      return {
+        accent: palette.css(h, S, 62),
+        a2: palette.css(h + 34, Math.max(44, S - 12), 66),
+        a3: palette.css(h - 58, Math.max(50, S - 6), 66),
+        wash1: palette.css(h, Math.min(70, S), 27),
+        wash2: palette.css(h + 46, 50, 25),
+        wash3: palette.css(h + 196, 44, 23)
+      };
+    }
+  };
+  var ACCENT_VARS = ['--accent', '--accent-2', '--accent-3', '--wash-1', '--wash-2', '--wash-3'];
+  function applyAccent() {
+    var st = Store.settings(), root = document.documentElement, p = null;
+    if (st.theme === 'custom') {
+      var rgb = palette.hexToRgb(st.accent);
+      if (rgb) { var c = palette.rgbToHsl(rgb[0], rgb[1], rgb[2]); p = palette.derive(c.h, c.s); }
+    } else if (st.theme === 'auto') {
+      p = palette.derive(state.__hue, state.__sat);
+    }
+    if (!p) { ACCENT_VARS.forEach(function (k) { root.style.removeProperty(k); }); root.dataset.hasAccent = '0'; return; }
+    root.style.setProperty('--accent', p.accent);
+    root.style.setProperty('--accent-2', p.a2);
+    root.style.setProperty('--accent-3', p.a3);
+    root.style.setProperty('--wash-1', p.wash1);
+    root.style.setProperty('--wash-2', p.wash2);
+    root.style.setProperty('--wash-3', p.wash3);
+    root.dataset.hasAccent = '1';
+    root.dataset.accentLabel = String(Math.round(((state.__hue || 0) % 360 + 360) % 360));
+  }
+  function setTheme(id, accent) {
+    var p = {}; p.theme = id;
+    if (accent) p.accent = accent;
+    Store.saveSettings(p);
+    applySettings(); applyAccent();
+    if (id === 'auto') sampleAccent(cur());
+    var t = THEMES.filter(function (x) { return x.id === id; })[0];
+    toast('Theme · ' + (t ? t.label : id), I.spark);
+  }
+  // The generated covers are deterministic, so a preview track can carry a real hue
+  // without a canvas: it is the same colour the artwork was built from.
+  function hueOfCover(t) {
+    var pair = PAL[hash(((t && t.videoId) || 'lyra') + ((t && t.title) || '')) % PAL.length];
+    var rgb = palette.hexToRgb(pair[0]);
+    return rgb ? palette.rgbToHsl(rgb[0], rgb[1], rgb[2]) : { h: 355, s: 78 };
+  }
+  // Cover art is decoration. It must never go through the transport machinery: that
+  // one retries across proxies and, on total failure, flips the app into demo mode —
+  // a 320×180 JPEG has no business changing the data path. So: one attempt, no
+  // rotation, no state, and a null on any failure.
+  function thumbBytes(url) {
+    var relay = relayUrl('media', url);
+    var via = (IS_EXTENSION || !relay) ? url : relay;
+    if (!IS_EXTENSION && !relay && location.protocol !== 'chrome-extension:') return Promise.resolve(null);
+    var ctrl = window.AbortController ? new AbortController() : null;
+    var timer = ctrl ? setTimeout(function () { try { ctrl.abort(); } catch (e) {} }, 4000) : null;
+    var done = function (v) { if (timer) clearTimeout(timer); return v; };
+    return fetch(via, ctrl ? { signal: ctrl.signal, cache: 'force-cache' } : undefined)
+      .then(function (r) { return r && r.ok ? r.blob() : null; })
+      .then(done, function () { done(null); return null; });
+  }
+
+  var AccentCache = new Map();
+  function sampleAccent(t) {
+    var st = Store.settings();
+    if (st.theme !== 'auto') return Promise.resolve(null);
+    var url = (t && !t.demo && t.videoId) ? (t.thumbnail || 'https://i.ytimg.com/vi/' + encodeURIComponent(t.videoId) + '/mqdefault.jpg') : '';
+    if (!url) { var f = hueOfCover(t); state.__hue = f.h; state.__sat = f.s; applyAccent(); return Promise.resolve(f.h); }
+    if (AccentCache.has(url)) {
+      var hit = AccentCache.get(url);
+      state.__hue = hit.h; state.__sat = hit.s; applyAccent();
+      return Promise.resolve(hit.h);
+    }
+    // Reading pixels needs CORS-clean bytes: inside the extension the host permission
+    // covers it; on the hosted page the same request goes through the relay. If either
+    // fails, the canvas would be tainted anyway, so fall back instead of guessing.
+    return thumbBytes(url).then(function (blob) { return blob ? readHue(blob) : null; })
+      .then(function (hsl) {
+        var out = hsl || hueOfCover(t);
+        if (hsl) AccentCache.set(url, { h: out.h, s: out.s });
+        state.__hue = out.h; state.__sat = out.s;
+        applyAccent();
+        return out.h;
+      }).catch(function () {
+        var out = hueOfCover(t);
+        state.__hue = out.h; state.__sat = out.s; applyAccent();
+        return out.h;
+      });
+  }
+  function readHue(blob) {
+    return new Promise(function (resolve) {
+      if (!window.URL || !window.URL.createObjectURL || !document.createElement('canvas').getContext) { resolve(null); return; }
+      var obj;
+      try { obj = window.URL.createObjectURL(blob); } catch (e) { resolve(null); return; }
+      var im = new Image();
+      var fin = function (v) { try { window.URL.revokeObjectURL(obj); } catch (e) {} resolve(v); };
+      im.onload = function () {
+        try {
+          var c = document.createElement('canvas'); c.width = 20; c.height = 20;
+          var ctx = c.getContext('2d');
+          if (!ctx) return fin(null);
+          ctx.drawImage(im, 0, 0, 20, 20);
+          var d = ctx.getImageData(0, 0, 20, 20).data;   // throws on a tainted canvas
+          var bins = new Array(12).fill(0), wts = new Array(12).fill(0), ang = new Array(12).fill(0);
+          for (var i = 0; i < d.length; i += 4) {
+            var hsl = palette.rgbToHsl(d[i], d[i + 1], d[i + 2]);
+            if (hsl.s < 22 || hsl.l < 14 || hsl.l > 90) continue;         // mud and highlights
+            var b = Math.floor((hsl.h % 360) / 30) % 12;
+            var w = (hsl.s / 100) * (1 - Math.abs(hsl.l - 58) / 60);
+            if (w <= 0) continue;
+            bins[b] += w; ang[b] += w * hsl.h; wts[b] += w;
+          }
+          var best = -1, bi = -1;
+          for (var k = 0; k < 12; k++) if (bins[k] > best) { best = bins[k]; bi = k; }
+          if (bi < 0 || best <= 0) return fin(null);
+          fin({ h: ang[bi] / wts[bi], s: Math.max(52, Math.min(86, best / (20 * 20 / 12) * 130)) });
+        } catch (e) { fin(null); }
+      };
+      im.onerror = function () { fin(null); };
+      im.src = obj;
+    });
+  }
+
+  function coverArt(seed, label) {
+    var p = PAL[hash(seed) % PAL.length];
+    var t = String(label || '').replace(/[<>&"]/g, '').slice(0, 20);
+    var bars = '';
+    for (var i = 0; i < 15; i++) {
+      var h = 8 + (hash(seed + ':' + i) % 44);
+      bars += '<rect x="' + (22 + i * 12) + '" y="' + (196 - h / 2) + '" width="5" height="' + h + '" rx="2.5" fill="rgba(255,255,255,.4)"/>';
+    }
+    var s = '<svg xmlns="http://www.w3.org/2000/svg" width="320" height="320" viewBox="0 0 320 320">'
+      + '<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="' + p[0] + '"/><stop offset="1" stop-color="' + p[1] + '"/></linearGradient>'
+      + '<radialGradient id="r" cx=".26" cy=".18" r=".95"><stop offset="0" stop-color="#fff" stop-opacity=".38"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient></defs>'
+      + '<rect width="320" height="320" fill="url(#g)"/><rect width="320" height="320" fill="url(#r)"/>' + bars
+      + '<text x="24" y="52" font-family="system-ui,sans-serif" font-size="22" font-weight="700" fill="rgba(255,255,255,.95)">' + t + '</text>'
+      + '<circle cx="266" cy="262" r="26" fill="rgba(6,6,10,.35)"/><path d="M258 250l20 12-20 12z" fill="rgba(255,255,255,.92)"/></svg>';
+    return 'data:image/svg+xml;utf8,' + encodeURIComponent(s);
+  }
+  function thumbFor(t) {
+    if (!t) return coverArt('none', '');
+    if (t.demo || !t.videoId || String(t.videoId).indexOf('demo') === 0) return coverArt(t.videoId + t.title, t.title);
+    return t.thumbnail || ('https://i.ytimg.com/vi/' + encodeURIComponent(t.videoId) + '/mqdefault.jpg');
+  }
+  function demoTracks() {
+    return DEMO.map(function (d, i) {
+      return { videoId: 'demo' + i, title: d[0], channel: d[1], duration: d[2], views: d[3], published: d[4], demo: true, thumbnail: '' };
+    });
+  }
+
+  /* -------------------------------------------------------------------- state */
+  var state = {
+    view: 'home', viewMode: 'grid',
+    queue: [], index: -1, playing: false, repeat: 'off',
+    results: [], lastQuery: '', favorites: [], history: [], blacklist: [], topSongs: [],
+    radioSeed: null, lyrics: null, captionUrl: null, lyricIndex: -1,
+    fullOpen: false, fullTab: 'art', unlimited: {}, __ovQDirty: false, __hue: 355, __sat: 78, queueOpen: false, demo: false, volume: 80, muted: false, searchSeq: 0
+  };
+  var reg = new Map();
+  function keep(t) { var id = 'r' + (reg.size + 1); reg.set(id, t); t.__rid = id; return id; }
+  function trackOf(el) { return el ? reg.get(el.getAttribute('data-rid')) : null; }
+
+  /* ------------------------------------------------------------------ helpers */
+  function $(s, r) { return (r || document).querySelector(s); }
+  function $$(s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); }
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function fmtViews(v) {
+    if (!v) return '';
+    var s = String(v).replace(/\s*(views?|次观看|watching)/i, '').trim();
+    if (/[KMBkmb]/.test(s)) return s;
+    var n = parseInt(s.replace(/[^\d]/g, ''), 10);
+    if (isNaN(n)) return s;
+    if (n >= 1e9) return (n / 1e9).toFixed(1).replace(/\.0$/, '') + 'B';
+    if (n >= 1e6) return (n / 1e6).toFixed(1).replace(/\.0$/, '') + 'M';
+    if (n >= 1e3) return (n / 1e3).toFixed(1).replace(/\.0$/, '') + 'K';
+    return String(n);
+  }
+  function fmtTime(sec) {
+    sec = Number(sec);
+    if (!isFinite(sec) || isNaN(sec)) return '0:00';
+    var s = Math.floor(sec % 60), m = Math.floor(sec / 60) % 60, h = Math.floor(sec / 3600);
+    return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(s).padStart(2, '0');
+  }
+  function rel(ts) {
+    var d = (Date.now() - ts) / 864e5;
+    if (d < 1) return 'today';
+    if (d < 2) return 'yesterday';
+    if (d < 30) return Math.round(d) + ' days ago';
+    return Math.round(d / 30) + ' months ago';
+  }
+  function toast(msg, icon) {
+    var box = $('#toasts'); if (!box) return;
+    var el = document.createElement('div');
+    el.className = 'toast';
+    el.innerHTML = svg(icon || I.bolt) + '<span>' + esc(msg) + '</span>';
+    box.appendChild(el);
+    setTimeout(function () { el.classList.add('is-out'); setTimeout(function () { el.remove(); }, 340); }, 2800);
+    // Four stacked toasts are a wall of text nobody reads. Two is a message.
+    while (box.children.length > 2) box.removeChild(box.firstChild);
+  }
+
+  /* ------------------------------------------------------------------- shell */
+  function mount() {
+    var root = document.createElement('div');
+    root.innerHTML =
+      '<div class="ambient"><span class="o1"></span><span class="o2"></span><span class="o3"></span></div>' +
+      '<div class="grain"></div><div class="vignette"></div>' +
+      '<div class="app">' +
+      '  <aside class="rail" id="rail">' + railHTML() + '</aside>' +
+      '  <div class="main">' +
+      '    <header class="topbar">' +
+      '      <button class="icon-btn" data-act="rail-drawer" id="rail-mobile" title="Menu">' + svg(I.panel) + '</button>' +
+      '      <div class="crumb"><h1 id="crumb">Home</h1><small id="crumb-sub"></small></div>' +
+      '      <div class="searchbox">' + svg(I.search, 'searchbox__ico') +
+      '        <input id="q" type="text" placeholder="Search songs, artists, moods…" autocomplete="off" spellcheck="false" aria-label="Search">' +
+      '        <div class="searchbox__kbd"><kbd>&#8984;</kbd><kbd>K</kbd></div>' +
+      '      </div>' +
+      '      <span class="status" id="transport-badge" title="Data transport"><span class="dot dot--idle"></span><span id="transport-label">connecting&hellip;</span></span>' +
+      '      <button class="icon-btn" data-act="cmdk" title="Command palette (&#8984;K)">' + svg(I.cmd) + '</button>' +
+      (IS_EXTENSION
+        ? '<button class="icon-btn" data-act="open-tab" title="Open in a full tab">' + svg(I.ext) + '</button>'
+        : '<a class="icon-btn" data-act="install-ext" title="Get the extension">' + svg(I.spark) + '</a>') +
+      '    </header>' +
+      '    <div class="view scroll" id="view"></div>' +
+      '  </div>' +
+      playerBarHTML() +
+      '</div>' +
+      drawerHTML() + overlayHTML() + settingsHTML() + cmdkHTML() +
+      '<div class="scrim" id="scrim"></div><div class="toasts" id="toasts"></div>' +
+      pipHTML();
+    while (root.firstChild) document.body.appendChild(root.firstChild);
+    video = $('#video');
+  }
+
+  function railHTML() {
+    var items = [['home', I.home, 'Home'], ['discover', I.compass, 'Discover'], ['top', I.chart, 'Top songs'], ['radio', I.radio, 'Radio'], ['favorites', I.heart, 'Favorites']];
+    return '<div class="brand"><span class="brand__mark">' + svg(I.logo) + '</span>' +
+      '<div><div class="brand__word">Ly<i>ra</i></div><div class="brand__tag">' + (IS_EXTENSION ? 'extension' : 'web app') + '</div></div>' +
+      '</div>' +
+      '<div class="rail__actions"><button class="icon-btn" data-act="rail-collapse" title="Collapse sidebar">' + svg(I.chevron) + '</button></div>' +
+      '<div class="eyebrow">Listen</div>' +
+      '<nav class="nav">' + items.map(function (it) {
+        return '<a href="#" class="nav-item" data-act="nav" data-nav="' + it[0] + '">' + svg(it[1]) + '<span>' + it[2] + '</span>' +
+          (it[0] === 'favorites' ? '<i class="nav-item__badge" id="fav-count">0</i>' : (it[0] === 'queue' ? '' : '')) + '</a>';
+      }).join('') + '</nav>' +
+      '<div class="eyebrow">Now</div>' +
+      '<div class="rail__card" id="rail-card">' + cardHTML() + '</div>' +
+      '<div style="margin-top:12px;display:flex;align-items:center;gap:6px">' +
+      '<button class="icon-btn" data-act="settings" title="Settings">' + svg(I.gear) + '</button>' +
+      '<button class="icon-btn" data-act="incognito" id="incog-btn" title="Incognito session">' + svg(I.incog) + '</button>' +
+      '<span class="status" style="font-size:10px;padding:5px 8px;margin-left:auto" id="storage-badge"></span>' +
+      '</div>';
+  }
+  function cardHTML() {
+    if (IS_EXTENSION) {
+      return '<h4>Take it to the browser</h4><p>Lyra also runs as a hosted web app — same library, same queue, no popup needed.</p>' +
+        '<button class="btn btn--primary" data-act="open-webapp">' + svg(I.ext) + 'Open web app</button>';
+    }
+    return '<h4>Full power: extension</h4><p>The extension talks to YouTube directly, no proxy, and keeps playing in the background.</p>' +
+      '<button class="btn btn--primary" data-act="install-ext">' + svg(I.spark) + 'Install Lyra</button>';
+  }
+
+  function playerBarHTML() {
+    return '<footer class="player" id="bar">' +
+      '<div class="player__line"><i id="line"></i></div>' +
+      '<div class="player__cur">' +
+      '  <div class="player__art" data-act="full-open" title="Now playing (F)"><img id="bar-art" alt="" src="' + coverArt('idle', 'Lyra') + '"></div>' +
+      '  <div class="player__tt" data-act="full-open" style="cursor:pointer;min-width:0">' +
+      '    <div class="player__t" id="bar-t">Nothing playing</div>' +
+      '    <div class="player__s" id="bar-s">Search, then press play</div>' +
+      '  </div>' +
+      '  <button class="ctrl love" data-act="love" id="bar-love" title="Love (L)">' + svg(I.heartO) + '</button>' +
+      '</div>' +
+      '<div class="player__center">' +
+      '  <div class="transport">' +
+      '    <button class="ctrl" data-act="shuffle" title="Shuffle queue">' + svg(I.shuffle) + '</button>' +
+      '    <button class="ctrl" data-act="prev" title="Previous (&#8592;)">' + svg(I.prev) + '</button>' +
+      '    <button class="ctrl ctrl--main" data-act="toggle" id="btn-play" title="Play / pause (Space)">' + svg(I.play) + '</button>' +
+      '    <button class="ctrl" data-act="next" title="Next (&#8594;)">' + svg(I.next) + '</button>' +
+      '    <button class="ctrl" data-act="repeat" id="btn-repeat" title="Repeat: off">' + svg(I.repeat) + '</button>' +
+      '  </div>' +
+      '  <div class="timeline"><span class="num" id="t-cur">0:00</span>' +
+      '    <div class="bar" id="t-bar"><i></i><u></u></div><span class="num" id="t-dur">0:00</span></div>' +
+      '</div>' +
+      '<div class="player__right">' +
+      '  <button class="icon-btn" data-act="pip" id="btn-pip" title="Video overlay">' + svg(I.video) + '</button>' +
+      '  <button class="icon-btn" data-act="lyrics" id="btn-lyr" title="Lyrics (Y)">' + svg(I.lyrics) + '</button>' +
+      '  <div class="vol"><button class="icon-btn" data-act="mute" id="btn-mute" style="width:28px;height:28px">' + svg(I.vol) + '</button>' +
+      '  <div class="bar" id="vol-bar" title="Volume"><i></i></div></div>' +
+      '  <button class="icon-btn" data-act="queue" id="btn-queue" title="Queue (Q)">' + svg(I.queue) + '</button>' +
+      '</div></footer>';
+  }
+
+  function pipHTML() {
+    return '<div id="media-slot">' +
+      '<div id="pip-card"><video id="video" playsinline></video>' +
+      '<div style="display:flex;align-items:center;gap:7px;padding:7px 10px;font-size:11px;color:var(--text-2)">' +
+      '<span class="dot"></span><span id="pip-label">Lyra</span>' +
+      '<button class="mini-btn" data-act="pip-close" title="Hide" style="margin-left:auto">' + svg(I.close) + '</button>' +
+      '</div></div></div>';
+  }
+
+  function drawerHTML() {
+    return '<aside class="drawer" id="drawer" aria-label="Queue">' +
+      '<div class="drawer__head"><div><h3>Up next</h3><p id="q-count">0 in queue</p></div>' +
+      '<div style="margin-left:auto;display:flex;gap:4px">' +
+      '<button class="icon-btn" data-act="queue-clear" title="Clear queue">' + svg(I.trash) + '</button>' +
+      '<button class="icon-btn" data-act="queue" title="Close">' + svg(I.close) + '</button></div></div>' +
+      '<div class="drawer__body scroll" id="q-list"></div>' +
+      '<div class="drawer__foot">' +
+      '<button class="btn" data-act="shuffle" style="flex:1;justify-content:center">' + svg(I.shuffle) + 'Shuffle</button>' +
+      '<button class="btn" data-act="radio-rebuild" style="flex:1;justify-content:center">' + svg(I.radio) + 'Extend radio</button>' +
+      '</div></aside>';
+  }
+
+  function overlayHTML() {
+    return '<div class="overlay" id="overlay">' +
+      '<div class="overlay__bg"><img id="ov-bg" alt="" src="' + coverArt('bg', '') + '"></div>' +
+      '<div class="overlay__top">' +
+      '  <button class="icon-btn" data-act="full-close" title="Close (Esc)">' + svg(I.down) + '</button>' +
+      '  <div class="tabs" role="tablist">' +
+      '    <button role="tab" data-act="full-tab" data-tab="art" aria-selected="true">Art</button>' +
+      '    <button role="tab" data-act="full-tab" data-tab="video" aria-selected="false">Video</button>' +
+      '    <button role="tab" data-act="full-tab" data-tab="lyrics" aria-selected="false">Lyrics</button>' +
+      '    <button role="tab" data-act="full-tab" data-tab="queue" aria-selected="false">Queue</button>' +
+      '  </div>' +
+      '  <div style="display:flex;gap:4px">' +
+      '    <a class="icon-btn" id="ov-yt" href="#" target="_blank" rel="noopener" title="Open on YouTube">' + svg(I.yt) + '</a>' +
+      '    <button class="icon-btn" data-act="settings" title="Settings">' + svg(I.gear) + '</button>' +
+      '  </div></div>' +
+      '<div class="overlay__stage">' +
+      '  <div class="pane is-on" id="pane-art"><div class="artwrap">' +
+      '    <div style="position:relative"><div class="disc-ring"></div><div class="disc"><img id="ov-art" alt="" src="' + coverArt('art', '') + '"></div></div>' +
+      '    <div class="art-side">' +
+      '      <h2 id="ov-t">&mdash;</h2><div class="by" id="ov-by">&mdash;</div>' +
+      '      <div class="art-side__row"><span class="stat" id="ov-stat1">&mdash;</span><span class="stat" id="ov-stat2">&mdash;</span><span class="stat" id="ov-qual">&mdash;</span></div>' +
+      '      <div class="art-side__row">' +
+      '        <button class="btn" id="ov-love" data-act="love">' + svg(I.heartO) + 'Love</button>' +
+      '        <button class="btn" data-act="enqueue">' + svg(I.queue) + 'Queue it after</button>' +
+      '        <button class="btn" data-act="lyrics">' + svg(I.lyrics) + 'Lyrics</button>' +
+      '      </div>' +
+      '      <p class="hint" style="margin-top:20px"><code>Space</code> play &middot; <code>&#8592;</code><code>&#8594;</code> seek &middot; <code>Esc</code> back to browsing</p>' +
+      '    </div></div></div>' +
+      '  <div class="pane" id="pane-video"><div class="overlay__video" id="ov-video-slot"></div></div>' +
+      '  <div class="pane" id="pane-lyrics"><div class="lyrics lyrics__mask scroll" id="lyr"><p class="hint" style="padding-top:38vh;text-align:center">Play a track with captions and the words land here, line by line.</p></div></div>' +
+      '  <div class="pane" id="pane-queue"><div class="lyrics scroll" id="ov-queue"></div></div>' +
+      '</div>' +
+      '<div class="overlay__bottom">' +
+      '  <div class="left"><span class="num" id="ov-cur">0:00</span></div>' +
+      '  <div class="mid">' +
+      '    <button class="ctrl" data-act="prev">' + svg(I.prev) + '</button>' +
+      '    <button class="ctrl ctrl--main" data-act="toggle" id="ov-play">' + svg(I.play) + '</button>' +
+      '    <button class="ctrl" data-act="next">' + svg(I.next) + '</button>' +
+      '  </div>' +
+      '  <div class="right"><span class="num" id="ov-dur">0:00</span></div>' +
+      '  <div class="timeline" style="grid-column:1/4"><span class="num" style="font-size:10px">&nbsp;</span><div class="bar" id="ov-bar"><i></i><u></u></div><span class="num" style="font-size:10px">&nbsp;</span></div>' +
+      '</div></div>';
+  }
+
+  function settingsHTML() {
+    return '<div class="sheet-wrap" id="sheet-settings">' +
+      '<div class="sheet" role="dialog" aria-label="Settings">' +
+      '  <div class="sheet__head"><h3>Settings</h3><button class="icon-btn" data-act="sheet-close" title="Close">' + svg(I.close) + '</button></div>' +
+      '  <div class="field"><div><div class="field__t">Incognito session</div><div class="field__d">No history, no favorites writes, nothing touches storage.</div></div><button class="switch" role="switch" data-set="incognito" id="set-incog" aria-checked="false"></button></div>' +
+      '  <div class="field"><div><div class="field__t">Remember my queue</div><div class="field__d">Reopen the popup (or the site) and the queue and position are back.</div></div><button class="switch" role="switch" data-set="restoreQueue" aria-checked="true"></button></div>' +
+      '  <div class="field"><div><div class="field__t">Extend queue with radio</div><div class="field__d">After a track, Lyra keeps queueing related songs.</div></div><button class="switch" role="switch" data-set="extendQueue" aria-checked="true"></button></div>' +
+      '  <div class="field"><div><div class="field__t">Colour</div><div class="field__d">Adaptive reads the current cover and recolours the whole app — accents, glows, the wash behind everything. Pick a swatch to pin one, or choose your own.</div></div>' +
+      '  <div class="theme-row">' + THEMES.map(function (t) {
+        return '<button class="sw" data-act="theme" data-theme="' + t.id + '" aria-label="' + t.label + '" title="' + t.label + (t.note ? ' — ' + t.note : '') + '"></button>';
+      }).join('') +
+      '  <span class="sw sw--pick" title="Custom colour"><input type="color" data-set="accent" aria-label="Custom accent colour" value="#ff4655"></span>' +
+      '  <span class="theme-note" id="theme-note"></span></div></div>' +
+      '  <div class="field"><div><div class="field__t">Layout</div><div class="field__d">Default arrangement for results.</div></div>' +
+      '    <div class="segmented"><button data-act="view" data-view="grid" aria-pressed="true" title="Grid">' + svg(I.grid) + '</button><button data-act="view" data-view="list" aria-pressed="false" title="List">' + svg(I.list) + '</button></div></div>' +
+      '  <div class="field"><div><div class="field__t">Stream preference</div><div class="field__d">Audio only is lighter and starts faster.</div></div>' +
+      '    <select data-set="quality"><option value="auto">Auto (video)</option><option value="audio">Audio only</option></select></div>' +
+      '  <div class="field"><div><div class="field__t">Mini player width</div><div class="field__d">Floating video card.</div></div><input type="range" min="220" max="520" step="10" data-set="pipW"></div>' +
+      (IS_EXTENSION ? '' :
+        '  <div class="field" style="flex-direction:column;align-items:stretch;gap:10px">' +
+        '    <div><div class="field__t">API proxy <span style="font-weight:400;color:var(--text-4)">&mdash; web mode only</span></div>' +
+        '    <div class="field__d">Deploy <code>lyra-proxy.js</code> to Cloudflare Workers and paste its URL here. If the Lyra extension is installed, this is unnecessary.</div></div>' +
+        '    <div style="display:flex;gap:8px"><input type="url" id="set-proxy" placeholder="https://lyra-proxy.you.workers.dev" style="flex:1;width:auto"><button class="btn" data-act="test-proxy">Test</button></div>' +
+        '    <div class="hint" id="proxy-result">Not tested yet.</div></div>' +
+        '  <div class="field"><div><div class="field__t">Relay audio through proxy</div><div class="field__d">Use it if YouTube answers 403 on the stream URL.</div></div><button class="switch" role="switch" data-set="streamViaProxy" aria-checked="false"></button></div>') +
+      '  <div class="field"><div><div class="field__t">Clear local data</div><div class="field__d">History, favorites, hidden list, caches.</div></div><button class="btn" data-act="wipe">' + svg(I.trash) + 'Reset</button></div>' +
+      '  <p class="hint" style="margin-top:16px;text-align:center">Lyra ' + CFG.version + ' &middot; ' + (IS_EXTENSION ? 'extension' : 'web') +
+      ' &middot; transport <code id="set-transport">&mdash;</code> &middot; storage <code id="set-storage">&mdash;</code></p>' +
+      '</div></div>';
+  }
+
+  function cmdkHTML() {
+    return '<div class="cmdk" id="cmdk"><div class="cmdk__box">' +
+      '<input id="cmdk-q" placeholder="Jump to, or search YouTube&#8230;" autocomplete="off" spellcheck="false">' +
+      '<ul id="cmdk-list"></ul></div></div>';
+  }
+
+  /* ----------------------------------------------------------------- rendering */
+  function paintTransport() {
+    var lab = $('#transport-label'), dot = $('#transport-badge .dot');
+    if (!lab) return;
+    if (state.demo) { dot.className = 'dot dot--bad'; lab.textContent = 'preview data'; }
+    else if (T.ok) { dot.className = 'dot'; lab.textContent = T.label; }
+    else { dot.className = 'dot dot--idle'; lab.textContent = 'connecting…'; }
+    var st = $('#set-transport'); if (st) st.textContent = state.demo ? 'preview' : (T.ok ? T.label : 'unreachable');
+    var sb = $('#storage-badge');
+    if (sb) { sb.textContent = Store.backend() === 'localStorage' || Store.backend() === 'chrome.storage.local' ? 'saved' : 'volatile'; sb.title = 'Storage: ' + Store.backend(); }
+    var s2 = $('#set-storage'); if (s2) s2.textContent = Store.backend();
+  }
+  function crumb(t, sub) { $('#crumb').textContent = t; $('#crumb-sub').textContent = sub || ''; }
+
+  function viewToggle() {
+    return '<div class="view__tools"><div class="segmented" role="group" aria-label="Layout">' +
+      '<button data-act="view" data-view="grid" aria-pressed="' + (state.viewMode === 'grid') + '" title="Grid view (G)">' + svg(I.grid) + '</button>' +
+      '<button data-act="view" data-view="list" aria-pressed="' + (state.viewMode === 'list') + '" title="List view (G)">' + svg(I.list) + '</button>' +
+      '</div></div>';
+  }
+  function eq() { return '<span class="eq"><b></b><b></b><b></b><b></b></span>'; }
+  function isCurrent(t) { var c = cur(); return !!(c && t && c.videoId === t.videoId); }
+
+  function cardHTMLTrack(t, i, opts) {
+    opts = opts || {};
+    var rid = keep(t), on = isCurrent(t), loved = isFav(t.videoId);
+    var stats = [t.views ? fmtViews(t.views) : '', t.published].filter(Boolean).join(' · ');
+    var action = opts.seed ? 'seed' : 'play';
+    return '<div class="card' + (on ? ' is-playing' : '') + '" role="button" tabindex="0" data-act="' + action + '"' + (opts.seed ? ' data-seed="' + esc(opts.seed) + '"' : '') + ' data-rid="' + rid + '">' +
+      '<div class="card__art"><img alt="" loading="lazy" data-cover src="' + esc(thumbFor(t)) + '">' +
+      (t.duration ? '<span class="card__badge num">' + esc(t.duration) + '</span>' : '') +
+      '<span class="card__play"><i>' + svg(I.play) + '</i></span></div>' +
+      '<div class="card__tools">' +
+      '<button class="mini-btn' + (loved ? ' is-loved' : '') + '" data-act="love" data-rid="' + rid + '" title="Love">' + svg(loved ? I.heart : I.heartO) + '</button>' +
+      '<button class="mini-btn" data-act="queue-add" data-rid="' + rid + '" title="Add to queue">' + svg(I.plus) + '</button>' +
+      (opts.hide ? '<button class="mini-btn" data-act="blacklist" data-rid="' + rid + '" title="Not interested">' + svg(I.close) + '</button>' : '') +
+      '</div>' +
+      '<div class="card__t">' + (on ? eq() + ' ' : '') + esc(t.title) + '</div>' +
+      '<div class="card__s">' + esc(t.channel) + '</div>' +
+      (stats ? '<div class="card__stats num">' + esc(stats) + '</div>' : '') +
+      '</div>';
+  }
+  function rowHTMLTrack(t, i, opts) {
+    opts = opts || {};
+    var rid = keep(t), on = isCurrent(t), loved = isFav(t.videoId);
+    var stats = [t.views ? fmtViews(t.views) + ' views' : '', t.published].filter(Boolean).join('  ·  ');
+    var action = opts.seed ? 'seed' : 'play';
+    return '<div class="row' + (on ? ' is-playing' : '') + '" role="button" tabindex="0" data-act="' + action + '"' + (opts.seed ? ' data-seed="' + esc(opts.seed) + '"' : '') + ' data-rid="' + rid + '">' +
+      '<div class="row__idx num">' + (on ? eq() : (opts.num != null ? opts.num : i + 1)) + '</div>' +
+      '<div class="row__art"><img alt="" loading="lazy" data-cover src="' + esc(thumbFor(t)) + '"></div>' +
+      '<div class="row__meta"><div class="row__t">' + esc(t.title) + '</div><div class="row__s">' + esc(t.channel) + '</div></div>' +
+      '<div class="row__stat num">' + esc(stats) + '</div>' +
+      '<div class="row__act">' + (t.duration ? '<span class="row__stat num" style="margin-right:4px">' + esc(t.duration) + '</span>' : '') +
+      '<button class="mini-btn' + (loved ? ' is-loved' : '') + '" data-act="love" data-rid="' + rid + '" title="Love">' + svg(loved ? I.heart : I.heartO) + '</button>' +
+      '<button class="mini-btn" data-act="queue-add" data-rid="' + rid + '" title="Add to queue">' + svg(I.plus) + '</button>' +
+      (opts.hide ? '<button class="mini-btn" data-act="blacklist" data-rid="' + rid + '" title="Not interested">' + svg(I.close) + '</button>' : '') +
+      '</div></div>';
+  }
+  var RENDER_CAP = 40;
+  function rowsWindow(list) {
+    if (!list || list.length <= RENDER_CAP) return { rows: list, more: 0 };
+    var key = state.view + '|' + (state.lastQuery || '');
+    if (state.unlimited[key]) return { rows: list, more: 0 };
+    return { rows: list.slice(0, RENDER_CAP), more: list.length - RENDER_CAP };
+  }
+  function moreRowsHTML(total, hidden) {
+    return '<div class="view__more"><button class="btn" data-act="more-rows">' + svg(I.down) +
+      'Show all ' + total + ' tracks &middot; ' + hidden + ' more</button></div>';
+  }
+  function tracksHTML(list, opts) {
+    opts = opts || {};
+    if (!list || !list.length) return '';
+    var win = rowsWindow(list);
+    var tail = win.more ? moreRowsHTML(list.length, win.more) : '';
+    function seedFor(t) {
+      if (!opts.seedFor) return null;
+      return typeof opts.seedFor === 'function' ? opts.seedFor(t) : t[opts.seedFor];
+    }
+    if (state.viewMode === 'list') {
+      var base = typeof opts.num === 'number' ? opts.num : null;
+      return '<div class="list">' + win.rows.map(function (t, i) { return rowHTMLTrack(t, i, { num: base == null ? null : base + i, hide: opts.hide, seed: seedFor(t) }); }).join('') + '</div>' + tail;
+    }
+    return '<div class="albums">' + win.rows.map(function (t, i) { return cardHTMLTrack(t, i, { hide: opts.hide, seed: seedFor(t) }); }).join('') + '</div>' + tail;
+  }
+  function skeleton(n) {
+    var one = '';
+    for (var i = 0; i < n; i++) one += '<div class="card"><div class="sk sk-art"></div><div class="sk sk-line" style="width:74%"></div><div class="sk sk-line" style="width:44%"></div></div>';
+    return '<div class="albums">' + one + '</div>';
+  }
+  function head(title, sub, right) {
+    return '<div class="view__head"><div><h2 class="view__title">' + title + '</h2>' + (sub ? '<p class="view__sub">' + sub + '</p>' : '') + '</div>' + (right || viewToggle()) + '</div>';
+  }
+  function section(title, icon, inner, more) {
+    if (!inner) return '';
+    return '<section class="section"><div class="section__head"><span class="section__ico">' + svg(icon) + '</span><h3>' + esc(title) + '</h3><span class="rule"></span>' +
+      (more ? '<button class="more" data-act="more" data-more="' + esc(more.view) + '">' + esc(more.label) + '</button>' : '') + '</div>' + inner + '</section>';
+  }
+  function empty(title, sub, icon) {
+    return '<div class="empty"><i>' + svg(icon || I.spark) + '</i><h4>' + esc(title) + '</h4><p>' + esc(sub) + '</p></div>';
+  }
+  function demoBanner() {
+    if (!state.demo) return '';
+    return '<div class="banner reveal">' + svg(I.bolt) + '<span><b>Preview data.</b> ' +
+      (IS_EXTENSION
+        ? 'YouTube refused the request. Reload the unpacked extension so the header rules are active, or check you are on Chrome 121+.'
+        : 'YouTube is not reachable from ' + esc(host(location.href)) + '. Install the Lyra extension in this browser, or deploy <code>lyra-proxy.js</code> and paste the URL in Settings.') +
+      '</span><button class="btn" data-act="settings">Fix it</button></div>';
+  }
+  // Rows used to fade in one at a time through an IntersectionObserver. With 40-100
+  // rows that meant 40-100 observer registrations plus 40-100 concurrent 700ms
+  // composited animations on every repaint — and anything the observer had not reached
+  // was still at opacity:0, which is what made the grid look half-painted while you
+  // scrolled. The container fades once; the rows simply exist.
+  function reveal() {}
+
+  /* -------------------------------------------------------------------- views */
+  var VIEWS = {
+    home: function () {
+      crumb('Home', state.history.length ? 'Built from what you keep replaying' : 'Search once — Lyra learns the rest');
+      var recents = Feed.listenAgain(14);
+      var favs = state.favorites.slice(-14).reverse();
+      var forYou = Feed.forYou();
+      var hero = '<section class="hero reveal"><div>' +
+        '<span class="hero__kick">' + svg(I.spark) + (IS_EXTENSION ? 'Lyra 4 · in your toolbar' : 'Lyra 4 · in your browser') + '</span>' +
+        '<h2 class="hero__title">' + (IS_EXTENSION ? 'Everything you love,<br>quietly in the corner.' : 'A music client that<br>fits in a browser tab.') + '</h2>' +
+        '<p class="hero__desc">Search, infinite radio, synced lyrics, a queue that survives reloads. ' + (state.demo ? 'You are looking at <b>preview data</b> — the interface is live, playback needs a connection.' : 'Nothing is uploaded: your library stays on this device.') + '</p>' +
+        // Two, never three: the setup nudge and the taste shortcut are the same slot —
+        // one for an empty library, one for a used one.
+        '<div class="hero__cta"><button class="btn btn--primary" data-act="focus-search">' + svg(I.search) + 'Search a song</button>' +
+        (state.history.length || state.favorites.length
+          ? (forYou.length ? '<button class="btn btn--ghost" data-act="play-shuffle">' + svg(I.shuffle) + 'Shuffle my taste</button>' : '')
+          : (IS_EXTENSION ? '<button class="btn btn--ghost" data-act="open-tab">' + svg(I.ext) + 'Open full tab</button>' : '<button class="btn btn--ghost" data-act="install-ext">' + svg(I.spark) + 'Get the extension</button>')) +
+        '</div></div><div class="hero__art"><img alt="" data-cover src="' + esc(thumbFor(cur() || { videoId: 'hero', title: 'Lyra' })) + '"></div></section>';
+      var body = '';
+      var hasAnything = recents.length || favs.length || forYou.length;
+      if (hasAnything) {
+        body += '<div class="view__head" style="margin:-6px 0 18px">' +
+          '<div style="display:flex;align-items:baseline;gap:12px"><h2 class="view__title" style="font-size:21px">Your library</h2>' +
+          '<span class="status">' + recents.length + ' recent · ' + favs.length + ' loved</span></div>' + viewToggle() + '</div>';
+      }
+      body += section('Listen again', I.home, recents.length ? tracksHTML(recents.map(function (r) { return r.track || r; }), { hide: true }) : '');
+      body += section('Loved', I.heart, favs.length ? tracksHTML(favs) : '');
+      body += section('For you', I.spark, forYou.length ? tracksHTML(forYou) : '');
+      if (!recents.length && !favs.length && !forYou.length) body += empty('Nothing here yet', 'Search for a song — history, radio and lyrics stay in sync from then on.', I.search);
+      $('#view').innerHTML = hero + demoBanner() + body;
+      reveal();
+    },
+    discover: function () {
+      crumb('Discover', 'Moods, scenes, one tap to radio');
+      // Twelve chips is a catalogue to scan; five is a choice. Rest are one keystroke away.
+      var seeds = ['lofi beats to study to', 'dark synthwave drive', 'afrobeats 2026', 'japanese city pop 80s', 'ambient rain for sleep'];
+      var tracks = seeds.slice(0, 8).map(function (s, i) {
+        return { videoId: 'seed' + i, title: s.charAt(0).toUpperCase() + s.slice(1), channel: 'One tap · starts a station', duration: '', views: '', published: '', demo: true, thumbnail: '', __seed: s };
+      });
+      $('#view').innerHTML = head('Find your <em>frequency</em>', 'Tap a mood — Lyra searches and starts a station') +
+        '<div class="chips">' + seeds.map(function (s) { return '<button class="chip" data-act="seed" data-seed="' + esc(s) + '">' + esc(s) + '</button>'; }).join('') + '</div>' +
+        section('Starting points', I.compass, tracksHTML(tracks, { seedFor: '__seed' })) +
+        (state.topSongs.length ? section('Global top 100', I.chart, tracksHTML(state.topSongs.slice(0, 12))) : '');
+      reveal();
+    },
+    top: function () {
+      crumb('Top songs', 'Global chart');
+      $('#view').innerHTML = head('Top <em>100</em> global', 'Refreshed daily, cached for an hour') + skeleton(10);
+      return Api.topSongs().then(function (list) {
+        state.topSongs = list; state.demo = false;
+        $('#view').innerHTML = head('Top <em>100</em> global', list.length + ' tracks · cached ' + rel((Store.get(KEYS.TOP, {}) || {}).ts || Date.now())) + tracksHTML(list);
+        reveal();
+      }).catch(function () {
+        state.topSongs = demoTracks().slice(0, 10); state.demo = true; paintTransport();
+        $('#view').innerHTML = head('Top <em>100</em> global', 'Preview — chart endpoint unreachable') + demoBanner() + tracksHTML(state.topSongs);
+        reveal();
+      });
+    },
+    search: function (q) {
+      q = (q || '').trim();
+      if (!q) return;
+      state.view = 'search'; state.lastQuery = q;
+      crumb('Search', '“' + q + '”');
+      var seq = ++state.searchSeq;
+      $('#view').innerHTML = head('“' + esc(q) + '”', 'Searching YouTube Music…') + skeleton(12);
+      return Api.search(q).then(function (list) {
+        if (seq !== state.searchSeq) return;
+        state.results = list; state.demo = false;
+        if (!Store.settings().incognito) rememberSearch(q);
+        paintSearch();
+      }).catch(function (e) {
+        if (seq !== state.searchSeq) return;
+        state.results = demoTracks().map(function (d) { return Object.assign({}, d, { title: d.title, channel: d.channel }); });
+        state.demo = true; paintTransport();
+        toast('YouTube unreachable — showing preview results.', I.incog);
+        paintSearch();
+      });
+    },
+    favorites: function () {
+      crumb('Favorites', state.favorites.length + ' loved');
+      var favs = state.favorites.slice().reverse();
+      $('#view').innerHTML = head('Your <em>loved</em> tracks', favs.length ? favs.length + ' songs · radio starts from here' : 'Tap the heart on anything',
+        '<div class="view__tools">' + viewToggleInner() +
+        (favs.length ? '<button class="btn btn--primary" data-act="play-favs">' + svg(I.play) + 'Play all</button>' : '') + '</div>') +
+        (favs.length ? tracksHTML(favs) : empty('No favorites yet', 'Love a track and it lands here — and starts feeding your recommendations.', I.heartO));
+      reveal();
+    },
+    radio: function () {
+      crumb('Radio', state.radioSeed ? 'seeded by ' + state.radioSeed.title : 'idle');
+      var upNext = state.queue.slice(Math.max(0, state.index + 1));
+      $('#view').innerHTML = head('Infinite <em>radio</em>', state.radioSeed ? upNext.length + ' tracks queued after “' + esc(state.radioSeed.title) + '”' : 'Play a track anywhere and Lyra builds the station') +
+        (upNext.length ? tracksHTML(upNext, { num: true }) : empty('Radio is idle', 'Start any song — related tracks queue themselves.', I.radio));
+      reveal();
+    }
+  };
+  function viewToggleInner() {
+    return '<div class="segmented" role="group" aria-label="Layout">' +
+      '<button data-act="view" data-view="grid" aria-pressed="' + (state.viewMode === 'grid') + '" title="Grid">' + svg(I.grid) + '</button>' +
+      '<button data-act="view" data-view="list" aria-pressed="' + (state.viewMode === 'list') + '" title="List">' + svg(I.list) + '</button></div>';
+  }
+  function paintSearch() {
+    var q = state.lastQuery;
+    $('#view').innerHTML = head('&ldquo;' + esc(q) + '&rdquo;', state.results.length + ' tracks · radio follows automatically',
+      '<div class="view__tools">' + viewToggleInner() + (state.results.length ? '<button class="btn btn--primary" data-act="play-results">' + svg(I.play) + 'Play top</button>' : '') + '</div>') +
+      demoBanner() +
+      (state.results.length ? tracksHTML(state.results) : empty('Nothing found', 'Try different words, or set an API proxy in Settings.', I.search));
+    reveal();
+  }
+
+  /* ----------------------------------------------------------- feed builder ----
+     The scoring model from the original Lyra (FeedGenerator), restored against the
+     v4 storage shape: plays[].n is the play count, plays[].ts the last spin, and
+     history.queue is what the radio put in front of you (the old queue_history).
+       weight 1.0  plays, normalised against the most-replayed track
+       weight .25  exponential recency decay, half-life ~7 days
+       bonus  .40  a radio pick you have never actually played (explore, don't repeat)
+       ×1.5        loved
+       ±.025       jitter, so a rail is not a museum piece
+     Blacklisted ids never enter the pool. */
+  var Feed = {
+    generate: function (limit) {
+      var h = Store.history();
+      var pool = new Map();
+      var out = function (id) { return !id || state.blacklist.indexOf(id) >= 0; };
+      (h.plays || []).forEach(function (p) {
+        var t = p.track || p;
+        if (out(t.videoId)) return;
+        pool.set(t.videoId, { t: t, playCount: p.n || 1, lastPlayed: p.ts || 0, addedAt: p.ts || 0, source: 'played' });
+      });
+      state.favorites.forEach(function (f) {
+        if (out(f.videoId)) return;
+        var e = pool.get(f.videoId);
+        if (e) { e.source = 'favorite'; }
+        else pool.set(f.videoId, { t: f, playCount: 0, lastPlayed: 0, addedAt: f.addedAt || 0, source: 'favorite' });
+      });
+      (h.queue || []).forEach(function (q) {
+        if (out(q.videoId) || !q.title || pool.has(q.videoId)) return;
+        pool.set(q.videoId, { t: q, playCount: 0, lastPlayed: 0, addedAt: q.addedAt || 0, source: q.playedFrom || 'radio' });
+      });
+      if (!pool.size) return [];
+      return Feed.diversify(Feed.score(pool)).slice(0, limit || 50);
+    },
+    score: function (pool) {
+      var now = Date.now(), maxPlays = 1;
+      pool.forEach(function (v) { if ((v.playCount || 0) > maxPlays) maxPlays = v.playCount; });
+      var favs = state.favorites;
+      var arr = [];
+      pool.forEach(function (v, id) {
+        var days = (now - (v.lastPlayed || v.addedAt || now)) / 86400000;
+        var score = (v.playCount || 0) / maxPlays * 1.0;
+        score += Math.exp(-days / 7) * 0.25;
+        if ((v.playCount || 0) === 0 && v.source === 'radio') score += 0.4;
+        if (favs.some(function (f) { return f.videoId === id; })) score *= 1.5;
+        var t = Object.assign({}, v.t);
+        t.__score = +(score + (Math.random() - .5) * .05).toFixed(4);
+        t.__src = t.__src || v.source;
+        arr.push(t);
+      });
+      return arr.sort(function (x, y) { return y.__score - x.__score; });
+    },
+    // The original diversify() returned its input untouched, so one artist could own
+    // the whole rail. Round-robin across channels instead, best-first.
+    diversify: function (list) {
+      var buckets = new Map();
+      list.forEach(function (t) {
+        var k = String(t.channel || t.title || '?').toLowerCase();
+        if (!buckets.has(k)) buckets.set(k, []);
+        buckets.get(k).push(t);
+      });
+      var keys = Array.from(buckets.keys());
+      var taken = [];
+      for (var round = 0; taken.length < list.length; round++) {
+        var moved = false;
+        for (var i = 0; i < keys.length; i++) {
+          var b = buckets.get(keys[i]);
+          if (b.length) { taken.push(b.shift()); moved = true; }
+        }
+        if (!moved) break;
+      }
+      return taken;
+    },
+    listenAgain: function (n) {
+      var h = Store.history();
+      return (h.plays || []).filter(function (p) { return state.blacklist.indexOf(p.videoId) < 0; })
+        .slice(0, n || 18).map(function (p) { return p.track || p; });
+    },
+    // Remember what the radio queued, so the feed can reward a pick you never played.
+    rememberQueue: function (list) {
+      if (!list || !list.length || Store.settings().incognito) return;
+      var h = Store.history();
+      h.queue = h.queue || [];
+      var have = new Set(h.queue.map(function (q) { return q.videoId; }));
+      list.forEach(function (t) {
+        if (!t || !t.videoId || have.has(t.videoId)) return;
+        h.queue.unshift({ videoId: t.videoId, title: t.title, channel: t.channel, thumbnail: t.thumbnail, addedAt: Date.now(), playedFrom: t.__src || 'radio' });
+      });
+      h.queue = h.queue.slice(0, 80);
+      Store.saveHistory(h);
+    },
+    forYou: function (n) {
+      var out = Feed.generate(n || 14);
+      if (out.length) return out;
+      return state.demo || !T.ok ? demoTracks().slice(0, n || 8) : [];
+    }
+  };
+
+  /* ---------------------------------------------------------------- favorites */
+  function isFav(id) { return state.favorites.some(function (f) { return f.videoId === id; }); }
+  function toggleFav(t) {
+    if (!t || !t.videoId) return null;
+    var i = state.favorites.findIndex(function (f) { return f.videoId === t.videoId; });
+    var added = i < 0;
+    if (added) state.favorites.push({ videoId: t.videoId, title: t.title, channel: t.channel, thumbnail: t.thumbnail, duration: t.duration, demo: !!t.demo, addedAt: Date.now() });
+    else state.favorites.splice(i, 1);
+    if (!Store.settings().incognito) Store.saveFavorites(state.favorites);
+    $('#fav-count').textContent = state.favorites.length;
+    toast(added ? 'Loved “' + t.title.slice(0, 26) + '”' : 'Removed from favorites', added ? I.heart : I.heartO);
+    return added;
+  }
+  function rememberSearch(q) {
+    var h = Store.history();
+    h.searches = h.searches.filter(function (s) { return s.q !== q; });
+    h.searches.unshift({ q: q, ts: Date.now() });
+    h.searches = h.searches.slice(0, 40);
+    Store.saveHistory(h);
+  }
+  function rememberPlay(t) {
+    if (Store.settings().incognito || !t || t.demo) return;
+    var h = Store.history();
+    var prev = h.plays.filter(function (p) { return p.videoId === t.videoId; })[0];
+    h.plays = h.plays.filter(function (p) { return p.videoId !== t.videoId; });
+    h.plays.unshift({ videoId: t.videoId, title: t.title, channel: t.channel, n: (prev && prev.n || 0) + 1, ts: Date.now(), track: { videoId: t.videoId, title: t.title, channel: t.channel, thumbnail: t.thumbnail, duration: t.duration, views: t.views, published: t.published } });
+    h.plays = h.plays.slice(0, 60);
+    Store.saveHistory(h);
+    state.history = h.plays;
+  }
+
+  /* ------------------------------------------------------------------- player */
+  var video = null;
+  function bindPlayer() {
+    video.addEventListener('timeupdate', onTick);
+    video.addEventListener('loadedmetadata', function () { set('#t-dur', fmtTime(video.duration)); set('#ov-dur', fmtTime(video.duration)); });
+    video.addEventListener('play', function () { state.playing = true; paintPlay(); });
+    video.addEventListener('pause', function () { state.playing = false; paintPlay(); });
+    video.addEventListener('ended', function () { next(true); });
+    video.addEventListener('error', function () {
+      if (!state.queue.length) return;
+      // A signed URL can expire mid-album. Drop it and ask once, quietly.
+      var bad = cur();
+      if (bad && !bad.__retried && StreamCache.has(bad.videoId)) {
+        bad.__retried = true;
+        StreamCache.delete(bad.videoId);
+        toast('Link expired — refetching', I.bolt);
+        loadCurrent({ autoplay: true });
+        return;
+      }
+      toast('Stream refused by YouTube — try “Relay audio through proxy” in Settings.', I.incog);
+    });
+  }
+  // timeupdate lands ~6x/second; writing the same string again still invalidates
+  // style and layout, so compare first. Cheap, and it is most of the dock's cost.
+  function set(sel, v) { var e = $(sel); if (e && e.textContent !== v) e.textContent = v; }
+  function onTick() {
+    var d = video.duration || 0, c = video.currentTime || 0, pct = d ? Math.min(100, (c / d) * 100) : 0;
+    set('#t-cur', fmtTime(c)); set('#ov-cur', fmtTime(c));
+    if (d) { set('#t-dur', fmtTime(d)); set('#ov-dur', fmtTime(d)); }
+    ['#t-bar', '#ov-bar'].forEach(function (s) {
+      var bar = $(s); if (!bar) return;
+      bar.style.setProperty('--pct', pct + '%');
+      var i = bar.querySelector('i'); if (i) i.style.width = pct + '%';
+    });
+    var line = $('#line'); if (line) line.style.setProperty('--pct', pct + '%');
+    if (d > 8 && c / d > .22) warmNext();
+    syncLyrics(c * 1000);
+  }
+  function paintPlay() {
+    document.body.classList.toggle('is-playing', !!state.playing);
+    var path = state.playing ? I.pause : I.play;
+    ['#btn-play', '#ov-play'].forEach(function (s) { var b = $(s); if (b) b.innerHTML = svg(path); });
+  }
+  function paintVol() {
+    var bar = $('#vol-bar'); if (!bar) return;
+    var v = state.muted ? 0 : state.volume;
+    bar.style.setProperty('--pct', v + '%');
+    var i = bar.querySelector('i'); if (i) i.style.width = v + '%';
+    var b = $('#btn-mute');
+    b.innerHTML = svg((state.muted || state.volume === 0) ? I.mute : I.vol);
+    b.classList.toggle('is-on', state.muted || state.volume === 0);
+  }
+  function playVideo(notify) {
+    // Some engines throw synchronously when play() is not allowed (jsdom,
+    // older Safari) and others reject — handle both so a blocked autoplay
+    // never turns into an uncaught error.
+    var p;
+    try { p = video.play(); } catch (e) { if (notify) toast('Autoplay blocked — press play.', I.bolt); return Promise.resolve(); }
+    if (p && typeof p.then === 'function') {
+      return p.catch(function () { if (notify) toast('Autoplay blocked — press play.', I.bolt); });
+    }
+    return Promise.resolve();
+  }
+
+  function cur() { return state.queue[state.index] || null; }
+  function paintBar() {
+    var t = cur();
+    var barT = $('#bar-t'), longTitle = t ? String(t.title) : 'Nothing playing';
+    // A looping marquee is the worst kind of motion in a player: it never stops
+    // pulling the eye back to the corner of the screen, and it repaints forever.
+    if (barT && barT.dataset.tid !== (t ? t.videoId : 'idle')) {
+      barT.dataset.tid = t ? t.videoId : 'idle';
+      barT.innerHTML = '<span class="marquee">' + esc(longTitle) + '</span>';
+      barT.title = longTitle;
+    }
+    set('#bar-s', t ? t.channel : 'Search, then press play');
+    var art = $('#bar-art'); if (art) art.src = thumbFor(t || { videoId: 'idle', title: 'Lyra' });
+    set('#ov-t', t ? t.title : '—');
+    set('#ov-by', t ? t.channel : '—');
+    var oa = $('#ov-art'); if (oa) oa.src = thumbFor(t || { videoId: 'art', title: '' });
+    var ob = $('#ov-bg'); if (ob) ob.src = thumbFor(t || { videoId: 'bg', title: '' });
+    set('#ov-stat1', t ? (t.views ? fmtViews(t.views) + ' views' : (t.demo ? 'preview' : '—')) : '—');
+    set('#ov-stat2', t ? (t.published || t.duration || '') : '—');
+    set('#ov-qual', t ? (t.__qual || (t.demo ? 'preview' : 'streaming')) : '—');
+    var pl = $('#pip-label'); if (pl) pl.textContent = t ? t.title : 'Lyra';
+    if (t) {
+      var loved = isFav(t.videoId);
+      var love = $('#bar-love');
+      love.classList.toggle('is-on', loved);
+      love.innerHTML = svg(loved ? I.heart : I.heartO);
+      var ovl = $('#ov-love');
+      if (ovl) { ovl.innerHTML = svg(loved ? I.heart : I.heartO) + (loved ? 'Loved' : 'Love'); ovl.classList.toggle('btn--primary', loved); }
+      var yt = $('#ov-yt'); if (yt && !t.demo) yt.href = 'https://www.youtube.com/watch?v=' + encodeURIComponent(t.videoId);
+      $('#btn-lyr').classList.toggle('is-on', !!state.captionUrl);
+    }
+    document.title = t ? t.title + ' · ' + t.channel + ' — Lyra' : 'Lyra';
+    if ('mediaSession' in navigator) {
+      try {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: t ? t.title : 'Lyra', artist: t ? t.channel : '', album: 'Lyra',
+          artwork: [{ src: thumbFor(t || { videoId: 'x', title: 'Lyra' }), sizes: '512x512', type: 'image/jpeg' }]
+        });
+      } catch (e) {}
+    }
+    $$('.card, .row').forEach(function (el) {
+      var tk = trackOf(el);
+      if (tk) el.classList.toggle('is-playing', isCurrent(tk));
+    });
+  }
+  var saveTimer = null;
+  function writeQueueSnapshot() {
+    // Re-checked here, not only when scheduling: a write that was already pending when
+    // the user turned incognito on must not land afterwards. "Nothing touches storage"
+    // has to hold at the moment of writing, not at the moment of intent.
+    var now = Store.settings();
+    if (now.incognito || !now.restoreQueue) return;
+    Store.set(KEYS.QUEUE, {
+      at: Date.now(), index: state.index,
+      queue: state.queue.slice(0, 80).map(function (t) {
+        return { videoId: t.videoId, title: t.title, channel: t.channel, thumbnail: t.thumbnail, duration: t.duration, views: t.views, published: t.published, demo: !!t.demo, __src: t.__src || '' };
+      })
+    });
+  }
+  // Coalesce, do not postpone. The old version reset the timer on every queue change,
+  // so a radio that keeps extending the queue could starve the write, and closing the
+  // popup inside that window dropped the last seconds of state.
+  function saveQueue() {
+    var st = Store.settings();
+    if (st.incognito || !st.restoreQueue) return;
+    if (saveTimer) return;
+    saveTimer = setTimeout(function () { saveTimer = 0; writeQueueSnapshot(); }, 400);
+  }
+  function flushQueue() {
+    if (saveTimer) { clearTimeout(saveTimer); saveTimer = 0; }
+    if (state.queue.length) writeQueueSnapshot();
+  }
+  function restoreQueue() {
+    var st = Store.settings();
+    if (st.incognito || !st.restoreQueue) return false;
+    var snap = Store.get(KEYS.QUEUE, null);
+    if (!snap || !Array.isArray(snap.queue) || !snap.queue.length) return false;
+    if (Date.now() - (snap.at || 0) > 1000 * 60 * 60 * 24 * 14) return false; // two weeks is stale
+    state.queue = snap.queue;
+    state.index = Math.max(0, Math.min(snap.index | 0, snap.queue.length - 1));
+    return true;
+  }
+
+  function paintQueue(force) {
+    saveQueue();
+    var list = $('#q-list'), count = $('#q-count');
+    if (count) count.textContent = state.queue.length ? state.queue.length + (state.queue.length === 1 ? ' track' : ' tracks') + ' · ' + Math.max(0, state.index + 1) + ' now' : 'Queue is empty';
+    // "How much is queued" should not require opening the drawer to answer.
+    var bq = $('#btn-queue');
+    if (bq) {
+      var upnext = Math.max(0, state.queue.length - state.index - 1);
+      if (bq.dataset.n !== String(upnext)) {
+        bq.dataset.n = String(upnext);
+        bq.classList.toggle('has-q', upnext > 0);
+        bq.title = upnext ? upnext + ' up next (Q)' : 'Queue (Q)';
+      }
+    }
+    if (!state.queue.length) {
+      var e = empty('Nothing queued', 'Play a track — the radio fills this up.', I.queue);
+      if (list) list.innerHTML = e;
+      var oq = $('#ov-queue'); if (oq) oq.innerHTML = e;
+      return;
+    }
+    // The queue repaints after love, seek, jump, radio, storage sync. Re-serialising
+    // 40 rows (and re-decoding 40 covers) for a list that has not changed is pure
+    // waste, and it is why the rail flicked on every action.
+    var sig = state.index + '|' + state.shuffle + '|' + state.loop + '|' + state.queue.map(function (x) { return x.videoId; }).join(',');
+    if (!force && state.__qSig === sig) return;
+    state.__qSig = sig;
+    if (list) {
+      list.innerHTML = state.queue.map(function (t, i) {
+        var on = i === state.index;
+        return '<div class="q-item' + (on ? ' is-playing' : '') + '" data-act="jump" data-i="' + i + '">' +
+          '<div class="row__idx num">' + (on ? eq() : i + 1) + '</div>' +
+          '<img alt="" data-cover src="' + esc(thumbFor(t)) + '">' +
+          '<div style="min-width:0"><div class="q-item__t">' + esc(t.title) + '</div><div class="q-item__s">' + esc(t.channel) + '</div>' +
+          '<div class="q-src">' + esc(sourceTag(t)) + '</div></div>' +
+          '<button class="mini-btn" data-act="q-remove" data-i="' + i + '" title="Remove">' + svg(I.close) + '</button></div>';
+      }).join('');
+    }
+    var ov = $('#ov-queue');
+    // Building the player's queue pane while the player is closed cost exactly as
+    // much as the rail, for pixels nobody could see.
+    if (ov && state.fullOpen && state.fullTab === 'queue') {
+      ov.innerHTML = '<div class="list">' + state.queue.map(function (t, i) { return rowHTMLTrack(t, i, { num: i + 1 }); }).join('') + '</div>';
+      state.__ovQDirty = false;
+    } else if (ov) { state.__ovQDirty = true; }
+  }
+
+  var VIEW_SRC = { search: 'search', favorites: 'loved', top: 'chart', radio: 'radio', discover: 'mix', home: 'mix' };
+  function sourceTag(t) {
+    if (t.__src) return t.__src;
+    if (t.demo) return 'preview';
+    var byView = VIEW_SRC[state.view] || 'search';
+    if (byView === 'loved' && !isFav(t.videoId)) byView = 'mix';
+    return byView;
+  }
+  function enqueue(t) {
+    if (!t) return;
+    t.__src = sourceTag(t);
+    state.queue.push(t);
+    if (state.index === -1) state.index = state.queue.length - 1;
+    paintQueue();
+    toast('Queued · ' + state.queue.length + ' up next', I.queue);
+  }
+
+  function play(t, opts) {
+    opts = opts || {};
+    if (!t) return Promise.resolve();
+    if (!t.__src) t.__src = opts.src || sourceTag(t);
+    state.queue = [t]; state.index = 0;
+    return loadCurrent(opts).then(function () { if (opts.radio !== false) return buildRadio(t); });
+  }
+  function playAll(list, from, src) {
+    if (!list || !list.length) return Promise.resolve();
+    state.queue = list.slice(); state.index = from || 0;
+    state.queue.forEach(function (t) { if (!t.__src) t.__src = src || sourceTag(t); });
+    return loadCurrent({}).then(function () { return buildRadio(list[from || 0]); });
+  }
+
+  var StreamCache = new Map();
+  var STREAM_TTL = 4 * 60 * 1000;
+  // googlevideo URLs are signed and IP-bound, and every jump used to pay a fresh
+  // /player round-trip for a URL this app had already fetched seconds earlier.
+  function resolveStream(t) {
+    var hit = StreamCache.get(t.videoId);
+    if (hit && Date.now() - hit.at < STREAM_TTL) return Promise.resolve(hit.d);
+    return resolveStream(t).then(function (d) {
+      if (d && d.streamUrl) StreamCache.set(t.videoId, { at: Date.now(), d: d });
+      return d;
+    });
+  }
+  // Resolve the next stream while you are still 25% into this one, so a jump or an
+  // auto-advance starts on the same frame instead of after a network call.
+  function warmNext() {
+    var nx = state.queue[state.index + 1];
+    if (!nx || nx.demo || state.__pf === nx.videoId || StreamCache.has(nx.videoId)) return;
+    state.__pf = nx.videoId;
+    resolveStream(nx).catch(function () {});
+  }
+  function loadCurrent(opts) {
+    opts = opts || {};
+    var t = cur();
+    if (!t) return Promise.resolve();
+    state.lyrics = null; state.lyricIndex = -1;
+    state.captionUrl = null;
+    paintBar(); paintQueue(); paintPlay();
+    if (t.demo) { var hf = hueOfCover(t); state.__hue = hf.h; state.__sat = hf.s; applyAccent(); }
+    var lyr = $('#lyr'); if (lyr) lyr.innerHTML = '<p class="hint" style="padding-top:38vh;text-align:center">Loading lyrics…</p>';
+    if (t.demo) {
+      if (lyr) lyr.innerHTML = '<p class="hint" style="padding-top:38vh;text-align:center">Preview track — connect YouTube for real audio and captions.</p>';
+      toast('Preview data — no audio attached.', I.bolt);
+      return Promise.resolve();
+    }
+    return Api.stream(t.videoId).then(function (d) {
+      if (!d.streamUrl) throw new Error('no stream url');
+      t.__qual = d.quality || '';
+      video.src = mediaUrl(d.streamUrl);
+      sampleAccent(t);
+      if (d.duration) video.dataset.dur = d.duration;
+      state.captionUrl = d.captionUrl || null;
+      $('#btn-lyr').classList.toggle('is-on', !!state.captionUrl);
+      if (opts.autoplay !== false) return playVideo(true);
+    }).then(function () {
+      rememberPlay(t);
+      paintBar();
+      if ('mediaSession' in navigator) {
+        try {
+          navigator.mediaSession.setActionHandler('play', function () { playVideo(false); });
+          navigator.mediaSession.setActionHandler('pause', function () { video.pause(); });
+          navigator.mediaSession.setActionHandler('previoustrack', prev);
+          navigator.mediaSession.setActionHandler('nexttrack', function () { next(); });
+        } catch (e) {}
+      }
+    }).catch(function (e) {
+      state.demo = true; paintTransport();
+      toast('Playback unavailable: ' + (e && e.message ? e.message : e) + (IS_EXTENSION ? '' : ' · install the extension or set a proxy'), I.incog);
+      if (lyr) lyr.innerHTML = '<p class="hint" style="padding-top:38vh;text-align:center">Could not reach the player endpoint.</p>';
+    });
+  }
+
+  function buildRadio(seed) {
+    if (!seed || seed.demo) {
+      if (state.demo) {
+        var demoMore = demoTracks().slice(1, 9);
+        state.queue = state.queue.concat(demoMore);
+        paintQueue();
+        if (state.view === 'radio') VIEWS.radio();
+      }
+      return Promise.resolve();
+    }
+    state.radioSeed = seed;
+    return Api.radio(seed.videoId).catch(function () { return Api.radioFallback(seed.videoId); }).then(function (list) {
+      if (!list || !list.length) return;
+      var have = new Set(state.queue.map(function (q) { return q.videoId; }));
+      var add = list.filter(function (v) { return !have.has(v.videoId); }).slice(0, 40);
+      if (!add.length) return;
+      add.forEach(function (v) { v.__src = 'radio'; });
+      Feed.rememberQueue(add);
+      state.queue = state.queue.concat(add);
+      paintQueue();
+      // Nothing about the result set changed just because the radio grew; this was
+      // a full innerHTML rebuild of the grid at the exact moment you pressed play.
+      if (state.view === 'radio') VIEWS.radio();
+      toast('Radio built · +' + add.length + ' tracks', I.radio);
+    }).catch(function () {});
+  }
+  // Repaint whatever is on screen, without refetching. Used after a layout
+  // change, a radio build, or a storage sync from another Lyra window.
+  function paintSearchOrView() {
+    const box = $('#view'); if (!box) return;
+    const top = box.scrollTop;
+    if (state.view === 'search') paintSearch();
+    else if (state.view === 'top' && state.topSongs.length) {
+      box.innerHTML = head('Top <em>100</em> global', state.topSongs.length + ' tracks') + demoBanner() + tracksHTML(state.topSongs);
+      reveal();
+    } else if (VIEWS[state.view]) VIEWS[state.view]();
+    box.scrollTop = top;
+  }
+  function next(auto) {
+    if (!state.queue.length) return;
+    if (auto && state.repeat === 'one') { video.currentTime = 0; playVideo(false); return; }
+    var i = state.index + 1;
+    if (i >= state.queue.length) {
+      if (state.repeat === 'all') { state.index = 0; loadCurrent({}); }
+      else { video.pause(); state.playing = false; paintPlay(); }
+      return;
+    }
+    state.index = i;
+    loadCurrent({});
+    if (Store.settings().extendQueue && state.queue.length - state.index < 10 && state.radioSeed) topUp();
+  }
+  function prev() {
+    if (!state.queue.length) return;
+    if (video.currentTime > 3) { video.currentTime = 0; return; }
+    state.index = state.index - 1 < 0 ? state.queue.length - 1 : state.index - 1;
+    loadCurrent({});
+  }
+  function topUp() {
+    var seed = state.radioSeed;
+    if (!seed || seed.demo) return;
+    Api.radio(seed.videoId).then(function (list) {
+      var have = new Set(state.queue.map(function (q) { return q.videoId; }));
+      var add = list.filter(function (v) { return !have.has(v.videoId); }).slice(0, 20);
+      if (add.length) { add.forEach(function (v) { v.__src = 'radio'; }); Feed.rememberQueue(add); state.queue = state.queue.concat(add); paintQueue(); if (state.view === 'radio') VIEWS.radio(); }
+    }).catch(function () {});
+  }
+  function toggle() {
+    if (!cur()) {
+      var first = state.results[0] || Feed.forYou()[0];
+      if (first) { play(first); return; }
+      $('#q').focus();
+      toast('Search for something first', I.search);
+      return;
+    }
+    if (video.paused) playVideo(false); else video.pause();
+  }
+
+  /* -------------------------------------------------------------------- lyrics */
+  function loadLyrics(captionUrl) {
+    var box = $('#lyr');
+    if (!captionUrl) {
+      state.lyrics = null;
+      if (box) box.innerHTML = '<p class="hint" style="padding-top:38vh;text-align:center">No captions on this track.</p>';
+      return Promise.resolve();
+    }
+    if (box) box.innerHTML = '<p class="hint" style="padding-top:38vh;text-align:center">Fetching captions…</p>';
+    var url = relayUrl('timedtext', captionUrl) || markLyra(captionUrl);
+    return timedFetch(url, { method: 'GET' }, 9000).then(function (r) { return r.text(); }).then(function (text) {
+      var lines = [];
+      var trimmed = String(text || '').trim();
+      if (trimmed.charAt(0) === '{') {
+        var j;
+        try { j = JSON.parse(trimmed); } catch (e) { j = null; }
+        ((j || {}).events || []).forEach(function (e) {
+          var s = (e.segs || []).map(function (sg) { return sg.utf8 || ''; }).join('').replace(/\n/g, ' ').trim();
+          if (s) lines.push({ start: e.tStartMs || 0, dur: e.dDurationMs || 1600, text: s });
+        });
+      } else {
+        var doc = new DOMParser().parseFromString(trimmed.replace(/&amp;(?!amp;)/g, '&amp;'), 'text/xml');
+        $$('text', doc).forEach(function (p) {
+          var s = (p.textContent || '').trim();
+          if (s) lines.push({ start: parseInt(p.getAttribute('start') || '0', 10) * 1000, dur: parseFloat(p.getAttribute('dur') || '2') * 1000, text: s });
+        });
+        if (!lines.length) $$('p', doc).forEach(function (p) {
+          var s = (p.textContent || '').replace(/\n/g, ' ').trim();
+          if (s) lines.push({ start: parseInt(p.getAttribute('t') || '0', 10), dur: parseInt(p.getAttribute('d') || '2000', 10), text: s });
+        });
+      }
+      lines = lines.filter(function (l) { return l.text && l.text !== '\n'; }).slice(0, 500);
+      if (!lines.length) {
+        state.lyrics = null;
+        if (box) box.innerHTML = '<p class="hint" style="padding-top:38vh;text-align:center">Captions exist but contain nothing readable.</p>';
+        return;
+      }
+      state.lyrics = lines; state.lyricIndex = -1;
+      if (box) box.innerHTML = '<div style="padding:16vh 0 42vh">' + lines.map(function (l, i) {
+        return '<div class="lyrics__line" data-act="lyric" data-i="' + i + '">' + esc(l.text) + '</div>';
+      }).join('') + '</div>';
+    }).catch(function () {
+      state.lyrics = null;
+      if (box) box.innerHTML = '<p class="hint" style="padding-top:38vh;text-align:center">Captions unreachable in ' + (IS_EXTENSION ? 'extension' : 'web') + ' mode.</p>';
+    });
+  }
+  function syncLyrics(ms) {
+    if (!state.lyrics || !state.fullOpen || state.fullTab !== 'lyrics') return;
+    var box = $('#lyr'); if (!box || !box.firstElementChild) return;
+    var idx = -1;
+    for (var i = 0; i < state.lyrics.length; i++) { if (ms + 100 >= state.lyrics[i].start) idx = i; else break; }
+    if (idx === state.lyricIndex) return;
+    state.lyricIndex = idx;
+    var kids = box.firstElementChild.children;
+    for (var k = 0; k < kids.length; k++) {
+      kids[k].classList.toggle('is-on', k === idx);
+      kids[k].classList.toggle('is-past', k < idx);
+    }
+    if (kids[idx]) kids[idx].scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }
+
+  /* ------------------------------------------------------------------ layout */
+  function setViewMode(mode, quiet) {
+    if (mode !== 'grid' && mode !== 'list') return;
+    var changed = state.viewMode !== mode;
+    state.viewMode = mode;
+    Store.set(KEYS.VIEW, mode);
+    Store.saveSettings({ viewMode: mode });
+    $$('[data-act="view"]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-view') === mode)); });
+    if (changed) {
+      var top = $('#view').scrollTop;
+      paintSearchOrView();
+      $('#view').scrollTop = top;
+      if (!quiet) toast(mode === 'grid' ? 'Grid layout' : 'List layout', mode === 'grid' ? I.grid : I.list);
+    }
+  }
+
+  /* ------------------------------------------------------------------- actions */
+  function go(view) {
+    state.view = view;
+    $$('.nav-item').forEach(function (n) { n.classList.toggle('is-active', n.getAttribute('data-nav') === view); });
+    $('#scrim').classList.remove('is-open');
+    document.body.removeAttribute('data-drawer');
+    if (!VIEWS[view]) view = 'home';
+    state.view = view;
+    VIEWS[view]();
+    $('#view').scrollTop = 0;
+  }
+  function openSearch(q) {
+    state.view = 'search';
+    $$('.nav-item').forEach(function (n) { n.classList.remove('is-active'); });
+    $('#q').value = q;
+    VIEWS.search(q);
+  }
+
+  function onAction(act, el, e) {
+    var t = trackOf(el);
+    switch (act) {
+      case 'nav': go(el.getAttribute('data-nav')); break;
+      case 'view': setViewMode(el.getAttribute('data-view')); break;
+      case 'seed': openSearch(el.getAttribute('data-seed')); break;
+      case 'play': if (t) play(t, {}); break;
+      case 'queue-add': if (t) enqueue(t); break;
+      case 'jump': state.index = parseInt(el.getAttribute('data-i'), 10) || 0; loadCurrent({}); break;
+      case 'q-remove': {
+        var i = parseInt(el.getAttribute('data-i'), 10);
+        state.queue.splice(i, 1);
+        if (i < state.index) state.index--;
+        else if (i === state.index) state.index = Math.min(state.index, state.queue.length - 1);
+        paintQueue(); paintBar();
+        break;
+      }
+    case 'theme':
+      setTheme(el.getAttribute('data-theme'));
+      break;
+    case 'more-rows':
+      // A hundred rows is not a better first screen than forty.
+      state.unlimited[state.view + '|' + (state.lastQuery || '')] = true;
+      paintSearchOrView();
+      break;
+      case 'queue-clear': state.queue = []; state.index = -1; video.pause(); state.lyrics = null; paintQueue(); paintBar(); paintPlay(); toast('Queue cleared', I.trash); break;
+      case 'love': {
+        var target = t || cur();
+        if (!target) { toast('Nothing to love yet', I.heartO); break; }
+        var added = toggleFav(target);
+        el.classList.add('love-pop');
+        setTimeout(function () { el.classList.remove('love-pop'); }, 460);
+        if (added !== null) {
+          paintBar();
+          $$('[data-rid="' + target.__rid + '"]').forEach(function (b) {
+            if (b.getAttribute('data-act') !== 'love') return;
+            b.classList.toggle('is-loved', added);
+            b.innerHTML = svg(added ? I.heart : I.heartO);
+          });
+          if (state.view === 'favorites') VIEWS.favorites();
+        }
+        break;
+      }
+      case 'blacklist': {
+        if (!t) break;
+        if (state.blacklist.indexOf(t.videoId) < 0) state.blacklist.push(t.videoId);
+        Store.set(KEYS.BLACK, state.blacklist);
+        state.results = state.results.filter(function (r) { return r.videoId !== t.videoId; });
+        state.queue = state.queue.filter(function (q) { return q.videoId !== t.videoId; });
+        toast('Hidden — Lyra will stop recommending it', I.close);
+        paintSearchOrView(); paintQueue();
+        break;
+      }
+      case 'play-results': playAll(state.results, 0); break;
+      case 'play-favs': playAll(state.favorites.slice().reverse(), 0); break;
+      case 'play-shuffle': { var pool = Feed.forYou().slice(); for (var j = pool.length - 1; j > 0; j--) { var r = Math.floor(Math.random() * (j + 1)); var x = pool[j]; pool[j] = pool[r]; pool[r] = x; } playAll(pool, 0); break; }
+      case 'toggle': toggle(); break;
+      case 'next': next(); break;
+      case 'prev': prev(); break;
+      case 'shuffle': {
+        if (state.queue.length < 2) { toast('Queue too short to shuffle', I.shuffle); break; }
+        var c = state.queue.splice(state.index, 1)[0];
+        for (var a = state.queue.length - 1; a > 0; a--) { var b2 = Math.floor(Math.random() * (a + 1)); var tmp = state.queue[a]; state.queue[a] = state.queue[b2]; state.queue[b2] = tmp; }
+        if (c) state.queue.unshift(c);
+        state.index = 0; paintQueue(); toast('Shuffled ' + state.queue.length + ' tracks', I.shuffle);
+        break;
+      }
+      case 'repeat': {
+        var order = ['off', 'all', 'one'];
+        state.repeat = order[(order.indexOf(state.repeat) + 1) % order.length];
+        var rb = $('#btn-repeat');
+        rb.classList.toggle('is-on', state.repeat !== 'off');
+        rb.title = 'Repeat: ' + state.repeat;
+        toast('Repeat ' + state.repeat, I.repeat);
+        break;
+      }
+      case 'radio-rebuild': { var s = cur(); if (s) { state.radioSeed = s; buildRadio(s); } else toast('Play a track first', I.radio); break; }
+      case 'queue': state.queueOpen = !state.queueOpen; $('#drawer').classList.toggle('is-open', state.queueOpen); $('#btn-queue').classList.toggle('is-on', state.queueOpen); paintQueue(); break;
+      case 'full-open': openFull(true); break;
+      case 'full-close': openFull(false); break;
+      case 'full-tab': openFull(true); setFullTab(el.getAttribute('data-tab')); break;
+      case 'lyrics': openFull(true); setFullTab('lyrics'); if (state.captionUrl && !state.lyrics) loadLyrics(state.captionUrl); break;
+      case 'lyric': {
+        var li = parseInt(el.getAttribute('data-i'), 10);
+        if (state.lyrics && state.lyrics[li]) { video.currentTime = state.lyrics[li].start / 1000; playVideo(false); }
+        break;
+      }
+      case 'pip': {
+        var slot = $('#media-slot');
+        var on = slot.getAttribute('data-open') !== '1';
+        slot.setAttribute('data-open', on ? '1' : '0');
+        slot.style.display = on ? 'block' : 'none';
+        $('#btn-pip').classList.toggle('is-on', on);
+        break;
+      }
+      case 'pip-close': { $('#media-slot').setAttribute('data-open', '0'); $('#media-slot').style.display = 'none'; $('#btn-pip').classList.remove('is-on'); break; }
+      case 'mute': state.muted = !state.muted; video.muted = state.muted; paintVol(); break;
+      case 'rail-collapse': { var on2 = Store.settings().rail !== 'collapsed'; Store.saveSettings({ rail: on2 ? 'collapsed' : 'expanded' }); document.body.dataset.rail = on2 ? 'collapsed' : 'expanded'; break; }
+      case 'rail-drawer': {
+        if (window.innerWidth <= 980) { document.body.setAttribute('data-drawer', 'rail'); $('#scrim').classList.add('is-open'); }
+        else { var c2 = Store.settings().rail !== 'collapsed'; Store.saveSettings({ rail: c2 ? 'collapsed' : 'expanded' }); document.body.dataset.rail = c2 ? 'collapsed' : 'expanded'; }
+        break;
+      }
+      case 'incognito': { var s2 = Store.settings(); Store.saveSettings({ incognito: !s2.incognito }); applySettings(); toast(!s2.incognito ? 'Incognito on — nothing is saved' : 'Incognito off', I.incog); break; }
+      case 'settings': $('#sheet-settings').classList.add('is-open'); break;
+      case 'sheet-close': { var w = el.closest('.sheet-wrap'); if (w) w.classList.remove('is-open'); break; }
+      case 'wipe': [KEYS.HISTORY, KEYS.FAV, KEYS.BLACK, KEYS.TOP, KEYS.VIEW, KEYS.QUEUE, KEYS.SET].forEach(function (k) { Store.remove(k); }); reloadFromStorage(); toast('Local data cleared', I.trash); break;
+      case 'open-tab': {
+        try { chrome.tabs.create({ url: chrome.runtime.getURL('app.html?mode=tab') }); }
+        catch (err) { window.open(location.pathname + '?mode=tab', '_blank'); }
+        break;
+      }
+      case 'open-webapp': { if (IS_EXTENSION && chrome.tabs) chrome.tabs.create({ url: CFG.webAppUrl }); else window.open(CFG.webAppUrl, '_blank'); break; }
+      case 'install-ext': {
+        if (CFG.installUrl) { window.open(CFG.installUrl, '_blank'); }
+        else toast('Extension build is in the zip — chrome://extensions → Load unpacked', I.spark);
+        break;
+      }
+      case 'focus-search': $('#q').focus(); $('#q').select(); break;
+      case 'cmdk': openCmdk(); break;
+      case 'test-proxy': testProxy(); break;
+      case 'more': if (el.getAttribute('data-more')) go(el.getAttribute('data-more')); break;
+    }
+  }
+
+  function bindEvents() {
+    document.addEventListener('click', function (e) {
+      var el = e.target.closest ? e.target.closest('[data-act]') : null;
+      if (!el) return;
+      var act = el.getAttribute('data-act');
+      if (act === 'love' || act === 'queue-add' || act === 'blacklist' || act === 'q-remove' || act === 'view') e.stopPropagation();
+      if (act === 'nav' || act === 'seed' || act === 'sheet-close') e.preventDefault();
+      onAction(act, el, e);
+    });
+    document.addEventListener('keydown', function (e) {
+      var el = e.target.closest ? e.target.closest('[data-act="play"],[data-act="seed"]') : null;
+      if (el && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onAction(el.getAttribute('data-act'), el, e); }
+    });
+    bindScrub('#t-bar', function (p) { if (video.duration) video.currentTime = video.duration * p; });
+    bindScrub('#ov-bar', function (p) { if (video.duration) video.currentTime = video.duration * p; });
+    bindScrub('#vol-bar', function (p) {
+      state.volume = Math.round(p * 100); state.muted = state.volume === 0;
+      video.volume = state.volume / 100; video.muted = state.muted;
+      paintVol(); Store.saveSettings({ volume: state.volume });
+    });
+    var q = $('#q');
+    q.addEventListener('keydown', function (e) { if (e.key === 'Enter' && q.value.trim()) { openSearch(q.value.trim()); closeCmdk(); } });
+    var deb = null;
+    q.addEventListener('input', function () {
+      clearTimeout(deb);
+      var v = q.value.trim();
+      if (v.length > 2) deb = setTimeout(function () { openSearch(v); }, 700);
+    });
+    document.addEventListener('keydown', globalKeys);
+    document.addEventListener('error', function (e) {
+      var img = e.target;
+      if (img && img.tagName === 'IMG' && img.hasAttribute('data-cover') && img.dataset.fell !== '1') {
+        var holder = img.closest('[data-rid]');
+        var t = trackOf(holder);
+        img.dataset.fell = '1';
+        img.src = thumbFor(t || { videoId: 'broken', title: 'Lyra' });
+      }
+    }, true);
+    $('#scrim').addEventListener('click', function () { document.body.removeAttribute('data-drawer'); $('#scrim').classList.remove('is-open'); });
+    window.addEventListener('pagehide', flushQueue);
+    document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') flushQueue(); });
+    window.addEventListener('resize', function () {
+      var m = $('#rail-mobile'); if (m) m.style.display = window.innerWidth <= 980 ? 'grid' : 'none';
+    });
+    window.dispatchEvent(new Event('resize'));
+
+    $$('#sheet-settings [data-set]').forEach(function (el) {
+      var key = el.getAttribute('data-set');
+      if (el.classList.contains('switch')) {
+        el.addEventListener('click', function () {
+          var on = el.getAttribute('aria-checked') !== 'true';
+          el.setAttribute('aria-checked', String(on));
+          var patch = {}; patch[key] = on; Store.saveSettings(patch);
+          if (key === 'incognito') applySettings();
+          toast(key + ' ' + (on ? 'on' : 'off'), I.gear);
+        });
+      } else if (el.tagName === 'SELECT') {
+        el.addEventListener('change', function () { var p = {}; p[key] = el.value; Store.saveSettings(p); toast('Stream: ' + el.value, I.video); });
+      } else if (el.type === 'range') {
+        el.addEventListener('input', function () { var p = {}; p[key] = parseInt(el.value, 10); Store.saveSettings(p); applyPip(); });
+      } else if (el.type === 'color') {
+        // picking a swatch colour is a theme choice, so it flips the mode to custom
+        el.addEventListener('input', function () { Store.saveSettings({ accent: el.value, theme: 'custom' }); document.documentElement.dataset.theme = 'custom'; applyAccent(); markThemeSwatches(); });
+      }
+    });
+    var pr = $('#set-proxy');
+    if (pr) pr.addEventListener('change', function () {
+      Store.saveSettings({ proxy: pr.value.trim() });
+      T.key = null; T.ok = false; paintTransport();
+      probe();
+    });
+  }
+  function bindScrub(sel, onPct) {
+    var bar = $(sel); if (!bar) return;
+    function apply(ev) {
+      var r = bar.getBoundingClientRect();
+      if (r.width) onPct(Math.min(1, Math.max(0, (ev.clientX - r.left) / r.width)));
+    }
+    bar.addEventListener('pointerdown', function (ev) {
+      try { bar.setPointerCapture(ev.pointerId); } catch (e) {}
+      apply(ev);
+      var mv = function (e2) { apply(e2); };
+      var up = function () { bar.removeEventListener('pointermove', mv); bar.removeEventListener('pointerup', up); bar.removeEventListener('pointercancel', up); };
+      bar.addEventListener('pointermove', mv); bar.addEventListener('pointerup', up); bar.addEventListener('pointercancel', up);
+    });
+  }
+  function globalKeys(e) {
+    if (e.key === 'Escape') {
+      if ($('#cmdk').classList.contains('is-open')) { closeCmdk(); return; }
+      if ($('#sheet-settings').classList.contains('is-open')) { $('#sheet-settings').classList.remove('is-open'); return; }
+      if (state.fullOpen) { openFull(false); return; }
+    }
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); openCmdk(); return; }
+    if (/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
+    if (e.key === ' ' || e.code === 'Space') { e.preventDefault(); toggle(); return; }
+    switch (e.key.toLowerCase()) {
+      case 'arrowright': if (e.shiftKey) next(); else { video.currentTime = Math.min(video.duration || 0, video.currentTime + 5); } break;
+      case 'arrowleft': if (e.shiftKey) prev(); else video.currentTime = Math.max(0, video.currentTime - 5); break;
+      case 'arrowup': e.preventDefault(); state.volume = Math.min(100, state.volume + 5); video.volume = state.volume / 100; state.muted = false; video.muted = false; paintVol(); break;
+      case 'arrowdown': e.preventDefault(); state.volume = Math.max(0, state.volume - 5); video.volume = state.volume / 100; paintVol(); break;
+      case 'l': case 'k': onAction('love', $('#bar-love'), e); break;
+      case 'q': onAction('queue', $('#btn-queue'), e); break;
+      case 'y': onAction('lyrics', $('#btn-lyr'), e); break;
+      case 'f': openFull(!state.fullOpen); break;
+      case 'g': setViewMode(state.viewMode === 'grid' ? 'list' : 'grid'); break;
+      case 't': {                                   // cycle presets; auto is always first
+        var ids = THEMES.map(function (x) { return x.id; });
+        var at = ids.indexOf(Store.settings().theme || 'signature');
+        setTheme(ids[(at + 1) % ids.length]);
+        break;
+      }
+      case 'v': onAction('pip', $('#btn-pip'), e); break;
+      case '/': e.preventDefault(); $('#q').focus(); break;
+    }
+  }
+  function openFull(on) {
+    state.fullOpen = !!on;
+    $('#overlay').classList.toggle('is-open', state.fullOpen);
+    if (!state.fullOpen && state.fullTab === 'video') setFullTab('art');
+    if (state.fullOpen) setFullTab(state.fullTab);
+  }
+  function setFullTab(tab) {
+    state.fullTab = tab;
+    $$('#overlay [role="tab"]').forEach(function (b) { b.setAttribute('aria-selected', String(b.getAttribute('data-tab') === tab)); });
+    ['art', 'video', 'lyrics', 'queue'].forEach(function (k) { $('#pane-' + k).classList.toggle('is-on', k === tab); });
+    var slot = $('#ov-video-slot'), media = $('#video'), pip = $('#media-slot');
+    if (tab === 'video') { slot.appendChild(media); }
+    else if (media.parentNode !== slot) { var card = $('#pip-card'); if (card) card.insertBefore(media, card.firstChild); }
+    if (tab === 'video') pip.style.display = 'none';
+    else if (pip.getAttribute('data-open') === '1') pip.style.display = 'block';
+    if (tab === 'lyrics' && !state.lyrics && state.captionUrl) loadLyrics(state.captionUrl);
+    if (tab === 'queue') paintQueue(state.__ovQDirty);
+  }
+  function applyPip() {
+    var s = Store.settings();
+    $('#media-slot').style.width = (s.pipW || 280) + 'px';
+    var v = $('#video'); if (v) v.style.width = '100%';
+  }
+  function applySettings() {
+    var s = Store.settings();
+    document.documentElement.dataset.theme = s.theme || 'signature';
+    // Adaptive must already be true on first paint: if the queue is restored, the dock
+    // shows a track and its cover should own the accent straight away.
+    applyPip();
+    markThemeSwatches();
+    applyAccent();
+    document.body.dataset.rail = s.rail === 'collapsed' ? 'collapsed' : 'expanded';
+    $('#incog-btn').classList.toggle('is-on', !!s.incognito);
+    $$('#sheet-settings [data-set]').forEach(function (el) {
+      var k = el.getAttribute('data-set');
+      if (el.classList.contains('switch')) el.setAttribute('aria-checked', String(!!s[k]));
+      else if (el.tagName === 'SELECT') el.value = s[k] || 'auto';
+      else if (el.type === 'range') el.value = s[k] || 280;
+      else if (el.type === 'color') el.value = s.accent || '#ff4655';
+    });
+    var pr = $('#set-proxy'); if (pr) pr.value = s.proxy || '';
+    video.volume = (s.volume == null ? 80 : s.volume) / 100;
+    state.volume = s.volume == null ? 80 : s.volume;
+    paintVol();
+    $$('[data-act="view"]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-view') === state.viewMode)); });
+  }
+  function markThemeSwatches() {
+    var active = Store.settings().theme || 'signature';
+    $$('#sheet-settings [data-act="theme"]').forEach(function (b) {
+      var on = b.getAttribute('data-theme') === active;
+      b.classList.toggle('is-on', on);
+      b.setAttribute('aria-pressed', String(on));
+    });
+    var note = $('#theme-note');
+    if (note) {
+      var t = THEMES.filter(function (x) { return x.id === active; })[0];
+      note.textContent = t ? (t.note ? t.label + ' — ' + t.note : t.label) : active;
+    }
+  }
+
+  /* -------------------------------------------------------------- command k */
+  var cmdkSel = 0, cmdkItems = [], cmdkTimer = null;
+  var ACTIONS = [
+    { label: 'Toggle grid / list layout', hint: 'G', icon: I.grid, run: function () { setViewMode(state.viewMode === 'grid' ? 'list' : 'grid'); } },
+    { label: 'Play / pause', hint: 'Space', icon: I.play, run: toggle },
+    { label: 'Love this track', hint: 'L', icon: I.heart, run: function () { onAction('love', $('#bar-love')); } },
+    { label: 'Show queue', hint: 'Q', icon: I.queue, run: function () { onAction('queue', $('#btn-queue')); } },
+    { label: 'Full-screen player', hint: 'F', icon: I.expand, run: function () { openFull(!state.fullOpen); } },
+    { label: 'Theme — adaptive from artwork', hint: 'T', icon: I.spark, run: function () { setTheme('auto'); } },
+    { label: 'Theme — choose a colour', icon: I.settings, run: function () { $('#sheet-settings').classList.add('is-open'); $('#theme-note').scrollIntoView({ block: 'center' }); } },
+    { label: 'Start radio from this track', hint: 'R', icon: I.radio, run: function () { onAction('radio-rebuild', $('#drawer')); } },
+    { label: 'Settings', icon: I.gear, run: function () { $('#sheet-settings').classList.add('is-open'); } },
+    { label: 'Incognito session', icon: I.incog, run: function () { onAction('incognito', $('#incog-btn')); } },
+    { label: 'Re-check YouTube connection', icon: I.bolt, run: probe }
+  ];
+  function openCmdk() { $('#cmdk').classList.add('is-open'); var i = $('#cmdk-q'); i.value = ''; renderCmdk(''); setTimeout(function () { i.focus(); }, 30); }
+  function closeCmdk() { $('#cmdk').classList.remove('is-open'); }
+  function renderCmdk(q) {
+    q = String(q || '').trim();
+    var low = q.toLowerCase();
+    var nav = [['Home', 'home', I.home], ['Discover', 'discover', I.compass], ['Top songs', 'top', I.chart], ['Radio', 'radio', I.radio], ['Favorites', 'favorites', I.heart]]
+      .filter(function (n) { return !q || n[0].toLowerCase().indexOf(low) > -1; })
+      .map(function (n) { return { label: n[0], hint: 'view', icon: n[2], run: function () { go(n[1]); } }; });
+    var h = Store.history();
+    var recent = (h.searches || []).filter(function (s) { return !q || s.q.toLowerCase().indexOf(low) > -1; }).slice(0, 4)
+      .map(function (s) { return { label: s.q, hint: rel(s.ts), icon: I.search, run: function () { openSearch(s.q); } }; });
+    var acts = ACTIONS.filter(function (a) { return !q || a.label.toLowerCase().indexOf(low) > -1; });
+    cmdkItems = nav.concat(recent, acts);
+    cmdkSel = 0;
+    paintCmdk();
+    if (q.length > 1) {
+      var li = $('#cmdk-list');
+      li.insertAdjacentHTML('afterbegin', '<li style="color:var(--text-4)">' + svg(I.search) + '<span>Searching YouTube…</span></li>');
+      clearTimeout(cmdkTimer);
+      cmdkTimer = setTimeout(function () {
+        Api.search(q).then(function (res) {
+          var found = res.slice(0, 8).map(function (t) {
+            return { label: t.title + ' — ' + t.channel, hint: t.duration || '', icon: I.play, run: function () { play(t, {}); } };
+          });
+          cmdkItems = found.concat(nav, recent, acts);
+          cmdkSel = 0; paintCmdk();
+        }).catch(function () {
+          cmdkItems = [{ label: 'Search “' + q + '” on YouTube', hint: 'enter', icon: I.search, run: function () { openSearch(q); } }].concat(nav, acts);
+          cmdkSel = 0; paintCmdk();
+        });
+      }, 420);
+    }
+  }
+  function paintCmdk() {
+    var list = $('#cmdk-list'); if (!list) return;
+    list.innerHTML = cmdkItems.map(function (it, i) {
+      return '<li data-i="' + i + '" aria-selected="' + (i === cmdkSel) + '">' + svg(it.icon || I.bolt) +
+        '<span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(it.label) + '</span>' +
+        (it.hint ? '<small>' + esc(it.hint) + '</small>' : '') + '</li>';
+    }).join('');
+  }
+  function pickCmdk(i) {
+    var it = cmdkItems[i];
+    closeCmdk();
+    if (it) { try { it.run(); } catch (e) {} }
+  }
+
+  async function testProxy() {
+    var out = $('#proxy-result');
+    if (out) out.textContent = 'Testing…';
+    try {
+      var list = await Api.search('blinding lights');
+      if (out) out.innerHTML = '&#10003; working — ' + list.length + ' results via <code>' + esc(T.label) + '</code>';
+      state.demo = false; paintTransport();
+      if (!list.length) toast('Proxy answered but returned nothing', I.bolt);
+    } catch (e) {
+      if (out) out.innerHTML = '&#9888;&#65039; not usable — ' + esc(String(e.message || e)) + '. Deploy the worker, or install the extension.';
+    }
+  }
+
+  /* -------------------------------------------------------------------- probe */
+  function probe() {
+    T.ok = false; T.label = 'connecting…'; paintTransport();
+    clearTimeout(probe.timer);
+    probe.timer = setTimeout(function () {
+      if (!T.ok) { state.demo = true; paintTransport(); if (state.view === 'home') VIEWS.home(); }
+    }, CFG.demoAfterMs);
+    return Api.search('lyra').then(function (res) {
+      clearTimeout(probe.timer);
+      state.demo = false;
+      paintTransport();
+      if (res && res.length) toast('YouTube connected', I.bolt);
+      if (state.view === 'home') VIEWS.home();
+      if (!state.topSongs.length) Api.topSongs().then(function (l) { state.topSongs = l; }).catch(function () {});
+    }).catch(function () {
+      clearTimeout(probe.timer);
+      T.ok = false; T.label = IS_EXTENSION ? 'blocked — check rules' : 'blocked';
+      state.demo = true;
+      paintTransport();
+      if (state.view === 'home') VIEWS.home();
+    });
+  }
+
+  function reloadFromStorage() {
+    state.favorites = Store.favorites();
+    state.history = Store.history().plays || [];
+    state.blacklist = Store.blacklist();
+    state.viewMode = Store.get(KEYS.VIEW, null) || (Store.settings().viewMode || 'grid');
+    var fc = $('#fav-count'); if (fc) fc.textContent = state.favorites.length;
+    applySettings();
+    paintSearchOrView();
+    paintTransport();
+  }
+
+  /* --------------------------------------------------------------------- boot */
+  function boot() {
+    mount();
+    bindPlayer();
+    bindEvents();
+    applyPip();
+    return Store.hydrate().then(function () {
+      state.favorites = Store.favorites();
+      state.history = Store.history().plays || [];
+      state.blacklist = Store.blacklist();
+      state.viewMode = Store.get(KEYS.VIEW, null) || (Store.settings().viewMode || 'grid');
+      state.topSongs = (Store.get(KEYS.TOP, null) || {}).data || [];
+      $('#fav-count').textContent = state.favorites.length;
+      applySettings();
+      if (params.get('queue') !== 'fresh' && restoreQueue()) { paintBar(); paintQueue(); paintPlay(); }
+      // colour comes after the first paint — the restored queue is the thing that must
+      // land on the same frame, and sampling an image must not sit in that path
+      if (cur()) setTimeout(function () { sampleAccent(cur()); }, 0);
+      go(params.get('view') || 'home');
+      if (params.get('demo') === '1') { state.demo = true; paintTransport(); }
+      else probe();
+      var q = params.get('q');
+      if (q) openSearch(q);
+    });
+  }
+
+  // tiny public surface: console / host page / other extension code
+  window.Lyra = {
+    version: CFG.version, isExtension: IS_EXTENSION, surface: SURFACE,
+    state: state, store: Store, api: Api, config: CFG,
+    play: play, playAll: playAll, next: next, prev: prev, toggle: toggle,
+    setView: go, setViewMode: setViewMode, reloadFromStorage: reloadFromStorage,
+    saveQueue: saveQueue, flushQueue: flushQueue, restoreQueue: restoreQueue,
+    setTheme: setTheme, palette: palette, sampleAccent: sampleAccent, themeHue: function () { return { h: state.__hue, s: state.__sat }; },
+    toggleFavorite: toggleFav, toast: toast, openFull: openFull, probe: probe
+  };
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+
+  </script>
+  <noscript>
+    <div style="position:fixed;inset:0;display:grid;place-items:center;background:#06060a;color:#f5f5f8;font-family:system-ui;text-align:center;padding:24px">
+      <div><h1 style="font-size:22px;margin-bottom:8px">Lyra</h1><p style="color:#a9a9b8">This player needs JavaScript enabled.</p></div>
+    </div>
+  </noscript>
+</body>
+</html>
